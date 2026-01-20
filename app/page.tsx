@@ -1,49 +1,163 @@
-import { stackServerApp } from "@/stack/server";
-import { SignIn } from "@stackframe/stack";
-import { redirect } from "next/navigation";
+import { BriefcaseBusiness, LucideIcon, ShoppingCart } from "lucide-react";
 
-export default async function Home() {
-  const user = await stackServerApp.getUser();
+interface ChoiceCardProps {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  buttonText: string;
+  link: string;
+}
 
-  // Validar correo autorizado
-  const allowedEmails = process.env.ALLOWED_EMAILS?.split(",");
-
-  if (user && allowedEmails?.includes(user.primaryEmail!)) {
-    redirect("/clients");
-  }
-
-  // Si está autenticado pero no autorizado
-  if (user && !allowedEmails?.includes(user.primaryEmail!)) {
-    redirect("/unauthorized");
-  }
-
-
+export default function StorefrontEntry() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center">
-      <div className="container mx-auto px-4 py-16">
-        <div className="text-center">
-          <h1 className="text-5xl font-bold text-gray-900 mb-6">
-            Gestion de clientes tienda DAGO
-          </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Bienvenido al login de Tienda DAGO
-          </p>
-          <div className="flex gap-4 justify-center">
-            <SignIn
-              automaticRedirect={true}
-              mockProject={{
-                config: {
-                  signUpEnabled: false,
-                  credentialEnabled: false,
-                  passkeyEnabled: false,
-                  magicLinkEnabled: false,
-                  oauthProviders: [{ id: "google" }],
-                },
-              }}
+    <div className="bg-background-light dark:bg-background-dark font-display text-white overflow-x-hidden">
+      {/* Contenedor Principal con Fondo */}
+      <div
+        className="relative min-h-screen w-full flex flex-col bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage:
+            'url("https://lh3.googleusercontent.com/aida-public/AB6AXuAYLx5U8bIFkHZJFYzHoekqIhxm-sYalhCoePs9JG8kqtLIOiHchK__w-QIPRZDpV4P5NEFgUnc7zwNc5jus1K48QWgapL-ctbuc8eAQ1NaAUSiw-YI7xGHVWamLagJJXbymPGWQPGQrXZoMux1uWbtK1bFulCahnIfOkZHqvHz3VSTLPQydK4KhTzp2VugCMItXhkcyEommYzcec01sGMbXBmjXC-P_J4BUWiXCRjTwNImd_xB2PsknGoUd6z2F-VjZ6WcCdOxq9c")',
+        }}
+      >
+        {/* Overlay para legibilidad */}
+        <div className="absolute inset-0 custom-gradient-overlay"></div>
+
+        {/* Navegación */}
+        <header className="relative z-10 w-full px-6 lg:px-20 py-8 flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="size-8 text-gold">
+              <svg
+                fill="none"
+                viewBox="0 0 48 48"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  clipRule="evenodd"
+                  d="M24 0.757355L47.2426 24L24 47.2426L0.757355 24L24 0.757355ZM21 35.7574V12.2426L9.24264 24L21 35.7574Z"
+                  fill="currentColor"
+                  fillRule="evenodd"
+                ></path>
+              </svg>
+            </div>
+            <h1 className="text-white text-xl font-bold tracking-widest uppercase">
+              Venuti's
+            </h1>
+          </div>
+          <div className="flex gap-8 items-center">
+            <a
+              className="text-sm tracking-widest uppercase hover:text-gold transition-colors hidden md:block"
+              href="/about-us"
+            >
+              Nuestra historia
+            </a>
+            <a
+              href="/admin-login"
+              className="bg-primary px-6 py-2 rounded-lg text-sm font-bold tracking-widest uppercase hover:bg-opacity-80 transition-all border border-gold/30"
+            >
+              Admin Login
+            </a>
+          </div>
+        </header>
+
+        {/* Contenido Principal */}
+        <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-12">
+          <div className="text-center mb-16 space-y-4">
+            <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-white text-shadow-elegant">
+              Sabores Exquisitos. Tradición Atemporal.
+            </h1>
+            <p className="text-gold text-lg md:text-xl tracking-widest italic opacity-90">
+              Selecciona tu experiencia de compra
+            </p>
+          </div>
+
+          {/* Tarjetas de Selección */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl w-full">
+            <ChoiceCard
+              icon={ShoppingCart}
+              title="Compradores Individuales"
+              description="Lleva a casa el auténtico sabor de nuestras pastas artesanales elaboradas con sémola de la mejor calidad. Explora nuestra cuidada selección de variedades frescas y secas, creadas para realzar cada plato con textura y sabor únicos."
+              buttonText="Comprar Ahora"
+              link="/productos"
+            />
+            <ChoiceCard
+              icon={BriefcaseBusiness}
+              title="Socios Comerciales"
+              description="Eleva tu propuesta gastronómica con nuestra colección premium al por mayor. Ofrecemos soluciones personalizadas para restaurantes, boutiques especializadas y regalos gourmet que buscan diferenciarse con productos auténticos y de calidad superior."
+              buttonText="Consulta Mayorista"
+              link="/mayoristas"
             />
           </div>
-        </div>
+        </main>
+
+        {/* Footer */}
+        <footer className="relative z-10 w-full px-6 py-10">
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 border-t border-gold/20 pt-10">
+            <div className="flex gap-8">
+              <FooterLink text="About Us" />
+              <FooterLink text="Shipping Policy" />
+              <FooterLink text="Terms of Service" />
+            </div>
+
+            <div className="flex gap-6 items-center">
+              <SocialIcon icon="public" />
+              <SocialIcon icon="alternate_email" />
+              <SocialIcon icon="share_reviews" />
+            </div>
+
+            <p className="text-xs tracking-widest uppercase text-gray-500">
+              © 2024 Venuti's Gourmet. All rights reserved.
+            </p>
+          </div>
+        </footer>
       </div>
     </div>
+  );
+}
+
+// Sub-componentes para mantener el código limpio
+function ChoiceCard({
+  icon: Icon,
+  title,
+  description,
+  buttonText,
+  link,
+}: ChoiceCardProps) {
+  return (
+    <div className="group relative bg-charcoal/80 backdrop-blur-md gold-border p-10 rounded-xl flex flex-col items-center text-center transition-transform hover:-translate-y-2 duration-500 shadow-2xl">
+      <div className="mb-8 p-4 bg-background-dark rounded-full border border-gold/20 text-gold group-hover:scale-110 transition-transform duration-500">
+        <Icon className="w-10 h-10 " />
+      </div>
+      <h2 className="text-2xl font-bold mb-4 tracking-wide uppercase text-white">
+        {title}
+      </h2>
+      <p className="text-gray-300 text-sm leading-relaxed mb-10 max-w-xs">
+        {description}
+      </p>
+      <a
+        href={link}
+        className="w-full bg-primary py-4 rounded-lg font-bold tracking-[0.2em] uppercase text-white hover:bg-opacity-90 transition-all active:scale-95 shadow-lg"
+      >
+        {buttonText}
+      </a>
+    </div>
+  );
+}
+
+function FooterLink({ text }: { text: string }) {
+  return (
+    <a
+      className="text-xs tracking-widest uppercase text-gray-400 hover:text-gold"
+      href="#"
+    >
+      {text}
+    </a>
+  );
+}
+
+function SocialIcon({ icon }: { icon: string }) {
+  return (
+    <a className="text-gray-400 hover:text-gold" href="#">
+      <span className="material-symbols-outlined">{icon}</span>
+    </a>
   );
 }
