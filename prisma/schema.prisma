@@ -24,6 +24,7 @@ model Cliente {
   direcciones   Direccion[]
   transacciones Transaccion[]
   fidelidades   Fidelidad[]
+  resenas       Resena[] // reseñas que deja el cliente
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -57,6 +58,7 @@ model Producto {
   stock       Int
   inventarios Inventario[]
   detalles    DetalleCompra[]
+  resenas     Resena[] // reseñas que recibe el producto
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -73,7 +75,7 @@ model Inventario {
 
 model Transaccion {
   id          Int               @id @default(autoincrement())
-  numeroOrden String            @unique // número de orden único
+  numeroOrden String            @unique
   clienteId   Int
   cliente     Cliente           @relation(fields: [clienteId], references: [id])
   fechaCompra DateTime          @default(now())
@@ -82,6 +84,7 @@ model Transaccion {
   detalles    DetalleCompra[]
   fidelidades Fidelidad[]
   pagos       Pago[]
+  resenas     Resena[]
 
   createdAt DateTime @default(now())
 }
@@ -139,4 +142,20 @@ enum MetodoPago {
   EfectivoUsd
   Zelle
   PagoMovil
+}
+
+model Resena {
+  id            Int      @id @default(autoincrement())
+  clienteId     Int
+  productoId    Int
+  transaccionId Int // reseña ligada a una transacción específica
+  estrellas     Int // de 1 a 5
+  comentario    String? // texto opcional
+  fecha         DateTime @default(now())
+
+  cliente     Cliente     @relation(fields: [clienteId], references: [id])
+  producto    Producto    @relation(fields: [productoId], references: [id])
+  transaccion Transaccion @relation(fields: [transaccionId], references: [id])
+
+  @@index([clienteId, productoId, transaccionId])
 }
