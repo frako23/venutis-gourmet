@@ -1,0 +1,142 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Cliente {
+  id            Int           @id @default(autoincrement())
+  tipoCliente   TipoCliente
+  nombre        String
+  apellido      String
+  celular       String
+  email         String        @unique
+  urbanizacion  String?
+  direcciones   Direccion[]
+  transacciones Transaccion[]
+  fidelidades   Fidelidad[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum TipoCliente {
+  mayorista
+  detal
+}
+
+model Direccion {
+  id        Int           @id @default(autoincrement())
+  clienteId Int
+  cliente   Cliente       @relation(fields: [clienteId], references: [id])
+  direccion String
+  tipo      TipoDireccion
+
+  createdAt DateTime @default(now())
+}
+
+enum TipoDireccion {
+  principal
+  secundaria
+  tercera
+}
+
+model Producto {
+  id          Int             @id @default(autoincrement())
+  nombre      String
+  precio      Float
+  stock       Int
+  inventarios Inventario[]
+  detalles    DetalleCompra[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Inventario {
+  id         Int      @id @default(autoincrement())
+  productoId Int
+  producto   Producto @relation(fields: [productoId], references: [id])
+  cantidad   Int
+  ubicacion  String?
+  fecha      DateTime @default(now())
+}
+
+model Transaccion {
+  id          Int               @id @default(autoincrement())
+  numeroOrden String            @unique // número de orden único
+  clienteId   Int
+  cliente     Cliente           @relation(fields: [clienteId], references: [id])
+  fechaCompra DateTime          @default(now())
+  montoTotal  Float
+  estado      EstadoTransaccion
+  detalles    DetalleCompra[]
+  fidelidades Fidelidad[]
+  pagos       Pago[]
+
+  createdAt DateTime @default(now())
+}
+
+enum EstadoTransaccion {
+  pagado
+  pendiente
+}
+
+model DetalleCompra {
+  id             Int   @id @default(autoincrement())
+  transaccionId  Int
+  productoId     Int
+  cantidad       Int
+  precioUnitario Float
+
+  transaccion Transaccion @relation(fields: [transaccionId], references: [id])
+  producto    Producto    @relation(fields: [productoId], references: [id])
+}
+
+model Fidelidad {
+  id             Int            @id @default(autoincrement())
+  clienteId      Int
+  cliente        Cliente        @relation(fields: [clienteId], references: [id])
+  transaccionId  Int?
+  transaccion    Transaccion?   @relation(fields: [transaccionId], references: [id])
+  fecha          DateTime       @default(now())
+  tipoMovimiento TipoMovimiento
+  puntos         Int
+}
+
+enum TipoMovimiento {
+  acumulacion
+  redencion
+}
+
+model Pago {
+  id            Int         @id @default(autoincrement())
+  transaccionId Int
+  transaccion   Transaccion @relation(fields: [transaccionId], references: [id])
+
+  montoBs    Float? // monto en bolívares
+  montoUsd   Float? // monto en dólares
+  tasaCambio Float? // tasa usada en la transacción
+
+  metodoPago MetodoPago
+  referencia String? // número de referencia (si aplica)
+  fechaPago  DateTime? // fecha del pago (si aplica)
+
+  createdAt DateTime @default(now())
+}
+
+enum MetodoPago {
+  TransferenciaBs
+  EfectivoUsd
+  Zelle
+  PagoMovil
+}
