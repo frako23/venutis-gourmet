@@ -56,6 +56,8 @@ model Producto {
   nombre      String
   precio      Float
   stock       Int
+  imgUrl      String?
+  descripcion String?
   inventarios Inventario[]
   detalles    DetalleCompra[]
   resenas     Resena[] // reseñas que recibe el producto
