@@ -1,28 +1,48 @@
 @import "tailwindcss";
 
 @theme {
-  /* Registro de colores para que funcionen como clases (text-primary, bg-gold, etc.) */
-  --color-primary: #6c1325;
-  --color-gold: #c6994f;
+  /* Registro de colores */
+  --color-primary: #5d4037;
+  --color-gold: #d4af37;
   --color-charcoal: #302d2b;
-  --color-cream: #edece6;
+  --color-cream: #faf7ed;
   --color-parchment: #f5eee5;
-  /* Fondos */
-  --color-background-light: #f5f2f0;
-  --color-background-dark: #1c1a17;
-  --color-background-alt: #262626;
 
-  /* Fuentes (opcional, si quieres usar font-display) */
+  /* Fondos */
+  --color-background-light: #f8f9fa;
+  --color-background-dark: #1c1a17;
+  --color-background-alt: #ffffff;
+
+  /* Fuentes */
   --font-display: "Noto Serif", serif;
+
+  /* --- ANIMACIONES V4 --- */
+  /* Registramos la animación para usarla como animate-loading-slide */
+  --animation-loading-slide: loading-slide 1.8s infinite ease-in-out;
 }
 
-/* Variables nativas para otros usos manuales */
+/* Definición de Keyframes (Estándar CSS) */
+@keyframes loading-slide {
+  0% {
+    left: -40%;
+    width: 30%;
+  }
+  50% {
+    width: 50%;
+  }
+  100% {
+    left: 110%;
+    width: 30%;
+  }
+}
+
+/* Variables nativas */
 :root {
   --primary-rgb: 108, 19, 37;
   --gold-rgb: 198, 153, 79;
 }
 
-/* En v4, @utility es la forma recomendada para clases personalizadas */
+/* Utilities */
 @utility gold-border {
   border: 1px solid var(--color-gold);
 }

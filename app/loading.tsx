@@ -1,167 +1,38 @@
-"use client";
-
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Edit, Package, Plus, Settings, Shirt } from "lucide-react";
-import { UserButton } from "@stackframe/stack";
-
-// Skeleton component for loading states
-function Skeleton({ className = "" }: { className?: string }) {
-  return (
-    <div className={`animate-pulse bg-gray-200 rounded ${className}`}></div>
-  );
-}
-
-// Sidebar component for loading state
-function LoadingSidebar() {
-  const navigation = [
-    // { name: "Panel", href: "/dashboard", icon: BarChart3 },
-    { name: "Clientes", href: "/clients", icon: Package },
-    { name: "Añadir cliente", href: "/add-client", icon: Plus },
-    { name: "Editar cliente", href: "/edit-client", icon: Edit },
-      // { name: "Settings", href: "/settings", icon: Settings },
-  ];
-
-  return (
-    <div className="fixed left-0 top-0 bg-gray-900 text-white w-64 min-h-screen p-6 z-10">
-      <div className="mb-8">
-        <div className="flex items-center space-x-2 mb-4">
-          <Shirt className="w-7 h-7" />
-          <span className="text-lg font-semibold">Tienda DAGO</span>
-        </div>
-      </div>
-
-      <nav className="space-y-1">
-        <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-          Clientes
-        </div>
-        {navigation.map((item) => {
-          const IconComponent = item.icon;
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              className="flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors hover:bg-gray-800 text-gray-300"
-            >
-              <IconComponent className="w-5 h-5" />
-              <span className="text-sm">{item.name}</span>
-            </Link>
-          );
-        })}
-      </nav>
-
-      <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-gray-700">
-        <div className="flex items-center justify-between">
-          <div className="flex-1 min-w-0">
-            <Skeleton className="h-4 w-16 mb-1" />
-            <Skeleton className="h-3 w-24" />
-          </div>
-          <div className="ml-3">
-            <UserButton />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Main content skeleton
-function MainContentSkeleton({
-  showSidebar = true,
-}: {
-  showSidebar?: boolean;
-}) {
-  return (
-    <main className={showSidebar ? "ml-64 p-8" : "p-8"}>
-      {/* Header skeleton */}
-      <div className="mb-8">
-        <Skeleton className="h-8 w-32 mb-2" />
-        <Skeleton className="h-4 w-64" />
-      </div>
-
-      {/* Key Metrics skeleton */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <Skeleton className="h-6 w-24 mb-6" />
-          <div className="grid grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="text-center">
-                <Skeleton className="h-8 w-16 mx-auto mb-2" />
-                <Skeleton className="h-4 w-20 mx-auto mb-1" />
-                <div className="flex items-center justify-center">
-                  <Skeleton className="h-3 w-8" />
-                  <Skeleton className="h-3 w-3 ml-1 rounded-full" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <Skeleton className="h-6 w-40" />
-          </div>
-          <Skeleton className="h-48 w-full" />
-        </div>
-      </div>
-
-      {/* Bottom Row skeleton */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Stock levels skeleton */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <Skeleton className="h-6 w-24" />
-          </div>
-          <div className="space-y-3">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div
-                key={i}
-                className="flex items-center justify-between p-3 rounded-lg bg-gray-50"
-              >
-                <div className="flex items-center space-x-3">
-                  <Skeleton className="w-3 h-3 rounded-full" />
-                  <Skeleton className="h-4 w-24" />
-                </div>
-                <Skeleton className="h-4 w-16" />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Efficiency skeleton */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <Skeleton className="h-6 w-20" />
-          </div>
-          <div className="flex items-center justify-center">
-            <Skeleton className="w-48 h-48 rounded-full" />
-          </div>
-          <div className="mt-6 space-y-2">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Skeleton className="w-3 h-3 rounded-full" />
-                  <Skeleton className="h-4 w-24" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </main>
-  );
-}
+import { Utensils } from "lucide-react";
 
 export default function Loading() {
-  const pathname = usePathname();
-
-  // Don't show sidebar on public routes
-  const showSidebar = !["/", "/sign-in", "/sign-up"].includes(pathname);
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {showSidebar && <LoadingSidebar />}
-      <MainContentSkeleton showSidebar={showSidebar} />
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background">
+      {/* Contenedor del Logo Animado */}
+      <div className="relative mb-8">
+        {/* Círculos de pulsación decorativos (Color Ocre/Oro) */}
+        <div className="absolute inset-0 rounded-full bg-accent/20 animate-ping duration-[2000ms]"></div>
+
+        {/* Icono Principal (Marrón Madera) */}
+        <div className="relative size-24 bg-primary rounded-2xl shadow-2xl flex items-center justify-center border-2 border-accent/30 rotate-3">
+          <Utensils className="text-accent-light size-12 animate-bounce" />
+        </div>
+      </div>
+
+      {/* Texto de Marca (Fuente Caligráfica Artística) */}
+      <div className="text-center space-y-2">
+        <h1 className="font-artisan text-5xl text-primary leading-tight">
+          Venuti's Gourmet
+        </h1>
+        <p className="font-display text-[10px] uppercase tracking-[0.4em] text-accent font-black">
+          Preparando la mesa
+        </p>
+      </div>
+
+      {/* Barra de progreso minimalista (Gris y Ocre) */}
+      <div className="mt-10 w-48 h-1 bg-border-soft rounded-full overflow-hidden">
+        <div className="h-full bg-accent animate-[loading_1.5s_ease-in-out_infinite] w-1/3 rounded-full shadow-[0_0_8px_rgba(212,175,55,0.5)]"></div>
+      </div>
+
+      {/* Frase inspiracional aleatoria (Opcional) */}
+      <p className="mt-6 font-display text-xs text-text-main/50 italic font-medium">
+        "La verdadera pasta se amasa con tiempo y pasión..."
+      </p>
     </div>
   );
 }
