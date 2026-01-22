@@ -74,7 +74,7 @@ export default async function AdminLogin() {
             <div className="w-full space-y-6">
               {/* Botón Personalizado (Opcional si usas el componente SignIn) */}
               <a
-                href="/inventory"
+                href="/admin/inventory"
                 className="w-full flex items-center justify-center gap-3 bg-transparent border border-gold/60 py-3.5 rounded-lg font-bold tracking-widest uppercase text-white hover:bg-gold hover:text-charcoal transition-all duration-300 group"
               >
                 <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">

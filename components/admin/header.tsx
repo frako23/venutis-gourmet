@@ -39,14 +39,20 @@ const Header = () => {
       </div>
 
       <div className="flex items-center gap-4">
-        <button className="flex items-center gap-2 bg-gold hover:bg-gold/90 text-charcoal px-5 py-2.5 rounded-lg text-sm font-bold shadow-md shadow-primary/10 transition-all active:scale-95">
+        <a
+          href="/admin/add-transaction"
+          className="flex items-center gap-2 bg-gold hover:bg-gold/90 text-charcoal px-5 py-2.5 rounded-lg text-sm font-bold shadow-md shadow-primary/10 transition-all active:scale-95"
+        >
           <Plus size={16} />
           <span>Agregar venta</span>
-        </button>
-        <button className="flex items-center gap-2 bg-gold hover:bg-gold/90 text-charcoal px-5 py-2.5 rounded-lg text-sm font-bold shadow-md shadow-primary/10 transition-all active:scale-95">
+        </a>
+        <a
+          href="/admin/add-product"
+          className="flex items-center gap-2 bg-gold hover:bg-gold/90 text-charcoal px-5 py-2.5 rounded-lg text-sm font-bold shadow-md shadow-primary/10 transition-all active:scale-95"
+        >
           <Plus size={16} />
           <span>Agregar producto</span>
-        </button>
+        </a>
         <div className="flex items-center gap-3 border-l border-[#dbe0d7] dark:border-[#3a3e44] ml-4 pl-4">
           <div className="text-right">
             <p className="text-sm font-bold dark:text-white leading-none">

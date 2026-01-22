@@ -55,7 +55,6 @@ model Producto {
   id          Int             @id @default(autoincrement())
   nombre      String
   precio      Float
-  stock       Int
   imgUrl      String?
   descripcion String?
   inventarios Inventario[]

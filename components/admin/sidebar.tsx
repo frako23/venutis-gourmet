@@ -19,7 +19,7 @@ interface SidebarProps {
 
 const Sidebar = () => {
   return (
-    <div className="flex h-screen overflow-hidden bg-background-light dark:bg-background-dark font-display selection:bg-primary/20">
+    <div className="flex h-screen overflow-hidden bg-background-light dark:bg-background-dark selection:bg-primary/20">
       {/* Sidebar Navigation */}
       <aside className="w-64 flex flex-col border-r border-[#dbe0d7] dark:border-[#3a3e44] bg-white dark:bg-[#1a1c20] z-20">
         <div className="p-6">

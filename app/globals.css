@@ -1,3 +1,5 @@
+/* globals.css */
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap");
 @import "tailwindcss";
 
 @theme {
@@ -13,8 +15,18 @@
   --color-background-dark: #1c1a17;
   --color-background-alt: #ffffff;
 
-  /* Fuentes */
+  /* --- FUENTES --- */
+  /* Fuente tipo Gemini/Admin (Sans-serif) */
+  --font-sans: "Inter", "system-ui", "sans-serif";
+
+  /* Fuente para datos técnicos/números (Monospaced) */
+  --font-mono: "JetBrains Mono", "monospace";
+
+  /* Tu fuente Serif existente */
   --font-display: "Noto Serif", serif;
+
+  /* Tu fuente caligráfica para Venuti's */
+  --font-artisan: "Pinyon Script", cursive;
 
   /* --- ANIMACIONES V4 --- */
   /* Registramos la animación para usarla como animate-loading-slide */
