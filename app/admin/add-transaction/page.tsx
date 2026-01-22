@@ -77,7 +77,7 @@ export default function CreateTransactionForm() {
               <button
                 type="button"
                 onClick={() => setStatus("pending")}
-                className={`flex items-center justify-center gap-3 p-5 rounded-2xl border-2 transition-all ${
+                className={`flex items-center justify-center gap-3 p-5 rounded-2xl cursor-pointer border-2 transition-all ${
                   status === "pending"
                     ? "bg-amber-50 border-amber-500 text-amber-700 shadow-md shadow-amber-200"
                     : "bg-white border-slate-100 text-slate-400 hover:border-slate-200"
@@ -96,7 +96,7 @@ export default function CreateTransactionForm() {
               <button
                 type="button"
                 onClick={() => setStatus("paid")}
-                className={`flex items-center justify-center gap-3 p-5 rounded-2xl border-2 transition-all ${
+                className={`flex items-center justify-center gap-3 p-5 rounded-2xl cursor-pointer border-2 transition-all ${
                   status === "paid"
                     ? "bg-emerald-50 border-emerald-500 text-emerald-700 shadow-md shadow-emerald-200"
                     : "bg-white border-slate-100 text-slate-400 hover:border-slate-200"
@@ -120,10 +120,10 @@ export default function CreateTransactionForm() {
 
           {/* Botones de Acción */}
           <div className="flex items-center gap-4 pt-4">
-            <button className="flex-1 bg-white border-2 border-slate-200 py-4 rounded-2xl font-bold text-slate-500 hover:bg-slate-50 transition-all active:scale-95">
+            <button className="flex-1 bg-white border-2 border-slate-200 py-4 cursor-pointer rounded-2xl font-bold text-slate-500 hover:bg-slate-50 transition-all active:scale-95">
               Cancelar
             </button>
-            <button className="flex-[2] bg-gold text-white py-4 rounded-2xl font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-gold/90 shadow-lg shadow-gold/20 transition-all active:scale-95">
+            <button className="flex-[2] bg-gold text-white py-4 cursor-pointer rounded-2xl font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-gold/90 shadow-lg shadow-gold/20 transition-all active:scale-95">
               <Save size={18} />
               Registrar Venta
             </button>

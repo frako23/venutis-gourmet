@@ -10,12 +10,13 @@ import {
 } from "lucide-react";
 import React, { useState } from "react";
 import Link from "next/link";
+import { CldUploadButton } from "next-cloudinary";
 
 export default function AddProductPage() {
   const [status, setStatus] = useState("draft");
-
+  const [imageUrl, setImageUrl] = useState("");
   return (
-    <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-800 dark:text-white transition-colors duration-300">
+    <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-800 dark:text-white transition-colors duration-300 rounded-lg">
       <main className="max-w-[1100px] mx-auto px-6 py-8">
         {/* Header con Breadcrumbs */}
         <div className="mb-10">
@@ -32,10 +33,10 @@ export default function AddProductPage() {
 
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
-              <h1 className="text-4xl font-black text-primary tracking-tight mb-2">
+              <h1 className="text-4xl font-black text-gold tracking-tight mb-2">
                 Agregar Producto
               </h1>
-              <p className="text-slate-500 font-medium italic">
+              <p className="text-white font-medium italic">
                 "La calidad artesanal comienza con un buen registro."
               </p>
             </div>
@@ -44,7 +45,7 @@ export default function AddProductPage() {
               <button className="px-6 py-3 rounded-2xl border-2 border-slate-200 text-slate-400 font-bold hover:bg-slate-50 hover:border-slate-300 transition-all text-sm active:scale-95">
                 Descartar
               </button>
-              <button className="flex items-center gap-2 px-8 py-3 rounded-2xl bg-primary text-white font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all text-xs active:scale-95">
+              <button className="cursor-pointer flex items-center gap-2 px-8 py-3 rounded-2xl bg-primary text-white font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all text-xs active:scale-95">
                 <Save size={16} />
                 Guardar Producto
               </button>
@@ -65,7 +66,7 @@ export default function AddProductPage() {
                 <div className="p-3 bg-gold/10 rounded-2xl">
                   <Utensils className="text-gold" size={20} />
                 </div>
-                <h3 className="text-xl font-black text-primary uppercase tracking-tight">
+                <h3 className="text-xl font-black text-cream uppercase tracking-tight">
                   Detalles de la Pasta
                 </h3>
               </div>
@@ -117,7 +118,7 @@ export default function AddProductPage() {
                 <div className="p-3 bg-gold/10 rounded-2xl">
                   <Warehouse className="text-gold" size={20} />
                 </div>
-                <h3 className="text-xl font-black text-primary uppercase tracking-tight">
+                <h3 className="text-xl font-black text-cream uppercase tracking-tight">
                   Control de Almacén
                 </h3>
               </div>
@@ -138,37 +139,60 @@ export default function AddProductPage() {
           {/* Columna Derecha */}
           <div className="space-y-6">
             <section className="bg-white dark:bg-charcoal p-6 rounded-[2rem] border border-border-soft shadow-sm">
-              <h3 className="text-sm font-black text-primary mb-6 uppercase tracking-widest text-center">
+              <h3 className="text-sm font-black text-cream mb-6 uppercase tracking-widest text-center">
                 Imagen de Portada
               </h3>
 
-              <div className="border-2 border-dashed border-slate-200 rounded-[1.5rem] p-10 flex flex-col items-center justify-center text-center hover:border-gold hover:bg-gold/5 transition-all cursor-pointer group bg-slate-50/50">
+              {/* USAMOS CldUploadButton como el contenedor principal. 
+      Le pasamos la clase de Tailwind para que HEREDE el estilo punteado.
+  */}
+              <CldUploadButton
+                uploadPreset="upload-unsigned-images"
+                onSuccess={(result: any) => {
+                  setImageUrl(result?.info?.secure_url);
+                }}
+                // El padre tiene la clase 'group'
+                className="w-full border-2 border-dashed border-slate-200 rounded-[1.5rem] p-10 flex flex-col items-center justify-center text-center hover:border-gold hover:bg-gold/5 transition-all group bg-slate-50/50 cursor-pointer"
+              >
                 <div className="size-14 bg-white rounded-2xl flex items-center justify-center shadow-md mb-4 group-hover:scale-110 transition-transform">
                   <CloudUpload className="text-gold" size={28} />
                 </div>
-                <p className="text-xs font-black text-slate-700 uppercase tracking-tighter mb-1">
-                  Arrastra tu foto
-                </p>
-                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">
-                  Alta resolución recomendada
-                </p>
-              </div>
 
+                {/* Usamos group-hover: para que el texto cambie cuando pases el mouse por el recuadro punteado */}
+                <p className="text-xs font-black text-slate-700 group-hover:text-gold uppercase tracking-tighter mb-1 transition-colors">
+                  {imageUrl ? "Cambiar foto" : "Subir foto artesanal"}
+                </p>
+
+                <p className="text-[9px] text-primary group-hover:text-cream font-bold uppercase tracking-widest transition-colors">
+                  PNG, JPG hasta 10MB
+                </p>
+              </CldUploadButton>
+
+              {/* Vista Previa Condicional */}
               <div className="mt-8">
-                <Label className="mb-4 block text-center opacity-50 italic">
-                  Vista Previa Artesanal
+                <Label className="mb-4 block text-center italic text-cream">
+                  Vista Previa
                 </Label>
                 <div className="relative aspect-[4/5] rounded-[2rem] overflow-hidden border-4 border-white dark:border-slate-800 shadow-2xl bg-parchment">
-                  <div
-                    className="w-full h-full bg-cover bg-center transition-transform hover:scale-110 duration-700"
-                    style={{
-                      backgroundImage:
-                        "url('https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&q=80&w=800')",
-                    }}
-                  />
-                  <button className="absolute top-4 right-4 bg-white/90 backdrop-blur-md p-2 rounded-full shadow-lg text-red-500 hover:bg-red-50 transition-colors active:scale-90">
-                    <X size={18} />
-                  </button>
+                  {imageUrl ? (
+                    <div
+                      className="w-full h-full bg-cover bg-center transition-transform hover:scale-110 duration-700"
+                      style={{ backgroundImage: `url('${imageUrl}')` }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-primary italic text-xs font-bold">
+                      Sin imagen seleccionada
+                    </div>
+                  )}
+
+                  {imageUrl && (
+                    <button
+                      onClick={() => setImageUrl("")}
+                      className="absolute top-4 right-4 bg-white/90 backdrop-blur-md p-2 rounded-full shadow-lg text-red-500 hover:bg-red-50 transition-colors active:scale-90 cursor-pointer"
+                    >
+                      <X size={18} />
+                    </button>
+                  )}
                 </div>
               </div>
             </section>

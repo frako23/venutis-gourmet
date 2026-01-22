@@ -31,7 +31,7 @@ const Sidebar = () => {
               <h1 className="text-[#141712] dark:text-white text-base font-bold leading-tight">
                 Venuti's
               </h1>
-              <p className="text-primary dark:text-primary/80 text-[10px] font-black uppercase tracking-widest">
+              <p className="text-primary dark:text-gold/80 text-[10px] font-black uppercase tracking-widest">
                 Admin Panel
               </p>
             </div>
