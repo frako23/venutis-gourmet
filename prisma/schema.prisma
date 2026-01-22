@@ -18,8 +18,8 @@ model Cliente {
   tipoCliente   TipoCliente
   nombre        String
   apellido      String
-  celular       String
-  email         String        @unique
+  celular       String        @unique
+  email         String?        @unique
   urbanizacion  String?
   direcciones   Direccion[]
   transacciones Transaccion[]
@@ -55,6 +55,7 @@ model Producto {
   id          Int             @id @default(autoincrement())
   nombre      String
   precio      Float
+  categoria   String
   imgUrl      String?
   descripcion String?
   inventarios Inventario[]

@@ -1,21 +1,17 @@
 "use server";
 
-import { getCurrentUser } from "../auth";
 import { prisma } from "../prisma";
 import { z } from "zod";
 import { redirect } from "next/navigation";
+import { UserRole } from "@/prisma/types";
 
 const ClientSchema = z.object({
-  name: z.string(),
-  lastname: z.string(),
-  cedula: z.string(),
-  phone: z.string(),
-  mailAgency: z.string(),
-  pickupType: z.string(),
-  state: z.number().nullable(),
-  city: z.number().nullable(),
-  address: z.string(),
-  clientCode: z.string(),
+  tipoCliente: z.enum(UserRole),
+  nombre: z.string(),
+  apellido: z.string(),
+  celular: z.string(),
+  email: z.string().optional(),
+  urbanizacion: z.string(),
 });
 
 export async function deleteClient(formData: FormData) {
@@ -26,7 +22,7 @@ export async function deleteClient(formData: FormData) {
   }
 
   try {
-    await prisma.client.delete({
+    await prisma.cliente.delete({
       where: {
         id: Number(id),
       },
@@ -41,21 +37,14 @@ export async function deleteClient(formData: FormData) {
 
 export async function addClient(
   prevState: { message: string },
-  formData: FormData
+  formData: FormData,
 ): Promise<{ message: string }> {
-  const user = await getCurrentUser();
-
   const parsed = ClientSchema.safeParse({
-    name: String(formData.get("name")),
-    lastname: String(formData.get("lastname")),
-    cedula: String(formData.get("cedula")),
-    phone: String(formData.get("phone")),
-    mailAgency: String(formData.get("mailAgency")),
-    pickupType: String(formData.get("pickupType")),
-    state: formData.get("state") ? Number(formData.get("state")) : null,
-    city: formData.get("city") ? Number(formData.get("city")) : null,
-    address: String(formData.get("address")),
-    clientCode: String(formData.get("clientCode")),
+    nombre: String(formData.get("name")),
+    apellido: String(formData.get("lastname")),
+    celular: String(formData.get("celular")),
+    email: String(formData.get("email")),
+    urbanizacion: String(formData.get("urbanizacion")),
   });
 
   if (!parsed.success) {
@@ -64,18 +53,17 @@ export async function addClient(
   }
 
   try {
-    const existingClient = await prisma.client.findUnique({
-      where: { clientCode: parsed.data.clientCode },
+    const existingClient = await prisma.cliente.findUnique({
+      where: { celular: parsed.data.celular },
     });
 
     if (existingClient) {
       return { message: "El código de cliente ingresado ya existe" };
     }
 
-    await prisma.client.create({
+    await prisma.cliente.create({
       data: {
         ...parsed.data,
-        userId: user ? user.id : "Creado por cliente",
       },
     });
   } catch (error) {
@@ -87,19 +75,12 @@ export async function addClient(
 }
 
 export async function editClient(formData: FormData, clientId: number) {
-  const user = await getCurrentUser();
-
   const parsed = ClientSchema.safeParse({
-    name: String(formData.get("name")),
-    lastname: String(formData.get("lastname")),
-    cedula: String(formData.get("cedula")),
-    phone: String(formData.get("phone")),
-    mailAgency: String(formData.get("mailAgency")),
-    pickupType: String(formData.get("pickupType")),
-    state: formData.get("state") ? Number(formData.get("state")) : null,
-    city: formData.get("city") ? Number(formData.get("city")) : null,
-    address: String(formData.get("address")),
-    clientCode: String(formData.get("clientCode")),
+    nombre: String(formData.get("name")),
+    apellido: String(formData.get("lastname")),
+    celular: String(formData.get("celular")),
+    email: String(formData.get("email")),
+    urbanizacion: String(formData.get("urbanizacion")),
   });
 
   if (!parsed.success) {
@@ -108,11 +89,10 @@ export async function editClient(formData: FormData, clientId: number) {
   }
 
   try {
-    await prisma.client.update({
+    await prisma.cliente.update({
       where: { id: clientId },
       data: {
         ...parsed.data,
-        userId: user.id,
       },
     });
   } catch (error) {
@@ -121,48 +101,4 @@ export async function editClient(formData: FormData, clientId: number) {
   }
 
   redirect("/clients");
-}
-
-export async function addClientPublic(
-  prevState: { message: string },
-  formData: FormData
-): Promise<{ message: string }> {
-  const parsed = ClientSchema.safeParse({
-    name: String(formData.get("name")),
-    lastname: String(formData.get("lastname")),
-    cedula: String(formData.get("cedula")),
-    phone: String(formData.get("phone")),
-    mailAgency: String(formData.get("mailAgency")),
-    pickupType: String(formData.get("pickupType")),
-    state: formData.get("state") ? Number(formData.get("state")) : null,
-    city: formData.get("city") ? Number(formData.get("city")) : null,
-    address: String(formData.get("address")),
-    clientCode: String(formData.get("clientCode")),
-  });
-
-  if (!parsed.success) {
-    return { message: "Datos inválidos, revisa el formulario" };
-  }
-
-  const existingClient = await prisma.client.findUnique({
-    where: { clientCode: parsed.data.clientCode },
-  });
-
-  if (existingClient) {
-    return { message: "El código de cliente ingresado ya existe" };
-  }
-
-  try {
-    await prisma.client.create({
-      data: {
-        ...parsed.data,
-        userId: "Creado por cliente",
-      },
-    });
-  } catch (error) {
-    console.error("Error al agregar cliente:", error);
-    return { message: "Error al registrar cliente" };
-  }
-
-  redirect("/thank-you");
 }

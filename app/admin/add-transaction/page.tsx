@@ -1,15 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  Receipt,
-  Phone,
-  Hash,
-  CheckCircle2,
-  Clock,
-  Save,
-  ChevronDown,
-} from "lucide-react";
+import { Receipt, Phone, Hash, CheckCircle2, Clock, Save } from "lucide-react";
 
 export default function CreateTransactionForm() {
   const [status, setStatus] = useState<"paid" | "pending">("pending");

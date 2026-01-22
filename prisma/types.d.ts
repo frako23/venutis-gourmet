@@ -4,3 +4,9 @@ export type ClientWithRelations = Prisma.ClientGetPayload<{
     stateName: true;
   };
 }>;
+
+
+ export enum UserRole {
+  MAYORISTA = "mayorista",
+  DETAL = "detal",
+}
