@@ -8,18 +8,38 @@ import {
   X,
   ArrowLeft,
 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useActionState, useEffect, useState } from "react";
 import Link from "next/link";
 import { CldUploadButton } from "next-cloudinary";
+import { addProduct } from "@/lib/actions/products";
+import { toast } from "sonner";
+
+const initialState = { message: "", status: "" };
 
 export default function AddProductPage() {
   const [status, setStatus] = useState("draft");
   const [imageUrl, setImageUrl] = useState("");
+  const [state, formAction, isPending] = useActionState(
+    addProduct,
+    initialState,
+  );
+
+  useEffect(() => {
+    console.log("Estado de la acción del formulario:", state);
+    if (state.message) {
+      if (state.status === "error") toast.error(state.message);
+      else toast.success(state.message);
+    }
+  }, [state.message]);
+
   return (
-    <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-800 dark:text-white transition-colors duration-300 rounded-lg">
+    <form
+      action={formAction}
+      className="min-h-screen bg-background-light dark:bg-background-dark text-slate-800 dark:text-white transition-colors duration-300"
+    >
       <main className="max-w-[1100px] mx-auto px-6 py-8">
         {/* Header con Breadcrumbs */}
-        <div className="mb-10">
+        <div className="mb-4">
           <nav className="flex items-center gap-2 text-[10px] font-black text-gold uppercase tracking-[0.3em] mb-4">
             <Link
               href="/admin/inventory"
@@ -42,10 +62,17 @@ export default function AddProductPage() {
             </div>
 
             <div className="flex gap-3">
-              <button className="px-6 py-3 rounded-2xl border-2 border-slate-200 text-slate-400 font-bold hover:bg-slate-50 hover:border-slate-300 transition-all text-sm active:scale-95">
+              <a
+                href="/admin/inventory"
+                className="px-6 py-3 rounded-2xl border-2 border-slate-200 text-slate-400 font-bold hover:bg-slate-50 hover:border-slate-300 transition-all text-sm active:scale-95"
+              >
                 Descartar
-              </button>
-              <button className="cursor-pointer flex items-center gap-2 px-8 py-3 rounded-2xl bg-primary text-white font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all text-xs active:scale-95">
+              </a>
+              <button
+                type="submit"
+                disabled={isPending}
+                className="cursor-pointer flex items-center gap-2 px-8 py-3 rounded-2xl bg-primary text-white font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all text-xs active:scale-95"
+              >
                 <Save size={16} />
                 Guardar Producto
               </button>
@@ -62,7 +89,7 @@ export default function AddProductPage() {
                 <Utensils size={120} />
               </div>
 
-              <div className="flex items-center gap-3 mb-8">
+              <div className="flex items-center gap-3 mb-4">
                 <div className="p-3 bg-gold/10 rounded-2xl">
                   <Utensils className="text-gold" size={20} />
                 </div>
@@ -74,7 +101,7 @@ export default function AddProductPage() {
               <div className="space-y-6">
                 <div className="flex flex-col gap-2">
                   <Label>Nombre del Producto</Label>
-                  <Input placeholder="Ej. Pappardelle al Huevo" />
+                  <Input placeholder="Ej. Pappardelle al Huevo" name="nombre" />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -88,16 +115,22 @@ export default function AddProductPage() {
                         placeholder="0.00"
                         className="pl-12"
                         type="number"
+                        step="any"
+                        name="precio"
                       />
                     </div>
                   </div>
                   <div className="flex flex-col gap-2">
                     <Label>Categoría Gourmet</Label>
-                    <select className="w-full rounded-2xl border-2 border-slate-100 bg-slate-50 focus:ring-4 focus:ring-gold/10 focus:border-gold h-14 px-5 font-bold text-slate-700 outline-none transition-all cursor-pointer appearance-none">
-                      <option>Pasta Fresca</option>
-                      <option>Pasta Seca Especial</option>
-                      <option>Salsas de la Casa</option>
-                      <option>Aceites & Trufas</option>
+                    <select
+                      className="w-full rounded-2xl border-2 border-slate-100 bg-slate-50 focus:ring-4 focus:ring-gold/10 focus:border-gold h-14 px-5 font-bold text-slate-700 outline-none transition-all cursor-pointer appearance-none"
+                      name="categoria"
+                    >
+                      <option>Pastas</option>
+                      <option>Salsas</option>
+                      <option>Pan de Jamón</option>
+                      <option>Encurtidos</option>
+                      <option>Postres</option>
                     </select>
                   </div>
                 </div>
@@ -108,13 +141,14 @@ export default function AddProductPage() {
                     rows={4}
                     placeholder="Cuéntanos sobre el origen del trigo, el tiempo de secado o sugerencias de maridaje..."
                     className="w-full rounded-2xl border-2 border-slate-100 bg-slate-50 focus:ring-4 focus:ring-gold/10 focus:border-gold p-5 font-medium text-slate-700 outline-none transition-all resize-none placeholder:italic"
+                    name="descripcion"
                   />
                 </div>
               </div>
             </section>
 
             <section className="bg-white dark:bg-charcoal p-8 rounded-[2rem] border border-border-soft shadow-sm">
-              <div className="flex items-center gap-3 mb-8">
+              <div className="flex items-center gap-3 mb-4">
                 <div className="p-3 bg-gold/10 rounded-2xl">
                   <Warehouse className="text-gold" size={20} />
                 </div>
@@ -169,7 +203,7 @@ export default function AddProductPage() {
               </CldUploadButton>
 
               {/* Vista Previa Condicional */}
-              <div className="mt-8">
+              <div className="mt-14">
                 <Label className="mb-4 block text-center italic text-cream">
                   Vista Previa
                 </Label>
@@ -184,7 +218,7 @@ export default function AddProductPage() {
                       Sin imagen seleccionada
                     </div>
                   )}
-
+                  <input type="hidden" name="imgUrl" value={imageUrl} />
                   {imageUrl && (
                     <button
                       onClick={() => setImageUrl("")}
@@ -196,28 +230,10 @@ export default function AddProductPage() {
                 </div>
               </div>
             </section>
-
-            <section className="bg-white dark:bg-charcoal p-6 rounded-[2rem] border border-border-soft shadow-sm">
-              <Label className="mb-6 block text-center">
-                Estado del Producto
-              </Label>
-              <div className="flex flex-col gap-3">
-                <StatusButton
-                  active={status === "draft"}
-                  onClick={() => setStatus("draft")}
-                  label="Borrador / Privado"
-                />
-                <StatusButton
-                  active={status === "active"}
-                  onClick={() => setStatus("active")}
-                  label="Publicar en Tienda"
-                />
-              </div>
-            </section>
           </div>
         </div>
       </main>
-    </div>
+    </form>
   );
 }
 

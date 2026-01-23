@@ -9,6 +9,7 @@ import {
   Pinyon_Script,
 } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -48,6 +49,18 @@ export default function RootLayout({
         <StackProvider app={stackClientApp}>
           <StackTheme>{children}</StackTheme>
         </StackProvider>
+        <Toaster
+          position="top-right"
+          expand={false}
+          richColors
+          theme="light"
+          toastOptions={{
+            style: {
+              borderRadius: "1.2rem",
+              fontFamily: "var(--font-inter)",
+            },
+          }}
+        />
       </body>
     </html>
   );

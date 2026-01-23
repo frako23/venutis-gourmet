@@ -2,7 +2,6 @@
 
 import { prisma } from "../prisma";
 import { z } from "zod";
-import { redirect } from "next/navigation";
 
 const ProductSchema = z.object({
   nombre: z.string(),
@@ -27,16 +26,15 @@ export async function deleteProduct(formData: FormData) {
     });
   } catch (error) {
     console.error("Error al eliminar el producto:", error);
-    throw new Error("Failed to delete product");
+    return { message: "Error al eliminar el producto", status: "error" };
   }
-
-  redirect("/admin/products");
+  return { message: "Producto eliminado exitosamente", status: "success" };
 }
 
 export async function addProduct(
-  prevState: { message: string },
+  prevState: { message: string; status: string },
   formData: FormData,
-): Promise<{ message: string }> {
+): Promise<{ message: string; status: string }> {
   const parsed = ProductSchema.safeParse({
     nombre: String(formData.get("nombre")),
     precio: Number(formData.get("precio")),
@@ -47,7 +45,10 @@ export async function addProduct(
 
   if (!parsed.success) {
     console.error("Validation errors:", parsed.error.flatten().fieldErrors);
-    return { message: "Datos inválidos, revisa el formulario" };
+    return {
+      message: "Datos inválidos, revisa el formulario",
+      status: "error",
+    };
   }
 
   try {
@@ -58,10 +59,10 @@ export async function addProduct(
     });
   } catch (error) {
     console.error("Error al agregar cliente:", error);
-    return { message: "Error al registrar cliente" };
+    return { message: "Error al registrar cliente", status: "error" };
   }
 
-  redirect("/admin/products");
+  return { message: "Producto agregado exitosamente", status: "success" };
 }
 
 export async function editProduct(formData: FormData, productoId: number) {
@@ -90,5 +91,5 @@ export async function editProduct(formData: FormData, productoId: number) {
     throw new Error("Failed to edit product");
   }
 
-  redirect("/admin/products");
+  return { message: "Producto editado exitosamente", status: "success" };
 }

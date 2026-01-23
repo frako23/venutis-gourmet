@@ -1,6 +1,7 @@
 import Header from "@/components/admin/header";
 import Sidebar from "@/components/admin/sidebar";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import { Toaster } from "sonner";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -34,8 +35,20 @@ export default function AdminLayout({
           {/* He quitado el padding del div exterior y lo he puesto aquí 
               para que el scroll sea más natural y profesional.
           */}
-          <div className="p-6 lg:p-10 max-w-7xl mx-auto">{children}</div>
+          <div className="mx-auto">{children}</div>
         </main>
+        <Toaster
+          position="top-right"
+          expand={false}
+          richColors
+          theme="light"
+          toastOptions={{
+            style: {
+              borderRadius: "1.2rem",
+              fontFamily: "var(--font-inter)",
+            },
+          }}
+        />
       </div>
     </div>
   );
