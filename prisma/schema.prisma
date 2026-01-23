@@ -19,7 +19,7 @@ model Cliente {
   nombre        String
   apellido      String
   celular       String        @unique
-  email         String?        @unique
+  email         String?       @unique
   urbanizacion  String?
   direcciones   Direccion[]
   transacciones Transaccion[]
@@ -48,7 +48,7 @@ model Direccion {
 enum TipoDireccion {
   principal
   secundaria
-  tercera
+  terceraria
 }
 
 model Producto {
@@ -94,6 +94,7 @@ model Transaccion {
 enum EstadoTransaccion {
   pagado
   pendiente
+  cancelado
 }
 
 model DetalleCompra {
@@ -144,6 +145,7 @@ enum MetodoPago {
   EfectivoUsd
   Zelle
   PagoMovil
+  TransferenciaUsd
 }
 
 model Resena {

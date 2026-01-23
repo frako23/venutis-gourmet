@@ -64,7 +64,7 @@ export async function addProduct(
   redirect("/admin/products");
 }
 
-export async function editProduct(formData: FormData, productId: number) {
+export async function editProduct(formData: FormData, productoId: number) {
   const parsed = ProductSchema.safeParse({
     nombre: String(formData.get("nombre")),
     precio: Number(formData.get("precio")),
@@ -80,7 +80,7 @@ export async function editProduct(formData: FormData, productId: number) {
 
   try {
     await prisma.producto.update({
-      where: { id: productId },
+      where: { id: productoId },
       data: {
         ...parsed.data,
       },
