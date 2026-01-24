@@ -25,12 +25,17 @@ export default function AddProductPage() {
   );
 
   useEffect(() => {
-    console.log("Estado de la acción del formulario:", state);
-    if (state.message) {
-      if (state.status === "error") toast.error(state.message);
-      else toast.success(state.message);
+    if (state.status === "error") {
+      toast.error(state.message || "Ocurrió un error inesperado");
     }
-  }, [state.message]);
+
+    if (state.status === "success") {
+      toast.success(state.message || "¡Producto guardado!");
+      // Limpiamos la imagen y los estados locales tras el éxito
+      setImageUrl("");
+      // Opcional: podrías resetear el formulario completo aquí si fuera necesario
+    }
+  }, [state]); // Escuchamos el objeto de estado completo
 
   return (
     <form

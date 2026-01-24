@@ -9,17 +9,17 @@ export default function Loading() {
         <div className="absolute inset-0 rounded-full bg-accent/20 animate-ping duration-[2000ms]"></div>
 
         {/* Icono Principal (Marrón Madera) */}
-        <div className="relative size-24 bg-primary rounded-2xl shadow-2xl flex items-center justify-center border-2 border-accent/30 rotate-3">
-          <Utensils className="text-accent-light size-12 animate-bounce" />
+        <div className="relative size-24 bg-primary rounded-2xl shadow-2xl flex items-center justify-center border-2 border-gold/30 rotate-3">
+          <Utensils className="text-gold size-12 animate-bounce" />
         </div>
       </div>
 
       {/* Texto de Marca (Fuente Caligráfica Artística) */}
       <div className="text-center space-y-2">
-        <h1 className="font-artisan text-5xl text-primary leading-tight">
+        <h1 className="font-artisan text-5xl text-gold leading-tight">
           Venuti's Gourmet
         </h1>
-        <p className="font-display text-[10px] uppercase tracking-[0.4em] text-accent font-black">
+        <p className="font-display text-[10px] uppercase tracking-[0.4em] text-white font-black">
           Preparando la mesa
         </p>
       </div>
@@ -30,7 +30,7 @@ export default function Loading() {
       </div>
 
       {/* Frase inspiracional aleatoria (Opcional) */}
-      <p className="mt-6 font-display text-xs text-text-main/50 italic font-medium">
+      <p className="mt-6 font-display text-xs text-white italic font-medium">
         "La verdadera pasta se amasa con tiempo y pasión..."
       </p>
     </div>

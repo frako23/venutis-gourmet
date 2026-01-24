@@ -32,8 +32,9 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Tienda DAGO - Gestión de Clientes",
-  description: "Aplicación para la gestión de clientes de Tienda DAGO",
+  title: "Venuti's Gourmet | Tienda de Pastas y Productos Artesanales",
+  description:
+    "Tu destino para adquirir pastas frescas, salsas de autor y productos gourmet. Calidad artesanal garantizada con entrega a domicilio. ¡Vive la experiencia Venuti!",
 };
 
 export default function RootLayout({
@@ -46,9 +47,8 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <StackProvider app={stackClientApp}>
-          <StackTheme>{children}</StackTheme>
-        </StackProvider>
+        {children}
+
         <Toaster
           position="top-right"
           expand={false}

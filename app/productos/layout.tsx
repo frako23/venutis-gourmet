@@ -1,5 +1,5 @@
-import Header from "@/components/admin/header";
-import Sidebar from "@/components/admin/sidebar";
+import Header from "@/components/productos/header";
+import Sidebar from "@/components/productos/sidebar";
 import { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { Toaster } from "sonner";
@@ -20,30 +20,18 @@ export const metadata: Metadata = {
     "Gestión centralizada de clientes, inventarios y pedidos de Venuti's Gourmet. Control total para garantizar la excelencia en cada entrega artesanal.",
 };
 
-export default function AdminLayout({
+export default function ProductosLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
     // Agregamos 'antialiased' para que la fuente Inter se vea nítida
-    <div
-      className={`${inter.variable} ${mono.variable} font-sans antialiased flex h-screen bg-background-light overflow-hidden text-slate-900`}
-    >
-      {/* Sidebar Fija */}
-      <Sidebar />
-
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Header superior */}
-        <Header />
-
-        {/* Contenido Dinámico */}
-        <main className="flex-1 overflow-y-auto">
-          {/* He quitado el padding del div exterior y lo he puesto aquí 
-              para que el scroll sea más natural y profesional.
-          */}
-          <div className="mx-auto">{children}</div>
-        </main>
+    <div className="bg-background-light dark:bg-background-dark text-[#1d0c10] dark:text-[#f9f7f0] min-h-screen font-display">
+      <Header />
+      <div className="max-w-[1440px] mx-auto flex flex-col lg:flex-row min-h-[calc(100vh-80px)]">
+        <Sidebar />
+        {children}
         <Toaster
           position="top-right"
           expand={false}

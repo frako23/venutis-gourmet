@@ -77,14 +77,14 @@ export default function StorefrontEntry() {
               title="Compradores Individuales"
               description="Lleva a casa el auténtico sabor de nuestras pastas artesanales elaboradas con sémola de la mejor calidad. Explora nuestra cuidada selección de variedades frescas y secas, creadas para realzar cada plato con textura y sabor únicos."
               buttonText="Comprar Ahora"
-              link="/productos"
+              link="/productos/consumidores"
             />
             <ChoiceCard
               icon={BriefcaseBusiness}
               title="Socios Comerciales"
               description="Eleva tu propuesta gastronómica con nuestra colección premium al por mayor. Ofrecemos soluciones personalizadas para restaurantes, boutiques especializadas y regalos gourmet que buscan diferenciarse con productos auténticos y de calidad superior."
               buttonText="Consulta Mayorista"
-              link="/mayoristas"
+              link="/productos/mayoristas"
             />
           </div>
         </main>

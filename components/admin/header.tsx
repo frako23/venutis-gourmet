@@ -58,9 +58,12 @@ const Header = () => {
             <p className="text-sm font-bold dark:text-white leading-none">
               Usuario Administrador
             </p>
-            <p className="text-[10px] text-gold font-black uppercase tracking-tighter">
-              Administrador
-            </p>
+            <a
+              href="/"
+              className="text-[10px] text-gold font-black uppercase tracking-tighter hover:underline"
+            >
+              Salir
+            </a>
           </div>
           <div className="size-10 rounded-full border-2 border-primary/20 p-0.5 overflow-hidden">
             <img
