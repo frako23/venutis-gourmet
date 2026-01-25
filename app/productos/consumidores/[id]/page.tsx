@@ -1,6 +1,3 @@
-"use client";
-
-import React, { useState } from "react";
 import {
   Search,
   Heart,
@@ -19,76 +16,45 @@ import {
   Share2,
   EclipseIcon,
 } from "lucide-react";
+import { prisma } from "@/lib/prisma";
+import { notFound } from "next/navigation";
 
-export default function ProductDetail() {
-  const [quantity, setQuantity] = useState(1);
+interface Props {
+  params: Promise<{ id: number }>;
+}
+
+export default async function ProductDetail({ params }: Props) {
+  const { id } = await params;
+
+  // Convertimos el string a número entero
+  const productId = Number(id);
+
+  // Verificamos si es un número válido para evitar errores si alguien escribe letras en la URL
+  if (isNaN(productId)) {
+    notFound();
+  }
+
+  const producto = await prisma.producto.findUnique({
+    where: {
+      id: productId, // ✅ Ahora pasamos un Int, no un String
+    },
+  });
+
+  if (!producto) {
+    notFound();
+  }
+
+  console.log("Producto encontrado:", producto);
+
+  // const [quantity, setQuantity] = useState(1);
 
   return (
     <div className="bg-background-dark text-slate-100 min-h-screen font-display">
       {/* Top Navigation Bar */}
-      <header className="sticky top-0 z-50 w-full border-b border-border-dark bg-background-dark/80 backdrop-blur-md">
-        <div className="max-w-[1280px] mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-12">
-            <div className="flex items-center gap-3">
-              <div className="size-8 text-primary">
-                <svg
-                  fill="none"
-                  viewBox="0 0 48 48"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    clipRule="evenodd"
-                    d="M24 0.757355L47.2426 24L24 47.2426L0.757355 24L24 0.757355ZM21 35.7574V12.2426L9.24264 24L21 35.7574Z"
-                    fill="currentColor"
-                    fillRule="evenodd"
-                  ></path>
-                </svg>
-              </div>
-              <h2 className="text-white text-xl font-bold tracking-tight">
-                Venuti's
-              </h2>
-            </div>
-            <nav className="hidden md:flex items-center gap-8">
-              {["Vinegars", "Oils", "Truffles", "Gifts"].map((item) => (
-                <a
-                  key={item}
-                  className="text-white/70 hover:text-primary text-sm font-medium transition-colors"
-                  href="#"
-                >
-                  {item}
-                </a>
-              ))}
-            </nav>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="relative group hidden lg:block">
-              <Search
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
-                size={18}
-              />
-              <input
-                className="bg-surface-dark border-none rounded-lg pl-10 pr-4 py-2 text-sm w-64 focus:ring-1 focus:ring-primary text-white outline-none"
-                placeholder="Search collection..."
-                type="text"
-              />
-            </div>
-            <button className="p-2 text-white/70 hover:text-primary transition-colors">
-              <Heart size={20} />
-            </button>
-            <button className="p-2 text-white/70 hover:text-primary transition-colors relative">
-              <ShoppingCart size={20} />
-              <span className="absolute top-1 right-1 bg-primary text-[10px] font-bold text-white rounded-full size-4 flex items-center justify-center">
-                2
-              </span>
-            </button>
-          </div>
-        </div>
-      </header>
 
       <main className="max-w-[1280px] mx-auto px-6 py-8">
         {/* Breadcrumbs */}
-        <nav className="flex items-center gap-2 mb-8 text-sm text-slate-500 font-medium">
+        {/* <nav className="flex items-center gap-2 mb-8 text-sm text-slate-500 font-medium">
           <a className="hover:text-primary" href="#">
             Home
           </a>
@@ -98,7 +64,7 @@ export default function ProductDetail() {
           </a>
           <ChevronRight size={14} />
           <span className="text-white">Gold Reserve Balsamic</span>
-        </nav>
+        </nav> */}
 
         {/* Product Hero Section */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-24">
@@ -108,7 +74,7 @@ export default function ProductDetail() {
               <img
                 alt="Aged Balsamic Vinegar"
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCN4SpOwn9-91BB6WrPrLRkWp3V9NYlY3hk0ycmN_WKvFvtmrhwd6Y1l_BSdapI37ccEpMg6g2FXj3nlh28eMR5TUSKms9vIYxIUpN8lJ4iV_EWKA3EbbElt-2MytauVUZ6uQm7JMPFvEu-bbi6AGduuTesN7iWj7GohLwDG7JGvjC6vqpI4cfrylMFOZ4ra_i1QQmECbSt3MJaHh1ASsiiqA6Jfbv6l8z2csHXLFkdeaqG1AEgZoSDZxWKB8Ntrn71mFge_OnGukE"
+                src={producto.imgUrl || "https://picsum.photos/id/11/600/750"}
               />
               <div className="absolute top-4 left-4 px-3 py-1 bg-primary/90 text-white text-[10px] font-bold uppercase tracking-widest rounded">
                 Best Seller
@@ -122,7 +88,10 @@ export default function ProductDetail() {
                 >
                   <img
                     className="w-full h-full object-cover"
-                    src={`http://googleusercontent.com/profile/picture/${img}`}
+                    src={
+                      producto.imgUrl ||
+                      `https://picsum.photos/id/${img}/200/200`
+                    }
                     alt="Gallery thumbnail"
                   />
                 </div>
@@ -134,7 +103,7 @@ export default function ProductDetail() {
           <div className="lg:col-span-5 flex flex-col">
             <div className="sticky top-24">
               <h1 className="text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-4 italic font-serif">
-                Aged Balsamic Vinegar - Gold Reserve
+                {producto.nombre}
               </h1>
 
               <div className="flex items-center gap-4 mb-6">
@@ -153,18 +122,14 @@ export default function ProductDetail() {
               </div>
 
               <p className="text-3xl font-bold text-white mb-8">
-                $124.00{" "}
-                <span className="text-lg font-normal text-slate-500 line-through ml-2">
+                ${producto.precio.toFixed(2)}
+                {/* <span className="text-lg font-normal text-slate-500 line-through ml-2">
                   $145.00
-                </span>
+                </span> */}
               </p>
 
               <div className="space-y-6 pb-8 border-b border-border-dark mb-8 text-slate-300 leading-relaxed">
-                <p>
-                  Crafted in the heart of Modena, Italy, our Gold Reserve is
-                  aged for 25 years in battery of various woods. Dense, velvety
-                  texture with a complex bouquet.
-                </p>
+                <p>{producto.descripcion}</p>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-center gap-3 group">
                     <div className="p-2 rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
@@ -190,16 +155,16 @@ export default function ProductDetail() {
                 <div className="flex gap-4">
                   <div className="flex items-center bg-surface-dark border border-border-dark rounded-lg p-1">
                     <button
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      // onClick={() => setQuantity(Math.max(1, quantity - 1))}
                       className="size-10 flex items-center justify-center hover:bg-white/5 rounded-md transition-colors text-slate-400"
                     >
                       <Minus size={16} />
                     </button>
                     <span className="w-12 text-center text-white font-bold">
-                      {quantity}
+                      {/* {quantity} */}
                     </span>
                     <button
-                      onClick={() => setQuantity(quantity + 1)}
+                      // onClick={() => setQuantity(quantity + 1)}
                       className="size-10 flex items-center justify-center hover:bg-white/5 rounded-md transition-colors text-slate-400"
                     >
                       <Plus size={16} />
@@ -332,79 +297,6 @@ export default function ProductDetail() {
           </div>
         </section>
       </main>
-
-      {/* Footer */}
-      <footer className="bg-surface-dark border-t border-border-dark py-12 px-6">
-        <div className="max-w-[1280px] mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
-          <div className="col-span-1 md:col-span-2">
-            <div className="flex items-center gap-3 text-white mb-6">
-              <div className="size-6 text-primary">
-                <svg fill="currentColor" viewBox="0 0 48 48">
-                  <path d="M24 0.757355L47.2426 24L24 47.2426L0.757355 24L24 0.757355ZM21 35.7574V12.2426L9.24264 24L21 35.7574Z" />
-                </svg>
-              </div>
-              <h2 className="text-lg font-bold uppercase tracking-widest">
-                Venuti's Gourmet
-              </h2>
-            </div>
-            <p className="text-slate-400 text-sm max-w-sm mb-8">
-              Sourcing the world's most exceptional ingredients since 1924.
-            </p>
-            <button className="size-10 rounded-lg bg-background-dark border border-border-dark flex items-center justify-center text-slate-400 hover:text-primary transition-colors">
-              <Share2 size={18} />
-            </button>
-          </div>
-          <div>
-            <h4 className="text-white font-bold mb-6 text-sm uppercase tracking-widest">
-              Explore
-            </h4>
-            <ul className="space-y-3 text-sm text-slate-500">
-              {["Our Story", "Journal", "Wholesale", "Gift Cards"].map(
-                (link) => (
-                  <li key={link}>
-                    <a
-                      className="hover:text-primary transition-colors"
-                      href="#"
-                    >
-                      {link}
-                    </a>
-                  </li>
-                ),
-              )}
-            </ul>
-          </div>
-          <div>
-            <h4 className="text-white font-bold mb-6 text-sm uppercase tracking-widest">
-              Support
-            </h4>
-            <ul className="space-y-3 text-sm text-slate-500">
-              {["Shipping Policy", "Refunds", "Contact Us", "FAQ"].map(
-                (link) => (
-                  <li key={link}>
-                    <a
-                      className="hover:text-primary transition-colors"
-                      href="#"
-                    >
-                      {link}
-                    </a>
-                  </li>
-                ),
-              )}
-            </ul>
-          </div>
-        </div>
-        <div className="max-w-[1280px] mx-auto mt-12 pt-8 border-t border-border-dark flex flex-col md:flex-row justify-between text-[10px] text-slate-500 font-bold uppercase tracking-widest">
-          <p>© 2026 Venuti's Gourmet. All rights reserved.</p>
-          <div className="flex gap-6 mt-4 md:mt-0">
-            <a href="#" className="hover:text-white">
-              Privacy Policy
-            </a>
-            <a href="#" className="hover:text-white">
-              Terms of Service
-            </a>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

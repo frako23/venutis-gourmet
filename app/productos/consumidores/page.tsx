@@ -9,6 +9,7 @@ import {
   StarHalf,
 } from "lucide-react";
 import { PrismaClient } from "@prisma/client";
+import Link from "next/link";
 
 export default async function Productos({
   searchParams,
@@ -41,7 +42,7 @@ export default async function Productos({
 
   const total = totalCount;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  console.log("Products:", products);
+  // console.log("Products:", products);
   return (
     <main className="flex-1 p-6 lg:p-12 overflow-x-hidden">
       {/* Hero Section */}
@@ -79,15 +80,15 @@ export default async function Productos({
       {/* Product Toolbar */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 border-b border-primary/5 pb-6">
         <h2 className="text-2xl font-serif italic">
-          Curated Wines{" "}
-          <span className="text-primary/30 text-base font-sans ml-2 not-italic">
-            (42 items)
+          Nuestro Menú{" "}
+          <span className="text-gold/70 text-base font-sans ml-2 not-italic">
+            ({total} productos)
           </span>
         </h2>
-        <div className="flex gap-3 flex-wrap">
+        {/* <div className="flex gap-3 flex-wrap">
           <ToolbarButton label="Sort: Featured" />
           <ToolbarButton label="Price: Low-High" />
-        </div>
+        </div> */}
       </div>
 
       {/* Product Grid */}
@@ -96,6 +97,7 @@ export default async function Productos({
           <ProductCard
             key={product.id}
             image={product.imgUrl}
+            id={product.id}
             title={product.nombre}
             price={product.precio}
             desc={product.descripcion}
@@ -132,16 +134,8 @@ export default async function Productos({
   );
 }
 
-function ToolbarButton({ label }: { label: string }) {
-  return (
-    <button className="flex items-center gap-2 px-4 py-2 bg-parchment dark:bg-primary/10 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-primary/5 transition-colors">
-      <span>{label}</span>
-      <ChevronDown size={14} />
-    </button>
-  );
-}
-
 function ProductCard({
+  id,
   image,
   title,
   price,
@@ -170,7 +164,7 @@ function ProductCard({
             />
           );
         })}
-        <span className="text-[10px] text-primary/40 dark:text-gold/40 ml-1">
+        <span className="text-[10px] text-primary/40 dark:text-gold ml-1">
           ({reviews})
         </span>
       </div>
@@ -206,33 +200,34 @@ function ProductCard({
         <div className="mb-2">{renderStars(rating)}</div>
 
         <div className="flex justify-between items-start mb-2">
-          <h3 className="text-xl font-serif italic group-hover:text-primary dark:group-hover:text-gold transition-colors">
+          <a
+            href={`/productos/consumidores/${id}`}
+            className="text-xl font-serif italic group-hover:text-primary dark:group-hover:text-gold transition-colors group-hover:font-bold"
+          >
             {title}
-          </h3>
+          </a>
           <span className="text-xl font-bold text-primary dark:text-gold">
             ${price}
           </span>
         </div>
 
-        <p className="text-sm text-primary/60 dark:text-gold/70 mb-4 line-clamp-2">
+        {/* <p className="text-sm text-primary/60 dark:text-gold/70 mb-4 line-clamp-2">
           {desc}
-        </p>
+        </p> */}
 
         {/* Sección de Inventario / Stock */}
         <div className="mb-6">
           <div className="flex justify-between items-center mb-1.5">
             <span
-              className={`text-[10px] uppercase font-bold tracking-tighter ${stock < 5 ? "text-red-500" : "text-primary/40 dark:text-gold/40"}`}
+              className={`text-[10px] uppercase font-bold tracking-tighter ${stock < 5 ? "text-red-500" : "text-primary/40 dark:text-gold/80"}`}
             >
               {stock === 0
-                ? "Out of Stock"
+                ? "Agotado"
                 : stock < 5
-                  ? `Only ${stock} left in stock`
-                  : "In Stock"}
+                  ? `Solo quedan ${stock} unidades`
+                  : "En inventario"}
             </span>
-            <span className="text-[10px] font-mono opacity-40">
-              {stock} units
-            </span>
+            <span className="text-[10px] font-mono ">{stock} unidades</span>
           </div>
           <div className="h-1 w-full bg-primary/10 dark:bg-white/5 rounded-full overflow-hidden">
             <div

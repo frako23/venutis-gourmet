@@ -19,12 +19,12 @@ const Sidebar = () => {
         </div>
         <div>
           <h3 className="text-xs font-bold uppercase tracking-widest text-primary/40 dark:text-gold mb-4">
-            Filter By
+            Filtrar por
           </h3>
           <div className="space-y-4">
-            <FilterCheckbox label="Imported Only" />
-            <FilterCheckbox label="Organic" />
-            <FilterCheckbox label="On Sale" />
+            <FilterCheckbox label="En Promoción" />
+            <FilterCheckbox label="Nuevo" />
+            <FilterCheckbox label="Más Vendidos" />
           </div>
         </div>
       </div>

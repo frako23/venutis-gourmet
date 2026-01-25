@@ -10,7 +10,7 @@ import {
   Mail,
   MapPin,
   Phone,
-  Globe,
+  MessageCircleMore,
 } from "lucide-react";
 
 export default function AboutUs() {
@@ -38,14 +38,12 @@ export default function AboutUs() {
           </h1>
         </a>
         <nav className="hidden md:flex items-center gap-10">
-          <NavLink href="/about-us">Nuestra Historia</NavLink>
-          <NavLink href="#">Tienda</NavLink>
-          <NavLink href="#">Artesanos</NavLink>
-          <NavLink href="#">Contacto</NavLink>
+          <NavLink href="/productos/consumidores">Consumidores</NavLink>
+          <NavLink href="/productos/mayoristas">Mayoristas</NavLink>
         </nav>
-        <button className="bg-primary text-white px-6 py-2 text-xs font-bold tracking-widest uppercase hover:bg-opacity-80 transition-all rounded">
+        {/* <button className="bg-primary text-white px-6 py-2 text-xs font-bold tracking-widest uppercase hover:bg-opacity-80 transition-all rounded">
           Shop Now
-        </button>
+        </button> */}
       </header>
 
       {/* Hero Section */}
@@ -222,9 +220,15 @@ export default function AboutUs() {
               pasión es la calidad, nuestra guía es la tradición.
             </p>
             <div className="flex gap-4">
-              <SocialLink icon={Globe} />
-              <SocialLink icon={Instagram} />
-              <SocialLink icon={Mail} />
+              <SocialLink
+                icon={MessageCircleMore}
+                link="https://wa.me/584123456789"
+              />
+              <SocialLink
+                icon={Instagram}
+                link="https://www.instagram.com/venutis.gourmet"
+              />
+              <SocialLink icon={Mail} link="mailto:info@venutisgourmet.com" />
             </div>
           </div>
           <div>
@@ -243,9 +247,9 @@ export default function AboutUs() {
               Contacto
             </h4>
             <ul className="space-y-3 text-sm">
-              <ContactItem icon={MapPin} text="Via Roma 12, Florencia" />
+              <ContactItem icon={MapPin} text="Caracas" />
               <ContactItem icon={Mail} text="info@venutis.com" />
-              <ContactItem icon={Phone} text="+39 055 123 4567" />
+              <ContactItem icon={Phone} text="+58 412 345 6789" />
             </ul>
           </div>
         </div>
@@ -279,7 +283,7 @@ const NavLink = ({
 }) => (
   <a
     href={href}
-    className="text-xs font-bold tracking-[0.2em] uppercase text-white hover:text-gold transition-colors"
+    className="text-s font-bold tracking-[0.2em] uppercase text-white hover:text-gold transition-colors"
   >
     {children}
   </a>
@@ -310,8 +314,8 @@ const QualityFeature = ({ title, desc }: { title: string; desc: string }) => (
   </div>
 );
 
-const SocialLink = ({ icon: Icon }: { icon: any }) => (
-  <a href="#" className="text-cream/50 hover:text-gold transition-colors">
+const SocialLink = ({ icon: Icon, link }: { icon: any; link: string }) => (
+  <a href={link} className="text-cream/50 hover:text-gold transition-colors">
     <Icon size={20} />
   </a>
 );

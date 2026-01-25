@@ -1,4 +1,4 @@
-import { Globe, Mail, Phone } from "lucide-react";
+import { Globe, LucideIcon, Mail, MessageCircleMore, Phone } from "lucide-react";
 import React from "react";
 
 const Footer = () => {
@@ -19,9 +19,12 @@ const Footer = () => {
             heritage, quality, and artisan producers remains unchanged.
           </p>
           <div className="flex gap-4">
-            <FooterSocial icon={Globe} />
-            <FooterSocial icon={Mail} />
-            <FooterSocial icon={Phone} />
+            <FooterSocial
+              icon={MessageCircleMore}
+              link="https://wa.me/584123456789"
+            />
+            <FooterSocial icon={Mail} link="mailto:info@venutisgourmet.com" />
+            <FooterSocial icon={Phone} link="tel:+584123456789" />
           </div>
         </div>
         <div>
@@ -64,9 +67,9 @@ const Footer = () => {
 
 export default Footer;
 
-function FooterSocial({ icon: Icon }: { icon: any }) {
+function FooterSocial({ icon: Icon, link }: { icon: LucideIcon; link: string }) {
   return (
-    <a className="hover:text-white transition-colors" href="#">
+    <a className="hover:text-white transition-colors" href={link}>
       <Icon size={20} strokeWidth={1.5} />
     </a>
   );

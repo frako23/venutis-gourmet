@@ -6,7 +6,7 @@ const Header = () => {
     <header className="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-primary/10 px-6 lg:px-12 py-4">
       <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-8">
         <div className="flex items-center gap-12">
-          <div className="flex items-center gap-3">
+          <a href="/" className="flex items-center gap-3">
             <div className="text-primary dark:text-gold">
               <svg
                 className="w-8 h-8"
@@ -25,14 +25,14 @@ const Header = () => {
             <h1 className="text-2xl font-black tracking-tight text-primary dark:text-gold uppercase">
               Venuti's
             </h1>
-          </div>
+          </a>
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium uppercase tracking-widest">
             <a className="hover:text-gold transition-colors" href="/about-us">
               Nuestra historia
             </a>
-            <a className="hover:text-gold transition-colors" href="#">
+            {/* <a className="hover:text-gold transition-colors" href="#">
               Shipping
-            </a>
+            </a> */}
             <a
               className="hover:text-gold transition-colors"
               href="/prodcutos/mayoristas"
@@ -52,16 +52,19 @@ const Header = () => {
         </div>
 
         <div className="flex items-center gap-6">
-          {/* <button className="flex items-center gap-2 text-sm font-bold uppercase tracking-tighter hover:text-primary transition-colors">
+          <button className="flex items-center gap-2 text-sm font-bold uppercase tracking-tighter hover:text-gold transition-colors">
             <UserCircle size={20} />
-            <span className="hidden sm:inline">Login</span>
-          </button> */}
-          <button className="relative p-2 rounded-full bg-accent-gold/10 text-accent-gold hover:bg-accent-gold hover:text-white transition-all duration-300">
+            <span className="hidden sm:inline">Ingresar</span>
+          </button>
+          <a
+            href="/productos/finalizar-compra"
+            className="relative p-2 rounded-full bg-accent-gold/10 text-accent-gold hover:bg-accent-gold hover:text-white transition-all duration-300"
+          >
             <ShoppingBag size={20} />
             <span className="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-background-light">
               3
             </span>
-          </button>
+          </a>
         </div>
       </div>
     </header>

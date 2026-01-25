@@ -1,4 +1,11 @@
-import { BriefcaseBusiness, LucideIcon, ShoppingCart } from "lucide-react";
+import {
+  BriefcaseBusiness,
+  Instagram,
+  LucideIcon,
+  Mail,
+  MessageCircleMore,
+  ShoppingCart,
+} from "lucide-react";
 
 interface ChoiceCardProps {
   icon: LucideIcon;
@@ -93,19 +100,25 @@ export default function StorefrontEntry() {
         <footer className="relative z-10 w-full px-6 py-10">
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 border-t border-gold/20 pt-10">
             <div className="flex gap-8">
-              <FooterLink text="About Us" />
-              <FooterLink text="Shipping Policy" />
-              <FooterLink text="Terms of Service" />
+              <FooterLink text="Nuestra Historia" link="/about-us" />
+              <FooterLink text="Consumidores" link="/productos/consumidores" />
+              <FooterLink text="Mayoristas" link="/productos/mayoristas" />
             </div>
 
             <div className="flex gap-6 items-center">
-              <SocialIcon icon="public" />
-              <SocialIcon icon="alternate_email" />
-              <SocialIcon icon="share_reviews" />
+              <SocialIcon
+                icon={Instagram}
+                link="https://www.instagram.com/venutis.gourmet"
+              />
+              <SocialIcon
+                icon={MessageCircleMore}
+                link="https://wa.me/584123456789"
+              />
+              <SocialIcon icon={Mail} link="mailto:info@venutisgourmet.com" />
             </div>
 
             <p className="text-xs tracking-widest uppercase text-gray-500">
-              © 2024 Venuti's Gourmet. All rights reserved.
+              © 2024 Venuti's Gourmet. Todos los derechos reservados.
             </p>
           </div>
         </footer>
@@ -143,21 +156,21 @@ function ChoiceCard({
   );
 }
 
-function FooterLink({ text }: { text: string }) {
+function FooterLink({ text, link }: { text: string; link: string }) {
   return (
     <a
       className="text-xs tracking-widest uppercase text-gray-400 hover:text-gold"
-      href="#"
+      href={link}
     >
       {text}
     </a>
   );
 }
 
-function SocialIcon({ icon }: { icon: string }) {
+function SocialIcon({ icon: Icon, link }: { icon: LucideIcon; link: string }) {
   return (
-    <a className="text-gray-400 hover:text-gold" href="#">
-      <span className="material-symbols-outlined">{icon}</span>
+    <a className="text-gray-400 hover:text-gold" href={link}>
+      <Icon />
     </a>
   );
 }

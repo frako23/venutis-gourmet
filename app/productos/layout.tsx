@@ -1,3 +1,4 @@
+import Footer from "@/components/productos/footer";
 import Header from "@/components/productos/header";
 import Sidebar from "@/components/productos/sidebar";
 import { Metadata } from "next";
@@ -45,6 +46,7 @@ export default function ProductosLayout({
           }}
         />
       </div>
+      <Footer />
     </div>
   );
 }
