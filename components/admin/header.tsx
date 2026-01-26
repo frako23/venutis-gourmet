@@ -2,10 +2,10 @@
 
 import { Plus, Search } from "lucide-react";
 import { usePathname } from "next/navigation";
-import React from "react";
 
 const Header = () => {
   const pathname = usePathname();
+
   console.log("Current pathname:", pathname);
   return (
     <header className="sticky top-0 z-10 flex items-center justify-between bg-white/80 dark:bg-[#1a1c20]/80 backdrop-blur-md border-b border-[#dbe0d7] dark:border-[#3a3e44] px-8 py-4">

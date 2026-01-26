@@ -2,6 +2,7 @@
 import { Eye, ShoppingCart, Star, StarHalf } from "lucide-react";
 
 import { useDolar } from "@/hooks/useDolar";
+import { useAppStore } from "@/store/appStore";
 
 export function ProductCard({
   id,
@@ -17,6 +18,8 @@ export function ProductCard({
 }: any) {
   const { tasa } = useDolar();
   // Lógica para renderizar estrellas (ej. 4.5)
+  const setSelectedProducts = useAppStore((s) => s.setSelectedProducts);
+  const selectedProducts = useAppStore((s) => s.selectedProducts);
   const renderStars = (rating: number) => {
     return (
       <div className="flex items-center gap-0.5 text-accent-gold">
@@ -126,12 +129,18 @@ export function ProductCard({
         <button
           disabled={stock === 0}
           className={`mt-auto w-full py-3 rounded-lg font-bold uppercase tracking-widest text-[11px] 
-    flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95
+    flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 cursor-pointer
     ${
       stock === 0
         ? "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
         : "bg-primary text-white hover:bg-primary/90 hover:shadow-primary/20 shadow-primary/10"
     }`}
+          onClick={() => {
+            setSelectedProducts([
+              ...selectedProducts,
+              { id, title, price, image, quantity: 1 },
+            ]);
+          }}
         >
           <ShoppingCart size={14} />
           {stock === 0 ? "Sin Stock" : "Añadir al Carrito"}

@@ -1,18 +1,26 @@
 "use client";
-import { ClientWithRelations } from "@/prisma/types";
+
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+interface CartItem {
+  id: number;
+  title: string;
+  price: number;
+  image: string;
+  quantity: number;
+}
+
 interface AppState {
-  selectedClients: ClientWithRelations[];
-  setSelectedClients: (clients: ClientWithRelations[]) => void;
+  selectedProducts: CartItem[];
+  setSelectedProducts: (products: CartItem[]) => void;
 }
 
 export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
-      selectedClients: [],
-      setSelectedClients: (clients) => set({ selectedClients: clients }),
+      selectedProducts: [],
+      setSelectedProducts: (products) => set({ selectedProducts: products }),
     }),
     {
       name: "app-storage", // clave en localStorage

@@ -1,5 +1,7 @@
-import { Search, ShoppingBag, UserCircle } from "lucide-react";
+import { Search, ShoppingCart, UserCircle } from "lucide-react";
 import React from "react";
+import { LoginButton } from "./loginButton";
+import { ShoppingCartButton } from "./shoppingCartButton";
 
 const Header = () => {
   return (
@@ -52,19 +54,9 @@ const Header = () => {
         </div>
 
         <div className="flex items-center gap-6">
-          <button className="flex items-center gap-2 text-sm font-bold uppercase tracking-tighter hover:text-gold transition-colors">
-            <UserCircle size={20} />
-            <span className="hidden sm:inline">Ingresar</span>
-          </button>
-          <a
-            href="/productos/finalizar-compra"
-            className="relative p-2 rounded-full bg-accent-gold/10 text-accent-gold hover:bg-accent-gold hover:text-white transition-all duration-300"
-          >
-            <ShoppingBag size={20} />
-            <span className="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-background-light">
-              3
-            </span>
-          </a>
+          <LoginButton />
+
+          <ShoppingCartButton />
         </div>
       </div>
     </header>
