@@ -16,6 +16,6 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: "app-storage", // clave en localStorage
-    }
-  )
+    },
+  ),
 );
