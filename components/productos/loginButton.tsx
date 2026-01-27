@@ -8,7 +8,7 @@ export const LoginButton = () => {
     <div className="relative">
       <button
         onClick={() => setIsLoginOpen(!isLoginOpen)}
-        className="flex items-center gap-2 text-sm font-bold uppercase tracking-tighter hover:text-gold transition-colors"
+        className="flex items-center gap-2 text-sm font-bold uppercase tracking-tighter hover:text-gold transition-colors cursor-pointer"
       >
         <UserCircle size={20} />
         <span className="hidden sm:inline">Ingresar</span>
@@ -18,7 +18,7 @@ export const LoginButton = () => {
         <div className="absolute right-0 mt-4 w-72 bg-white dark:bg-zinc-900 shadow-2xl rounded-xl p-6 border border-primary/10 z-[60]">
           <button
             onClick={() => setIsLoginOpen(false)}
-            className="absolute top-2 right-2 text-gray-500 hover:text-gray-300"
+            className="absolute top-2 right-2 text-gray-500 hover:text-gray-300 cursor-pointer"
           >
             X
           </button>

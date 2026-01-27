@@ -17,10 +17,15 @@ import {
   User,
 } from "lucide-react";
 import Header from "@/components/productos/header";
+import { useAppStore } from "@/store/appStore";
+import { useDolar } from "@/hooks/useDolar";
 
 export default function CheckoutPage() {
   const [deliveryMethod, setDeliveryMethod] = useState("delivery");
   const [paymentMethod, setPaymentMethod] = useState("zelle");
+  const selectedProducts = useAppStore((s) => s.selectedProducts);
+  const { tasa } = useDolar();
+  const totalUSD = useAppStore((s) => s.getTotalUSD());
 
   return (
     <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
@@ -29,7 +34,7 @@ export default function CheckoutPage() {
 
         <main className="flex-1 max-w-7xl mx-auto w-full px-6 md:px-10 py-8">
           {/* Breadcrumbs */}
-          <nav className="flex items-center gap-2 mb-8 text-sm font-medium opacity-60">
+          {/* <nav className="flex items-center gap-2 mb-8 text-sm font-medium opacity-60">
             <a className="hover:text-primary transition-colors" href="#">
               Inicio
             </a>
@@ -39,7 +44,7 @@ export default function CheckoutPage() {
             </a>
             <ChevronRight size={14} />
             <span className="text-accent-gold font-bold">Pago Seguro</span>
-          </nav>
+          </nav> */}
 
           <div className="grid lg:grid-cols-12 gap-12">
             {/* Left Column: Order Summary */}
@@ -47,44 +52,73 @@ export default function CheckoutPage() {
               <div className="flex flex-col gap-2">
                 <h2 className="font-serif text-4xl font-bold">Tu Selección</h2>
                 <p className="text-sm opacity-60 uppercase tracking-widest">
-                  3 Artículos en tu curaduría
+                  {selectedProducts.length} Artículos en tu curaduría
                 </p>
               </div>
 
               <div className="space-y-4">
-                <CartItem
-                  name="Aceite de Oliva Trufado"
-                  desc="250ml Reserva Limitada"
-                  price={45}
-                  img="https://lh3.googleusercontent.com/aida-public/AB6AXuD2q-O2PjqnkIHUEKnZNFwYAs2vzRNnVTVB82QJKpbZn5pg-1qp_UrMVdKS4U8rJx57ngSvFN2wBamag7-4ZjMKmwNPqbkM2Y58VjxUlLNdPGFO1LzOXMVG1smuihOWAPlZzjw1_jKzg45BPCF4E8T3k5noq7k5aJ_DOjuEOsSgimYsynCjkVeRtfM-8sVrKIhSEI5BANHIY6KbK98i2hzvn01PHIMFDF3o_nPr2IbJ0OEfK2cwAUdi8eXHkf_amYwELgfMDH5nLUE"
-                />
-                <CartItem
-                  name="Prosciutto Artesanal"
-                  desc="Madurado 24 Meses - 200g"
-                  price={76}
-                  img="https://lh3.googleusercontent.com/aida-public/AB6AXuDvnQC5yG9bxFgeVdR1qNLDAEXs0jo4NECtq0_Gv8_S3hWets9OVzaQiRn7aA7yFQiVZmGsQC4C9S3vFWnoSot78qDz-uLFLeVdmMysTah01CAod2Qd0r201pFAy665u7IYdSZYBxiRxF2CcMNiVVv7IelUBkoVidHnd_X4xsv0g2bjkoMeUvX7r-Bo4BG0SXJUIoHGUjqJQPm10UfsT_Zk8zpXxHWcZfZ-U3qYjCdkXEM4Nmwm_48SZxLBSneewvYcQxLda7ZueYY"
-                />
+                {selectedProducts.map((product: any) => (
+                  <CartItem
+                    name={product.title}
+                    desc={product.description}
+                    price={product.price}
+                    img={product.image}
+                    quantity={product.quantity}
+                    id={product.id}
+                  />
+                ))}
               </div>
 
               {/* Summary Totals */}
               <div className="mt-8 pt-8 border-t border-white/10 space-y-4">
                 <div className="flex justify-between text-sm">
                   <span className="opacity-60">Subtotal</span>
-                  <span>$121.00</span>
+                  <div className="text-right">
+                    <p className="font-medium">${totalUSD.toFixed(2)}</p>
+                    {tasa > 0 && (
+                      <p className="text-[10px] opacity-40 italic">
+                        {(totalUSD * tasa).toLocaleString("es-VE")} Bs.
+                      </p>
+                    )}
+                  </div>
                 </div>
+
                 <div className="flex justify-between text-sm">
                   <span className="opacity-60">Envío</span>
-                  <span className="text-accent-gold">
+                  <span className="text-accent-gold text-xs uppercase tracking-tighter">
                     Calculado en el siguiente paso
                   </span>
                 </div>
-                <div className="flex justify-between items-baseline pt-4">
-                  <span className="font-serif text-xl">Total</span>
-                  <span className="font-serif text-3xl font-bold text-white">
-                    $121.00
-                  </span>
+
+                {/* Total Sección Destacada */}
+                <div className="pt-4 border-t border-white/5">
+                  <div className="flex justify-between items-baseline">
+                    <span className="font-serif text-xl">Total</span>
+                    <div className="text-right">
+                      <span className="font-serif text-4xl font-bold text-white tracking-tighter">
+                        ${totalUSD.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Equivalente en Bs (Visible y con Estilo) */}
+                  {tasa > 0 && (
+                    <div className="flex justify-between items-center mt-2 p-3 rounded-lg bg-white/5 border border-white/10">
+                      <span className="text-[10px] uppercase tracking-widest opacity-60">
+                        Tasa BCV: {tasa.toFixed(2)}
+                      </span>
+                      <span className="text-lg font-bold text-accent-gold italic">
+                        Bs.{" "}
+                        {(totalUSD * tasa).toLocaleString("es-VE", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </span>
+                    </div>
+                  )}
                 </div>
-                <p className="text-[10px] uppercase tracking-widest text-center opacity-40 mt-4">
+
+                <p className="text-[10px] uppercase tracking-widest text-center opacity-40 mt-6">
                   Los precios incluyen impuestos gourmet aplicables
                 </p>
               </div>
@@ -252,7 +286,9 @@ export default function CheckoutPage() {
 
 // --- Sub-componentes ---
 
-function CartItem({ name, desc, price, img }: any) {
+function CartItem({ name, desc, price, img, quantity, id }: any) {
+  const updateQuantity = useAppStore((s) => s.updateQuantity);
+
   return (
     <div className="flex items-center gap-4 p-4 rounded-xl bg-surface-dark border border-white/5 group hover:border-accent-gold/30 transition-all duration-300">
       <div className="relative w-24 h-24 shrink-0 overflow-hidden rounded-lg bg-input-dark">
@@ -276,11 +312,19 @@ function CartItem({ name, desc, price, img }: any) {
         </div>
         <div className="flex items-center gap-3 mt-3">
           <div className="flex items-center gap-2 border border-white/10 rounded-full px-3 py-1">
-            <button type="button" className="opacity-50 hover:opacity-100">
+            <button
+              type="button"
+              className="opacity-50 hover:opacity-100 cursor-pointer"
+              onClick={() => updateQuantity(id, -1)}
+            >
               <Minus size={14} />
             </button>
-            <span className="text-sm px-1 font-medium">1</span>
-            <button type="button" className="opacity-50 hover:opacity-100">
+            <span className="text-sm px-1 font-medium">{quantity}</span>
+            <button
+              type="button"
+              className="opacity-50 hover:opacity-100 cursor-pointer"
+              onClick={() => updateQuantity(id, 1)}
+            >
               <Plus size={14} />
             </button>
           </div>

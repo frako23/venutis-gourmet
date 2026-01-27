@@ -1,44 +1,22 @@
 "use client";
 
-import { ShoppingCart, X, Plus, Minus, Trash2 } from "lucide-react";
+import { ShoppingCart, Plus, Minus, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 import { useAppStore } from "@/store/appStore";
 import { useDolar } from "@/hooks/useDolar";
 
 export const ShoppingCartButton = () => {
   const selectedProducts = useAppStore((s) => s.selectedProducts);
-  const setSelectedProducts = useAppStore((s) => s.setSelectedProducts);
   const { tasa } = useDolar();
   const [isCartOpen, setIsCartOpen] = useState(false);
-
-  // Funciones de control
-  const updateQuantity = (id: number, delta: number) => {
-    const updated = selectedProducts
-      .map((p) => {
-        if (p.id === id) {
-          const newQty = Math.max(0, p.quantity + delta);
-          return { ...p, quantity: newQty };
-        }
-        return p;
-      })
-      .filter((p) => p.quantity > 0); // Si llega a 0, se elimina
-    setSelectedProducts(updated);
-  };
-
-  const removeItem = (id: number) => {
-    setSelectedProducts(selectedProducts.filter((p) => p.id !== id));
-  };
-
-  const totalUSD = selectedProducts.reduce(
-    (total, p) => total + p.price * p.quantity,
-    0,
-  );
+  const updateQuantity = useAppStore((s) => s.updateQuantity);
+  const totalUSD = useAppStore((s) => s.getTotalUSD());
 
   return (
     <div className="relative">
       <button
         onClick={() => setIsCartOpen(!isCartOpen)}
-        className="relative p-2 rounded-full bg-accent-gold/10 text-accent-gold hover:bg-accent-gold hover:text-white transition-all duration-300"
+        className="relative p-2 rounded-full bg-accent-gold/10 text-accent-gold hover:bg-accent-gold hover:text-white transition-all duration-300 cursor-pointer"
       >
         <ShoppingCart size={20} />
         {selectedProducts.length > 0 && (
@@ -61,9 +39,9 @@ export const ShoppingCartButton = () => {
               <span className="font-serif italic font-bold">Tu Carrito</span>
               <button
                 onClick={() => setIsCartOpen(false)}
-                className="text-primary/50 hover:text-primary"
+                className="absolute top-2 right-2 text-gray-500 hover:text-gray-300 cursor-pointer"
               >
-                <X size={18} />
+                X
               </button>
             </div>
 
@@ -143,7 +121,7 @@ export const ShoppingCartButton = () => {
               </div>
 
               <a
-                href="/productos/finalizar-compra"
+                href="/finalizar-compra"
                 className="block w-full bg-primary text-white py-3 rounded-lg text-[10px] font-bold uppercase tracking-[2px] text-center hover:bg-gold transition-all shadow-lg"
               >
                 Realizar Pedido
