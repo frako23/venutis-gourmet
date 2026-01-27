@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ShoppingBag,
   UserCircle,
@@ -15,17 +15,34 @@ import {
   ArrowRight,
   ShieldCheck,
   User,
+  Landmark,
 } from "lucide-react";
 import Header from "@/components/productos/header";
 import { useAppStore } from "@/store/appStore";
 import { useDolar } from "@/hooks/useDolar";
+import { AddressManager } from "@/components/finalizar-compra/address-manager";
+import { PAYMENT_DETAILS } from "@/lib/constants/constants";
+import { CopyButton } from "@/components/productos/copy-to-clipboard";
+import Loading from "../loading";
 
 export default function CheckoutPage() {
   const [deliveryMethod, setDeliveryMethod] = useState("delivery");
   const [paymentMethod, setPaymentMethod] = useState("zelle");
   const selectedProducts = useAppStore((s) => s.selectedProducts);
   const { tasa } = useDolar();
+  const [mounted, setMounted] = useState(false);
   const totalUSD = useAppStore((s) => s.getTotalUSD());
+
+  useEffect(() => {
+    // Simulamos un pequeño delay opcional para que la transición no sea un "parpadeo"
+    // o simplemente marcamos como montado inmediatamente.
+    setMounted(true);
+  }, []);
+
+  // Hasta que el cliente no esté listo, mostramos tu componente de carga
+  if (!mounted) {
+    return <Loading />;
+  }
 
   return (
     <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
@@ -65,6 +82,7 @@ export default function CheckoutPage() {
                     img={product.image}
                     quantity={product.quantity}
                     id={product.id}
+                    key={product.id}
                   />
                 ))}
               </div>
@@ -183,29 +201,7 @@ export default function CheckoutPage() {
                       <Store size={16} /> Retiro en Tienda
                     </button>
                   </div>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] uppercase tracking-widest opacity-50 px-1">
-                        Sector / Zona
-                      </label>
-                      <select className="w-full bg-input-dark border-white/10 rounded-lg focus:border-primary focus:ring-1 focus:ring-primary text-white py-3 px-4 appearance-none">
-                        <option>Selecciona tu zona...</option>
-                        <option>Upper East Side</option>
-                        <option>Chelsea District</option>
-                        <option>Tribeca Luxury</option>
-                      </select>
-                    </div>
-                    <div className="md:col-span-2 space-y-1.5">
-                      <label className="text-[11px] uppercase tracking-widest opacity-50 px-1">
-                        Dirección Detallada
-                      </label>
-                      <textarea
-                        className="w-full bg-input-dark border-white/10 rounded-lg focus:border-primary focus:ring-1 focus:ring-primary text-white py-3 px-4"
-                        placeholder="Ej. Calle, Edificio, Apto..."
-                        rows={3}
-                      ></textarea>
-                    </div>
-                  </div>
+                  <AddressManager />
                 </div>
 
                 {/* Section: Payment Methods */}
@@ -216,13 +212,13 @@ export default function CheckoutPage() {
                       Método de Pago
                     </h3>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                     <PaymentOption
-                      id="transfer"
-                      label="Transferencia"
-                      icon={CreditCard}
-                      selected={paymentMethod === "transfer"}
-                      onClick={() => setPaymentMethod("transfer")}
+                      id="pago-movil"
+                      label="Pago Móvil"
+                      icon={Smartphone}
+                      selected={paymentMethod === "pago-movil"}
+                      onClick={() => setPaymentMethod("pago-movil")}
                     />
                     <PaymentOption
                       id="zelle"
@@ -232,12 +228,154 @@ export default function CheckoutPage() {
                       onClick={() => setPaymentMethod("zelle")}
                     />
                     <PaymentOption
+                      id="transfer"
+                      label="Transferencia"
+                      icon={Landmark}
+                      selected={paymentMethod === "transfer"}
+                      onClick={() => setPaymentMethod("transfer")}
+                    />
+                    <PaymentOption
                       id="cash"
                       label="Efectivo"
                       icon={Banknote}
                       selected={paymentMethod === "cash"}
                       onClick={() => setPaymentMethod("cash")}
                     />
+                  </div>
+
+                  {/* Detalles del Pago Dinámicos */}
+                  <div className="mt-6 animate-in fade-in slide-in-from-top-2 duration-500">
+                    {paymentMethod ? (
+                      <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-sm">
+                        <div className="flex justify-between items-center mb-4">
+                          <h4 className="text-xs uppercase tracking-[2px] font-bold text-accent-gold">
+                            Instrucciones de Pago
+                          </h4>
+                          <span className="text-[10px] bg-white/10 px-2 py-1 rounded-md opacity-60">
+                            Moneda: {PAYMENT_DETAILS[paymentMethod].currency}
+                          </span>
+                        </div>
+
+                        <div className="space-y-3">
+                          {/* Renderizado condicional según el método */}
+                          {paymentMethod === "pago-movil" && (
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                              <div>
+                                <p className="opacity-40 text-[10px] uppercase">
+                                  Banco
+                                </p>
+                                <p className="font-medium">
+                                  {PAYMENT_DETAILS["pago-movil"].bank}
+                                </p>
+                                <CopyButton
+                                  text={`0412123456
+1234567
+0134
+Bs ${(totalUSD * tasa).toLocaleString("es-VE")}`}
+                                />
+                              </div>
+                              <div>
+                                <p className="opacity-40 text-[10px] uppercase">
+                                  Teléfono
+                                </p>
+                                <p className="font-medium">
+                                  {PAYMENT_DETAILS["pago-movil"].phone}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="opacity-40 text-[10px] uppercase">
+                                  Cédula/RIF
+                                </p>
+                                <p className="font-medium">
+                                  {PAYMENT_DETAILS["pago-movil"].id}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+
+                          {paymentMethod === "zelle" && (
+                            <div className="space-y-2 text-sm">
+                              <div>
+                                <p className="opacity-40 text-[10px] uppercase">
+                                  Correo Zelle
+                                </p>
+                                <p className="text-lg font-serif italic text-white">
+                                  {PAYMENT_DETAILS["zelle"].email}
+                                </p>
+                                <CopyButton
+                                  text={`${PAYMENT_DETAILS["zelle"].email}
+Monto: $ ${totalUSD.toFixed(2)} `}
+                                />
+                              </div>
+                              <div>
+                                <p className="opacity-40 text-[10px] uppercase">
+                                  A nombre de
+                                </p>
+                                <p className="font-medium">
+                                  {PAYMENT_DETAILS["zelle"].name}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+
+                          {paymentMethod === "transfer" && (
+                            <div className="grid grid-cols-1 gap-3 text-sm">
+                              <div>
+                                <p className="opacity-40 text-[10px] uppercase">
+                                  Cuenta Corriente
+                                </p>
+                                <p className="font-mono text-xs tracking-wider">
+                                  {PAYMENT_DETAILS["transfer"].account}
+                                </p>
+                                <CopyButton
+                                  text={PAYMENT_DETAILS["transfer"].account}
+                                />
+                              </div>
+                              <div className="flex justify-between">
+                                <div>
+                                  <p className="opacity-40 text-[10px] uppercase">
+                                    Banco
+                                  </p>
+                                  <p className="font-medium">
+                                    {PAYMENT_DETAILS["transfer"].bank}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="opacity-40 text-[10px] uppercase">
+                                    RIF
+                                  </p>
+                                  <p className="font-medium">
+                                    {PAYMENT_DETAILS["transfer"].id}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {paymentMethod === "cash" && (
+                            <div className="flex items-center gap-3 p-3 bg-accent-gold/5 border border-accent-gold/20 rounded-lg">
+                              <div className="w-2 h-2 rounded-full bg-accent-gold animate-pulse" />
+                              <p className="text-xs italic opacity-80">
+                                {PAYMENT_DETAILS["cash"].instructions}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Nota común para todos los métodos excepto efectivo */}
+                          {paymentMethod !== "cash" && (
+                            <p className="mt-4 text-[11px] leading-relaxed opacity-50 border-t border-white/5 pt-4 italic">
+                              {PAYMENT_DETAILS[paymentMethod].instructions}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-8 border-2 border-dashed border-white/5 rounded-2xl text-center opacity-30">
+                        <p className="text-xs uppercase tracking-widest font-medium italic">
+                          Selecciona un método para ver los detalles de pago
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
 
