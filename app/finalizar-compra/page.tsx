@@ -2,9 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import {
-  ShoppingBag,
   UserCircle,
-  ChevronRight,
   Minus,
   Plus,
   Truck,
@@ -14,7 +12,6 @@ import {
   Banknote,
   ArrowRight,
   ShieldCheck,
-  User,
   Landmark,
 } from "lucide-react";
 import Header from "@/components/productos/header";
@@ -24,6 +21,7 @@ import { AddressManager } from "@/components/finalizar-compra/address-manager";
 import { PAYMENT_DETAILS } from "@/lib/constants/constants";
 import { CopyButton } from "@/components/productos/copy-to-clipboard";
 import Loading from "../loading";
+import Image from "next/image";
 
 export default function CheckoutPage() {
   const [deliveryMethod, setDeliveryMethod] = useState("delivery");
@@ -430,7 +428,7 @@ function CartItem({ name, desc, price, img, quantity, id }: any) {
   return (
     <div className="flex items-center gap-4 p-4 rounded-xl bg-surface-dark border border-white/5 group hover:border-accent-gold/30 transition-all duration-300">
       <div className="relative w-24 h-24 shrink-0 overflow-hidden rounded-lg bg-input-dark">
-        <img
+        <Image
           alt={name}
           className="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-500"
           src={img}
@@ -504,7 +502,7 @@ function Step({ number, label, active = false }: any) {
   );
 }
 
-function PaymentOption({ id, label, icon: Icon, selected, onClick }: any) {
+function PaymentOption({ label, icon: Icon, selected, onClick }: any) {
   return (
     <label className="cursor-pointer group block" onClick={onClick}>
       <div

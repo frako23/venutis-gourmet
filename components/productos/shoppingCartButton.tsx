@@ -4,6 +4,7 @@ import { ShoppingCart, Plus, Minus, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 import { useAppStore } from "@/store/appStore";
 import { useDolar } from "@/hooks/useDolar";
+import Image from "next/image";
 
 export const ShoppingCartButton = () => {
   const selectedProducts = useAppStore((s) => s.selectedProducts);
@@ -56,7 +57,7 @@ export const ShoppingCartButton = () => {
                     key={product.id}
                     className="flex items-center gap-3 pb-3 border-b border-gray-100 dark:border-white/5 last:border-0"
                   >
-                    <img
+                    <Image
                       src={product.image}
                       alt={product.title}
                       className="w-12 h-12 object-cover rounded-lg bg-gray-50"

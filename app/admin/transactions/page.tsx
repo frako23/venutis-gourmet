@@ -1,16 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
 import {
-  LayoutDashboard,
   ReceiptText,
-  Package,
-  Users,
-  PieChart,
-  LogOut,
-  Search,
-  Bell,
-  Settings,
   TrendingUp,
   ShoppingBag,
   CalendarDays,
@@ -18,8 +9,8 @@ import {
   MoreVertical,
   ChevronLeft,
   ChevronRight,
-  UtensilsCrossed,
 } from "lucide-react";
+import { useState } from "react";
 
 export default function TransactionsDashboard() {
   const [activeFilter, setActiveFilter] = useState("All Orders");

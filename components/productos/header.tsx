@@ -1,14 +1,15 @@
-import { Search, ShoppingCart, UserCircle } from "lucide-react";
+import { Search } from "lucide-react";
 import React from "react";
 import { LoginButton } from "./loginButton";
 import { ShoppingCartButton } from "./shoppingCartButton";
+import Link from "next/link";
 
 const Header = () => {
   return (
     <header className="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-primary/10 px-6 lg:px-12 py-4">
       <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-8">
         <div className="flex items-center gap-12">
-          <a href="/" className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3">
             <div className="text-primary dark:text-gold">
               <svg
                 className="w-8 h-8"
@@ -27,7 +28,7 @@ const Header = () => {
             <h1 className="text-2xl font-black tracking-tight text-primary dark:text-gold uppercase">
               Venuti's
             </h1>
-          </a>
+          </Link>
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium uppercase tracking-widest">
             <a className="hover:text-gold transition-colors" href="/about-us">
               Nuestra historia

@@ -1,16 +1,5 @@
-import React from "react";
-import {
-  ChevronDown,
-  Eye,
-  ShoppingCart,
-  ChevronLeft,
-  ChevronRight,
-  Star,
-  StarHalf,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { PrismaClient } from "@prisma/client";
-import Link from "next/link";
-import { useDolar } from "@/hooks/useDolar";
 import { ProductCard } from "@/components/productos/productCard";
 
 export default async function Productos({

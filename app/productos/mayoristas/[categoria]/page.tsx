@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Search,
   UserCircle,
@@ -20,6 +19,7 @@ import {
   Star,
   StarHalf,
 } from "lucide-react";
+import Image from "next/image";
 
 export default function Productos() {
   return (
@@ -382,7 +382,7 @@ function ProductCard({
             </span>
           </div>
         )}
-        <img
+        <Image
           alt={title}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           src={image}

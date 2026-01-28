@@ -1,4 +1,4 @@
-import { Globe, LucideIcon, Mail, MessageCircleMore, Phone } from "lucide-react";
+import { LucideIcon, Mail, MessageCircleMore, Phone } from "lucide-react";
 import React from "react";
 
 const Footer = () => {

@@ -12,6 +12,15 @@ const compat = new FlatCompat({
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
+    // Las reglas deben ir dentro de un objeto que afecte a tus archivos
+    files: ["**/*.ts", "**/*.tsx"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unused-vars": "warn", // Útil para no dejar basura
+      "react/no-unescaped-entities": "off", // Evita errores por usar tildes o comillas en el texto
+    },
+  },
+  {
     ignores: [
       "node_modules/**",
       ".next/**",
@@ -19,9 +28,6 @@ const eslintConfig = [
       "build/**",
       "next-env.d.ts",
     ],
-    rules: {
-      "@typescript-eslint/no-explicit-any": "off", // ← desactiva la regla
-    },
   },
 ];
 

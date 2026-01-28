@@ -17,7 +17,7 @@ import { toast } from "sonner";
 const initialState = { message: "", status: "" };
 
 export default function AddProductPage() {
-  const [status, setStatus] = useState("draft");
+  // const [status, setStatus] = useState("draft");
   const [imageUrl, setImageUrl] = useState("");
   const [state, formAction, isPending] = useActionState(
     addProduct,
@@ -269,25 +269,25 @@ function Input({ ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
   );
 }
 
-function StatusButton({
-  active,
-  label,
-  onClick,
-}: {
-  active: boolean;
-  label: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all border-2 ${
-        active
-          ? "bg-gold border-gold text-white shadow-lg shadow-gold/20 translate-y-[-2px]"
-          : "bg-transparent border-slate-100 text-slate-400 hover:border-slate-200"
-      }`}
-    >
-      {label}
-    </button>
-  );
-}
+// function StatusButton({
+//   active,
+//   label,
+//   onClick,
+// }: {
+//   active: boolean;
+//   label: string;
+//   onClick: () => void;
+// }) {
+//   return (
+//     <button
+//       onClick={onClick}
+//       className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all border-2 ${
+//         active
+//           ? "bg-gold border-gold text-white shadow-lg shadow-gold/20 translate-y-[-2px]"
+//           : "bg-transparent border-slate-100 text-slate-400 hover:border-slate-200"
+//       }`}
+//     >
+//       {label}
+//     </button>
+//   );
+// }

@@ -2,18 +2,7 @@ import Footer from "@/components/productos/footer";
 import Header from "@/components/productos/header";
 import Sidebar from "@/components/productos/sidebar";
 import { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
 import { Toaster } from "sonner";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
-
-const mono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
-});
 
 export const metadata: Metadata = {
   title: "Panel Administrativo | Venuti's Gourmet - Gestión de Calidad",

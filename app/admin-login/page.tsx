@@ -1,7 +1,4 @@
-import { stackServerApp } from "@/stack/server";
-import { SignIn } from "@stackframe/stack";
-import { redirect } from "next/navigation";
-import { Diamond, ShieldCheck, ArrowLeft } from "lucide-react";
+import { ShieldCheck, ArrowLeft, Link } from "lucide-react";
 
 export default async function AdminLogin() {
   // const user = await stackServerApp.getUser();
@@ -34,7 +31,7 @@ export default async function AdminLogin() {
 
       {/* Header */}
       <header className="relative z-10 w-full px-6 lg:px-20 py-8 flex justify-center items-center">
-        <a href="/" className="flex items-center gap-3">
+        <Link href="/" className="flex items-center gap-3">
           <div className="size-8 text-gold">
             <svg
               fill="none"
@@ -52,7 +49,7 @@ export default async function AdminLogin() {
           <h1 className="text-white text-xl font-bold tracking-widest uppercase">
             Venuti's
           </h1>
-        </a>
+        </Link>
       </header>
 
       {/* Main Content */}
@@ -88,7 +85,7 @@ export default async function AdminLogin() {
 
               {/* Tu componente SignIn */}
               {/* <SignIn ... /> */}
-              <SignIn
+              {/* <SignIn
                 automaticRedirect={true}
                 mockProject={{
                   config: {
@@ -99,7 +96,7 @@ export default async function AdminLogin() {
                     oauthProviders: [{ id: "google" }],
                   },
                 }}
-              />
+              /> */}
               {/* Divisor de Seguridad */}
               <div className="flex items-center gap-4 py-2">
                 <div className="flex-1 h-px bg-gold/20"></div>
@@ -117,7 +114,7 @@ export default async function AdminLogin() {
           </div>
 
           {/* Enlace de Regreso */}
-          <a
+          <Link
             className="mt-8 flex items-center justify-center gap-2 text-xs uppercase tracking-widest text-gray-400 hover:text-gold transition-colors group"
             href="/"
           >
@@ -126,7 +123,7 @@ export default async function AdminLogin() {
               className="group-hover:-translate-x-1 transition-transform"
             />
             Back to Storefront
-          </a>
+          </Link>
         </div>
       </main>
     </div>

@@ -3,18 +3,18 @@ import { Eye, ShoppingCart, Star, StarHalf } from "lucide-react";
 
 import { useDolar } from "@/hooks/useDolar";
 import { useAppStore } from "@/store/appStore";
+import Image from "next/image";
 
 export function ProductCard({
   id,
   image,
   title,
   price,
-  desc,
   badge,
   badgeColor = "bg-accent-gold",
   rating = 5, // Nueva prop para estrellas
   reviews = 3, // Nueva prop para número de reseñas
-  stock = 5, // Nueva prop para inventario
+  stock = 0, // Nueva prop para inventario
 }: any) {
   const { tasa } = useDolar();
   // Lógica para renderizar estrellas (ej. 4.5)
@@ -56,7 +56,7 @@ export function ProductCard({
             </span>
           </div>
         )}
-        <img
+        <Image
           alt={title}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           src={image}

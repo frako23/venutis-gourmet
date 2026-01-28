@@ -14,7 +14,7 @@
     "@prisma/client": "^6.17.1",
     "@stackframe/stack": "^2.8.43",
     "cloudinary": "^2.9.0",
-    "lucide-react": "^0.546.0",
+    "lucide-react": "^0.563.0",
     "next": "15.5.9",
     "next-cloudinary": "^6.17.5",
     "prisma": "^6.17.1",
@@ -34,7 +34,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "15.5.5",
+    "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"

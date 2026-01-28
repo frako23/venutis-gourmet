@@ -12,13 +12,15 @@ import {
   Phone,
   MessageCircleMore,
 } from "lucide-react";
+import Link from "next/link";
+import Image from "next/image";
 
 export default function AboutUs() {
   return (
     <div className="bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-cream selection:bg-gold selection:text-background-dark">
       {/* Sticky Header */}
       <header className="fixed top-0 w-full z-50 border-b border-white/10 bg-background-dark/80 backdrop-blur-md px-6 md:px-20 py-4 flex items-center justify-between">
-        <a href="/" className="flex items-center gap-3">
+        <Link href="/" className="flex items-center gap-3">
           <div className="size-8 text-gold">
             <svg
               fill="none"
@@ -36,7 +38,7 @@ export default function AboutUs() {
           <h1 className="text-white text-xl font-bold tracking-widest uppercase">
             Venuti's
           </h1>
-        </a>
+        </Link>
         <nav className="hidden md:flex items-center gap-10">
           <NavLink href="/productos/consumidores">Consumidores</NavLink>
           <NavLink href="/productos/mayoristas">Mayoristas</NavLink>
@@ -97,7 +99,7 @@ export default function AboutUs() {
           </div>
           <div className="order-1 md:order-2 relative">
             <div className="absolute -top-4 -left-4 w-full h-full border border-gold/20 -z-10"></div>
-            <img
+            <Image
               alt="Vintage recipe book"
               className="w-full h-[500px] object-cover sepia-filter rounded shadow-2xl"
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuBup6t-t7gsgaD9TJpf2jrSKzitTccBkqNjG4rfbmvYy6AJLdNO4krrcs8jplE1k8bZYElNFeJc8j1YRNjGvBmgbFLU2z2z45YB9OIW8baJ50JoW4fJGYsF0umCNMOXjd-9x_ufsdOiTq9P39BhxIIXWDbrOOrzfNOqrzqcL_KXaEkaWZ-kwOpZV10E_Ncrguv2fGabzDGyKbCIvXPYuKJeAnbxLRWihFWUobZinzG7FVy3Xzoiw4lMsLApb33Pp-z499WfbKUklRM"
@@ -130,7 +132,7 @@ export default function AboutUs() {
         <div className="grid md:grid-cols-2 gap-16 items-center">
           <div className="relative">
             <div className="absolute -bottom-4 -right-4 w-full h-full border border-primary/30 -z-10"></div>
-            <img
+            <Image
               alt="Artisanal ingredients"
               className="w-full h-[500px] object-cover grayscale brightness-75 rounded shadow-2xl"
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuArWYabT3G8I8O_Yf3_4EtBapLaQGW8fFjVKB_pmO8pFiUevZa9pQ7HhyfvjMuFX1bzVMWWk3SifsOrhU4HcoU3pYJtF8k98wzGexkXfDgUZC9Ux89rcez-JG5dManFzUeux48f-ksj0Lvm-kfLGfPmd9MOW_jwi-WIe20eJQy_JUST0p4haA2_8l7FmiKbkbSVeVzyCxjuYD7blJic2xgh5kqfAasaSiIOgqlUfMd4IpZmxjsAdq6w8DHSy6h0ULf1EIYFkiuMJto"

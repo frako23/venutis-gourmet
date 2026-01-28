@@ -1,10 +1,10 @@
-import Sidebar from "@/components/sidebar";
+// import Sidebar from "@/components/sidebar";
 import { AccountSettings } from "@stackframe/stack";
 
 export default async function SettingsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <Sidebar currentPath="/settings" />
+      {/* <Sidebar currentPath="/settings" /> */}
 
       <main className="ml-64 p-8">
         <div className="mb-8">
@@ -18,11 +18,11 @@ export default async function SettingsPage() {
           </div>
         </div>
 
-      <div className="max-w-6xl">
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <AccountSettings fullPage />
+        <div className="max-w-6xl">
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <AccountSettings fullPage />
+          </div>
         </div>
-      </div>
       </main>
     </div>
   );

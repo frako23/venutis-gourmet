@@ -1,4 +1,3 @@
-import React from "react";
 import {
   ChevronDown,
   Eye,
@@ -9,6 +8,7 @@ import {
   StarHalf,
 } from "lucide-react";
 import { PrismaClient } from "@prisma/client";
+import Image from "next/image";
 
 export default async function Productos({
   searchParams,
@@ -188,7 +188,7 @@ function ProductCard({
             </span>
           </div>
         )}
-        <img
+        <Image
           alt={title}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           src={image}

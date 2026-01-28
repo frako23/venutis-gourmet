@@ -19,6 +19,7 @@ import {
   Share2,
   EclipseIcon,
 } from "lucide-react";
+import Image from "next/image";
 
 export default function ProductDetail() {
   const [quantity, setQuantity] = useState(1);
@@ -105,7 +106,7 @@ export default function ProductDetail() {
           {/* Left: Image Gallery */}
           <div className="lg:col-span-7 space-y-4">
             <div className="aspect-[4/5] rounded-xl overflow-hidden bg-surface-dark group relative cursor-zoom-in">
-              <img
+              <Image
                 alt="Aged Balsamic Vinegar"
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuCN4SpOwn9-91BB6WrPrLRkWp3V9NYlY3hk0ycmN_WKvFvtmrhwd6Y1l_BSdapI37ccEpMg6g2FXj3nlh28eMR5TUSKms9vIYxIUpN8lJ4iV_EWKA3EbbElt-2MytauVUZ6uQm7JMPFvEu-bbi6AGduuTesN7iWj7GohLwDG7JGvjC6vqpI4cfrylMFOZ4ra_i1QQmECbSt3MJaHh1ASsiiqA6Jfbv6l8z2csHXLFkdeaqG1AEgZoSDZxWKB8Ntrn71mFge_OnGukE"
@@ -120,7 +121,7 @@ export default function ProductDetail() {
                   key={img}
                   className={`aspect-square rounded-lg overflow-hidden cursor-pointer transition-all ${i === 0 ? "border-2 border-primary" : "hover:opacity-80"}`}
                 >
-                  <img
+                  <Image
                     className="w-full h-full object-cover"
                     src={`http://googleusercontent.com/profile/picture/${img}`}
                     alt="Gallery thumbnail"
@@ -315,7 +316,7 @@ export default function ProductDetail() {
             {/* Photo Review */}
             <div className="p-6 rounded-2xl bg-surface-dark/40 border border-border-dark flex flex-col hover:border-primary/40 transition-colors">
               <div className="aspect-video w-full rounded-lg overflow-hidden mb-4">
-                <img
+                <Image
                   className="w-full h-full object-cover"
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuDgm3JONSj6Fo4l7V6mHRSeJ9lkCWvInF-Zm_dHJ6-1tnw-s8vJJRThz6TiQoCkeNMFQDWEQ6LVBwykhf-61R8WvwGx-u7tIG40C0-PgF2g2qIvlVkbYLmMcT9wi8aMWxcob_hXq9EErA6hGTRV_8Cs5zOePHIyUa_Qn-dqCWjsmgYp0sOC-6Q0o8euuRGeh-DmAd-eLm9k-HoZW1CRzQrqkxv-u_8UcjnhN6te3gbhiCK4L26bqsFqHqelV4dMKCWG84o-l5fqwCg"
                   alt="Review photo"

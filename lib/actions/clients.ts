@@ -3,10 +3,10 @@
 import { prisma } from "../prisma";
 import { z } from "zod";
 import { redirect } from "next/navigation";
-import { UserRole } from "@/prisma/types";
+import { TipoCliente } from "@/prisma/types";
 
 const ClientSchema = z.object({
-  tipoCliente: z.enum(UserRole),
+  tipoCliente: z.enum(TipoCliente),
   nombre: z.string(),
   apellido: z.string(),
   celular: z.string(),

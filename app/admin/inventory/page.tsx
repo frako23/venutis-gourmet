@@ -10,8 +10,8 @@ import {
   Filter,
   Download,
   BellRing,
-  Utensils,
 } from "lucide-react";
+import Image from "next/image";
 
 export default function InventoryManager() {
   const [activeTab, setActiveTab] = useState("All Products");
@@ -150,7 +150,6 @@ function StatCard({
   value,
   trend,
   icon: Icon,
-  color,
   warning = false,
 }: any) {
   return (
@@ -203,7 +202,7 @@ function TableRow({
     >
       <td className="px-6 py-4">
         <div className="flex items-center gap-4">
-          <img
+          <Image
             className="size-12 rounded-lg object-cover border border-gray-200 dark:border-gray-700"
             src={`http://googleusercontent.com/profile/picture/${img}`}
             alt={name}

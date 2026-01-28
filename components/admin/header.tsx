@@ -1,6 +1,8 @@
 "use client";
 
 import { Plus, Search } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const Header = () => {
@@ -58,15 +60,15 @@ const Header = () => {
             <p className="text-sm font-bold dark:text-white leading-none">
               Usuario Administrador
             </p>
-            <a
+            <Link
               href="/"
               className="text-[10px] text-gold font-black uppercase tracking-tighter hover:underline"
             >
               Salir
-            </a>
+            </Link>
           </div>
           <div className="size-10 rounded-full border-2 border-primary/20 p-0.5 overflow-hidden">
-            <img
+            <Image
               className="w-full h-full rounded-full object-cover"
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuBSV1YGeEKAwjGUKVopxiePTWmuHf07tcbagMsd9SlxczXrokwFDKgD5rShTQUSdPXoYKJDz6WpOgDfsr1e2qiwbCiAqHc4R8cf4vYSEBdB4LEVtdT0qWrBUd1N_YVfbZwCwM3OacEeCq8NG_7loqjQoosf-urGk5QKpyGm_kMunQmJtMqgSW6ByrMCg3vebAGBybYzZy8W9fwnyxkQ3IQxRYmywy42tSWTq8nNHAdG-FmLiE8U5dw9iqH_u7pVqZw53Dft2_KMel4"
               alt="Admin"

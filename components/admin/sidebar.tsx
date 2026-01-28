@@ -4,7 +4,6 @@ import {
   LucideIcon,
   Settings,
   ShoppingCart,
-  Users,
   Utensils,
   Warehouse,
 } from "lucide-react";
