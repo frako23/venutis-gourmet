@@ -32,7 +32,7 @@ export default async function AdminLogin() {
       {/* Header */}
       <header className="relative z-10 w-full px-6 lg:px-20 py-8 flex justify-center items-center">
         <Link href="/" className="flex items-center gap-3">
-          <div className="size-8 text-gold">
+          <span className="size-8 text-gold">
             <svg
               fill="none"
               viewBox="0 0 48 48"
@@ -45,7 +45,7 @@ export default async function AdminLogin() {
                 fillRule="evenodd"
               ></path>
             </svg>
-          </div>
+          </span>
           <h1 className="text-white text-xl font-bold tracking-widest uppercase">
             Venuti's
           </h1>

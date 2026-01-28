@@ -145,13 +145,7 @@ export default function InventoryManager() {
   );
 }
 
-function StatCard({
-  label,
-  value,
-  trend,
-  icon: Icon,
-  warning = false,
-}: any) {
+function StatCard({ label, value, trend, icon: Icon, warning = false }: any) {
   return (
     <div className="bg-white dark:bg-[#1a1c20] p-6 rounded-xl border border-[#dbe0d7] dark:border-[#3a3e44] shadow-sm flex items-center justify-between group hover:border-primary/30 transition-colors">
       <div>
@@ -206,6 +200,8 @@ function TableRow({
             className="size-12 rounded-lg object-cover border border-gray-200 dark:border-gray-700"
             src={`http://googleusercontent.com/profile/picture/${img}`}
             alt={name}
+            width={48}
+            height={48}
           />
           <div>
             <p className="font-bold text-sm text-[#141712] dark:text-white">

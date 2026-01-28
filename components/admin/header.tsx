@@ -69,6 +69,8 @@ const Header = () => {
           </div>
           <div className="size-10 rounded-full border-2 border-primary/20 p-0.5 overflow-hidden">
             <Image
+              width={40}
+              height={40}
               className="w-full h-full rounded-full object-cover"
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuBSV1YGeEKAwjGUKVopxiePTWmuHf07tcbagMsd9SlxczXrokwFDKgD5rShTQUSdPXoYKJDz6WpOgDfsr1e2qiwbCiAqHc4R8cf4vYSEBdB4LEVtdT0qWrBUd1N_YVfbZwCwM3OacEeCq8NG_7loqjQoosf-urGk5QKpyGm_kMunQmJtMqgSW6ByrMCg3vebAGBybYzZy8W9fwnyxkQ3IQxRYmywy42tSWTq8nNHAdG-FmLiE8U5dw9iqH_u7pVqZw53Dft2_KMel4"
               alt="Admin"

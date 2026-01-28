@@ -19,6 +19,11 @@ const nextConfig: NextConfig = {
         hostname: "lh3.googleusercontent.com", // El hostname específico que pide el error
         pathname: "/**",
       },
+      {
+        protocol: "http", // O 'https' según la URL real
+        hostname: "googleusercontent.com",
+        pathname: "/profile/picture/**",
+      },
     ],
   },
 };

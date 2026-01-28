@@ -5,9 +5,9 @@ import { persist } from "zustand/middleware";
 
 interface CartItem {
   id: number;
-  title: string;
-  price: number;
-  image: string;
+  nombre: string;
+  precio: number;
+  imgUrl: string;
   quantity: number;
 }
 
@@ -27,7 +27,7 @@ export const useAppStore = create<AppState>()(
       // Esta función calcula el total accediendo al estado interno 'get()'
       getTotalUSD: () => {
         return get().selectedProducts.reduce(
-          (total, p) => total + p.price * p.quantity,
+          (total, p) => total + p.precio * p.quantity,
           0,
         );
       },

@@ -14,6 +14,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Image from "next/image";
+import AddToCartBlock from "@/components/producto/add-to-cart";
 
 interface Props {
   params: Promise<{ id: number }>;
@@ -68,6 +69,8 @@ export default async function ProductDetail({ params }: Props) {
           <div className="lg:col-span-7 space-y-4">
             <div className="aspect-[4/5] rounded-xl overflow-hidden bg-surface-dark group relative cursor-zoom-in">
               <Image
+                width={800}
+                height={1000}
                 alt="Aged Balsamic Vinegar"
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 src={producto.imgUrl || "https://picsum.photos/id/11/600/750"}
@@ -83,6 +86,8 @@ export default async function ProductDetail({ params }: Props) {
                   className={`aspect-square rounded-lg overflow-hidden cursor-pointer transition-all ${i === 0 ? "border-2 border-primary" : "hover:opacity-80"}`}
                 >
                   <Image
+                    width={200}
+                    height={200}
                     className="w-full h-full object-cover"
                     src={
                       producto.imgUrl ||
@@ -147,34 +152,7 @@ export default async function ProductDetail({ params }: Props) {
               </div>
 
               {/* Add to Cart Block */}
-              <div className="space-y-4">
-                <div className="flex gap-4">
-                  <div className="flex items-center bg-surface-dark border border-border-dark rounded-lg p-1">
-                    <button
-                      // onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="size-10 flex items-center justify-center hover:bg-white/5 rounded-md transition-colors text-slate-400"
-                    >
-                      <Minus size={16} />
-                    </button>
-                    <span className="w-12 text-center text-white font-bold">
-                      {/* {quantity} */}
-                    </span>
-                    <button
-                      // onClick={() => setQuantity(quantity + 1)}
-                      className="size-10 flex items-center justify-center hover:bg-white/5 rounded-md transition-colors text-slate-400"
-                    >
-                      <Plus size={16} />
-                    </button>
-                  </div>
-                  <button className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold py-3 px-8 rounded-lg transition-all transform active:scale-95 shadow-lg shadow-primary/20 flex items-center justify-center gap-3">
-                    <ShoppingBag size={18} />
-                    Add to Cart
-                  </button>
-                </div>
-                <button className="w-full py-3 px-8 border border-border-dark text-white font-semibold rounded-lg hover:bg-white/5 transition-colors">
-                  Subscribe & Save 15%
-                </button>
-              </div>
+              <AddToCartBlock producto={producto} />
 
               {/* Shipping Info */}
               <div className="mt-8 grid grid-cols-2 gap-4 p-4 rounded-xl bg-surface-dark/50 border border-white/5 backdrop-blur-sm">
@@ -277,6 +255,8 @@ export default async function ProductDetail({ params }: Props) {
             <div className="p-6 rounded-2xl bg-surface-dark/40 border border-border-dark flex flex-col hover:border-primary/40 transition-colors">
               <div className="aspect-video w-full rounded-lg overflow-hidden mb-4">
                 <Image
+                  width={600}
+                  height={338}
                   className="w-full h-full object-cover"
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuDgm3JONSj6Fo4l7V6mHRSeJ9lkCWvInF-Zm_dHJ6-1tnw-s8vJJRThz6TiQoCkeNMFQDWEQ6LVBwykhf-61R8WvwGx-u7tIG40C0-PgF2g2qIvlVkbYLmMcT9wi8aMWxcob_hXq9EErA6hGTRV_8Cs5zOePHIyUa_Qn-dqCWjsmgYp0sOC-6Q0o8euuRGeh-DmAd-eLm9k-HoZW1CRzQrqkxv-u_8UcjnhN6te3gbhiCK4L26bqsFqHqelV4dMKCWG84o-l5fqwCg"
                   alt="Review photo"

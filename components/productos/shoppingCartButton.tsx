@@ -60,17 +60,17 @@ export const ShoppingCartButton = () => {
                     <Image
                       width={48}
                       height={48}
-                      src={product.image}
-                      alt={product.title}
+                      src={product.imgUrl}
+                      alt={product.nombre}
                       className="w-12 h-12 object-cover rounded-lg bg-gray-50"
                     />
 
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-bold truncate">
-                        {product.title}
+                        {product.nombre}
                       </p>
                       <p className="text-[11px] text-gold font-mono">
-                        ${product.price.toFixed(2)}
+                        ${product.precio.toFixed(2)}
                       </p>
                     </div>
 

@@ -187,14 +187,14 @@ export default function CheckoutPage() {
                     <button
                       type="button"
                       onClick={() => setDeliveryMethod("delivery")}
-                      className={`flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-bold transition-all ${deliveryMethod === "delivery" ? "bg-primary text-white shadow-lg" : "opacity-60 hover:bg-white/5"}`}
+                      className={`flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-bold transition-all ${deliveryMethod === "delivery" ? "bg-gold text-primary shadow-lg" : "opacity-60 hover:bg-white/5"}`}
                     >
                       <Truck size={16} /> Domicilio
                     </button>
                     <button
                       type="button"
                       onClick={() => setDeliveryMethod("pickup")}
-                      className={`flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-bold transition-all ${deliveryMethod === "pickup" ? "bg-primary text-white shadow-lg" : "opacity-60 hover:bg-white/5"}`}
+                      className={`flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-bold transition-all ${deliveryMethod === "pickup" ? "bg-gold text-primary shadow-lg" : "opacity-60 hover:bg-white/5"}`}
                     >
                       <Store size={16} /> Retiro en Tienda
                     </button>
@@ -379,7 +379,7 @@ Monto: $ ${totalUSD.toFixed(2)} `}
 
                 <div className="pt-6">
                   <button
-                    className="w-full py-5 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-lg shadow-[0_10px_30px_rgba(128,0,32,0.3)] transition-all transform active:scale-[0.98] flex items-center justify-center gap-3"
+                    className="w-full py-5 rounded-xl bg-gold hover:bg-gold/90 text-primary font-bold text-lg shadow-[0_10px_30px_rgba(128,0,32,0.3)] transition-all transform active:scale-[0.98] flex items-center justify-center gap-3"
                     type="submit"
                   >
                     Realizar Pedido
@@ -430,8 +430,10 @@ function CartItem({ name, desc, price, img, quantity, id }: any) {
       <div className="relative w-24 h-24 shrink-0 overflow-hidden rounded-lg bg-input-dark">
         <Image
           alt={name}
-          className="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-500"
           src={img}
+          width={600}
+          height={600}
+          className="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-500"
         />
       </div>
       <div className="flex-1">

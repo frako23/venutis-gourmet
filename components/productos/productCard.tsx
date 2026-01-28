@@ -140,9 +140,9 @@ export function ProductCard({
           onClick={() => {
             addToCart({
               id,
-              title,
-              price,
-              image,
+              nombre: title,
+              precio: price,
+              imgUrl: image,
             });
           }}
         >
