@@ -48,13 +48,13 @@ function SidebarItem({
       <a
         className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all group ${
           active
-            ? "bg-gold text-white shadow-lg shadow-gold/20"
+            ? "bg-gold text-primary shadow-lg shadow-gold/20"
             : "hover:bg-gold/5"
         }`}
         href="#"
       >
         <Icon
-          className={`${active ? "text-white" : "text-gold/60 group-hover:text-gold"}`}
+          className={`${active ? "text-primary" : "text-gold/60 group-hover:text-gold"}`}
           size={18}
         />
         <span className="font-medium text-sm">{label}</span>

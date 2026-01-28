@@ -16,6 +16,7 @@ interface AppState {
   setSelectedProducts: (products: CartItem[]) => void;
   getTotalUSD: () => number;
   updateQuantity: (id: number, delta: number) => void;
+  addToCart: (product: Omit<CartItem, "quantity">) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -40,6 +41,30 @@ export const useAppStore = create<AppState>()(
             )
             .filter((p: any) => p.quantity > 0),
         })),
+      addToCart: (product) => {
+        set((state) => {
+          const existing = state.selectedProducts.find(
+            (p) => p.id === product.id,
+          );
+
+          if (existing) {
+            // Si ya existe, solo aumentamos la cantidad
+            return {
+              selectedProducts: state.selectedProducts.map((p) =>
+                p.id === product.id ? { ...p, quantity: p.quantity + 1 } : p,
+              ),
+            };
+          }
+
+          // Si es nuevo, lo agregamos
+          return {
+            selectedProducts: [
+              ...state.selectedProducts,
+              { ...product, quantity: 1 },
+            ],
+          };
+        });
+      },
     }),
     {
       name: "app-storage", // clave en localStorage

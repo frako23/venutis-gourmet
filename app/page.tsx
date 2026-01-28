@@ -148,7 +148,7 @@ function ChoiceCard({
       </p>
       <a
         href={link}
-        className="w-full bg-primary py-4 rounded-lg font-bold tracking-[0.2em] uppercase text-white hover:bg-opacity-90 transition-all active:scale-95 shadow-lg"
+        className="w-full bg-gold py-4 rounded-lg font-bold tracking-[0.2em] uppercase text-primary hover:bg-opacity-90 transition-all active:scale-95 shadow-lg"
       >
         {buttonText}
       </a>

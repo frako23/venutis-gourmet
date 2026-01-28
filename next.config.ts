@@ -2,7 +2,25 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
-  images: { domains: ["res.cloudinary.com"] },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "http", // El error indica que tu URL usa http
+        hostname: "googleusercontent.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com", // El hostname específico que pide el error
+        pathname: "/**",
+      },
+    ],
+  },
 };
 
 export default nextConfig;

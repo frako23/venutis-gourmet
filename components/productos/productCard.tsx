@@ -14,12 +14,12 @@ export function ProductCard({
   badgeColor = "bg-accent-gold",
   rating = 5, // Nueva prop para estrellas
   reviews = 3, // Nueva prop para número de reseñas
-  stock = 0, // Nueva prop para inventario
+  stock = 20, // Nueva prop para inventario
 }: any) {
   const { tasa } = useDolar();
   // Lógica para renderizar estrellas (ej. 4.5)
-  const setSelectedProducts = useAppStore((s) => s.setSelectedProducts);
-  const selectedProducts = useAppStore((s) => s.selectedProducts);
+
+  const addToCart = useAppStore((s) => s.addToCart);
   const renderStars = (rating: number) => {
     return (
       <div className="flex items-center gap-0.5 text-accent-gold">
@@ -58,6 +58,8 @@ export function ProductCard({
         )}
         <Image
           alt={title}
+          width={500}
+          height={500}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           src={image}
         />
@@ -75,7 +77,7 @@ export function ProductCard({
         <div className="flex justify-between items-start mb-2">
           <a
             href={`/productos/consumidores/${id}`}
-            className="text-xl font-serif italic group-hover:text-primary dark:group-hover:text-gold transition-colors group-hover:font-bold"
+            className="text-xl font-serif italic  transition-colors"
           >
             {title}
           </a>
@@ -114,7 +116,7 @@ export function ProductCard({
                 ? "Agotado"
                 : stock < 5
                   ? `Solo quedan ${stock} unidades`
-                  : "En inventario"}
+                  : "Disponible"}
             </span>
             <span className="text-[10px] font-mono ">{stock} unidades</span>
           </div>
@@ -133,13 +135,15 @@ export function ProductCard({
     ${
       stock === 0
         ? "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
-        : "bg-primary text-white hover:bg-primary/90 hover:shadow-primary/20 shadow-primary/10"
+        : "bg-gold text-primary hover:bg-gold/90 hover:shadow-gold/20 shadow-gold/10"
     }`}
           onClick={() => {
-            setSelectedProducts([
-              ...selectedProducts,
-              { id, title, price, image, quantity: 1 },
-            ]);
+            addToCart({
+              id,
+              title,
+              price,
+              image,
+            });
           }}
         >
           <ShoppingCart size={14} />

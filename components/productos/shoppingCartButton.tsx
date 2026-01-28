@@ -58,6 +58,8 @@ export const ShoppingCartButton = () => {
                     className="flex items-center gap-3 pb-3 border-b border-gray-100 dark:border-white/5 last:border-0"
                   >
                     <Image
+                      width={48}
+                      height={48}
                       src={product.image}
                       alt={product.title}
                       className="w-12 h-12 object-cover rounded-lg bg-gray-50"
@@ -76,7 +78,7 @@ export const ShoppingCartButton = () => {
                     <div className="flex items-center gap-2 bg-gray-100 dark:bg-white/5 rounded-full px-2 py-1">
                       <button
                         onClick={() => updateQuantity(product.id, -1)}
-                        className="hover:text-gold transition-colors"
+                        className="hover:text-gold transition-colors cursor-pointer"
                       >
                         {product.quantity === 1 ? (
                           <Trash2 size={12} className="text-red-400" />
@@ -89,7 +91,7 @@ export const ShoppingCartButton = () => {
                       </span>
                       <button
                         onClick={() => updateQuantity(product.id, 1)}
-                        className="hover:text-gold transition-colors"
+                        className="hover:text-gold transition-colors cursor-pointer"
                       >
                         <Plus size={12} />
                       </button>
