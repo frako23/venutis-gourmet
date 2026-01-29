@@ -1,4 +1,5 @@
-import { ShieldCheck, ArrowLeft, Link } from "lucide-react";
+import { ArrowLeft, ShieldCheck } from "lucide-react";
+import Link from "next/link";
 
 export default async function AdminLogin() {
   // const user = await stackServerApp.getUser();
@@ -28,29 +29,6 @@ export default async function AdminLogin() {
         />
         <div className="absolute inset-0 custom-gradient-overlay" />
       </div>
-
-      {/* Header */}
-      <header className="relative z-10 w-full px-6 lg:px-20 py-8 flex justify-center items-center">
-        <Link href="/" className="flex items-center gap-3">
-          <span className="size-8 text-gold">
-            <svg
-              fill="none"
-              viewBox="0 0 48 48"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                clipRule="evenodd"
-                d="M24 0.757355L47.2426 24L24 47.2426L0.757355 24L24 0.757355ZM21 35.7574V12.2426L9.24264 24L21 35.7574Z"
-                fill="currentColor"
-                fillRule="evenodd"
-              ></path>
-            </svg>
-          </span>
-          <h1 className="text-white text-xl font-bold tracking-widest uppercase">
-            Venuti's
-          </h1>
-        </Link>
-      </header>
 
       {/* Main Content */}
       <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-4">

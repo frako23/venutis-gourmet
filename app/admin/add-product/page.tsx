@@ -1,17 +1,12 @@
 "use client";
 
-import {
-  CloudUpload,
-  Utensils,
-  Save,
-  Warehouse,
-  X,
-  ArrowLeft,
-} from "lucide-react";
-import React, { useActionState, useEffect, useState } from "react";
-import Link from "next/link";
-import { CldUploadButton } from "next-cloudinary";
+import { Header } from "@/components/admin/UI/header";
+import { Input } from "@/components/admin/UI/input";
+import { Label } from "@/components/admin/UI/label";
 import { addProduct } from "@/lib/actions/products";
+import { CloudUpload, Utensils, Warehouse, X } from "lucide-react";
+import { CldUploadButton } from "next-cloudinary";
+import { useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 const initialState = { message: "", status: "" };
@@ -44,46 +39,7 @@ export default function AddProductPage() {
     >
       <main className="max-w-[1100px] mx-auto px-6 py-8">
         {/* Header con Breadcrumbs */}
-        <div className="mb-4">
-          <nav className="flex items-center gap-2 text-[10px] font-black text-gold uppercase tracking-[0.3em] mb-4">
-            <Link
-              href="/admin/inventory"
-              className="hover:opacity-70 transition-opacity flex items-center gap-1"
-            >
-              <ArrowLeft size={12} /> Inventario
-            </Link>
-            <span className="text-slate-300">/</span>
-            <span className="text-slate-400">Nuevo Producto</span>
-          </nav>
-
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div>
-              <h1 className="text-4xl font-black text-gold tracking-tight mb-2">
-                Agregar Producto
-              </h1>
-              <p className="text-white font-medium italic">
-                "La calidad artesanal comienza con un buen registro."
-              </p>
-            </div>
-
-            <div className="flex gap-3">
-              <a
-                href="/admin/inventory"
-                className="px-6 py-3 rounded-2xl border-2 border-slate-200 text-slate-400 font-bold hover:bg-slate-50 hover:border-slate-300 transition-all text-sm active:scale-95"
-              >
-                Descartar
-              </a>
-              <button
-                type="submit"
-                disabled={isPending}
-                className="cursor-pointer flex items-center gap-2 px-8 py-3 rounded-2xl bg-primary text-white font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all text-xs active:scale-95"
-              >
-                <Save size={16} />
-                Guardar Producto
-              </button>
-            </div>
-          </div>
-        </div>
+        <Header disabledState={isPending} headerText="Agregar producto" />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Columna Izquierda */}
@@ -99,7 +55,7 @@ export default function AddProductPage() {
                   <Utensils className="text-gold" size={20} />
                 </div>
                 <h3 className="text-xl font-black text-cream uppercase tracking-tight">
-                  Detalles de la Pasta
+                  Detalles del producto
                 </h3>
               </div>
 
@@ -239,33 +195,6 @@ export default function AddProductPage() {
         </div>
       </main>
     </form>
-  );
-}
-
-// --- Componentes Atómicos ---
-
-function Label({
-  children,
-  className = "",
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <label
-      className={`text-[10px] font-black uppercase tracking-[0.25em] text-slate-400 ml-1 ${className}`}
-    >
-      {children}
-    </label>
-  );
-}
-
-function Input({ ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
-  return (
-    <input
-      {...props}
-      className={`w-full rounded-2xl border-2 border-slate-100 bg-slate-50 focus:ring-4 focus:ring-gold/10 focus:border-gold h-14 px-5 font-bold text-slate-700 outline-none transition-all placeholder:text-slate-300 placeholder:font-medium ${props.className}`}
-    />
   );
 }
 

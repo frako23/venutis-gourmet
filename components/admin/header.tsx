@@ -5,6 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+
+
 const Header = () => {
   const pathname = usePathname();
 
@@ -55,11 +57,8 @@ const Header = () => {
           <Plus size={16} />
           <span>Agregar producto</span>
         </a>
-        <div className="flex items-center gap-3 border-l border-[#dbe0d7] dark:border-[#3a3e44] ml-4 pl-4">
+        <div className="flex items-center gap-3 border-l border-[#dbe0d7] dark:border-[#3a3e44] ">
           <div className="text-right">
-            <p className="text-sm font-bold dark:text-white leading-none">
-              Usuario Administrador
-            </p>
             <Link
               href="/"
               className="text-[10px] text-gold font-black uppercase tracking-tighter hover:underline"
@@ -67,15 +66,7 @@ const Header = () => {
               Salir
             </Link>
           </div>
-          <div className="size-10 rounded-full border-2 border-primary/20 p-0.5 overflow-hidden">
-            <Image
-              width={40}
-              height={40}
-              className="w-full h-full rounded-full object-cover"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBSV1YGeEKAwjGUKVopxiePTWmuHf07tcbagMsd9SlxczXrokwFDKgD5rShTQUSdPXoYKJDz6WpOgDfsr1e2qiwbCiAqHc4R8cf4vYSEBdB4LEVtdT0qWrBUd1N_YVfbZwCwM3OacEeCq8NG_7loqjQoosf-urGk5QKpyGm_kMunQmJtMqgSW6ByrMCg3vebAGBybYzZy8W9fwnyxkQ3IQxRYmywy42tSWTq8nNHAdG-FmLiE8U5dw9iqH_u7pVqZw53Dft2_KMel4"
-              alt="Admin"
-            />
-          </div>
+         
         </div>
       </div>
     </header>
