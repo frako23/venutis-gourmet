@@ -3,6 +3,7 @@
 import { Header } from "@/components/admin/UI/header";
 import { Input } from "@/components/admin/UI/input";
 import { Label } from "@/components/admin/UI/label";
+import { CheckoutForm } from "@/components/finalizar-compra/checkout-form";
 import { addProduct } from "@/lib/actions/products";
 import { CheckCircle2, Clock, Hash, Phone } from "lucide-react";
 import { useActionState, useState } from "react";
@@ -16,14 +17,11 @@ export default function CreateTransactionForm() {
     initialState,
   );
   return (
-    <form
-      action={formAction}
-      className="min-h-screen bg-background-light dark:bg-background-dark text-slate-800 dark:text-white transition-colors duration-300"
-    >
+    <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-800 dark:text-white transition-colors duration-300">
       <main className="max-w-[1100px] mx-auto px-6 py-8">
         {/* Header con Breadcrumbs */}
-        <Header disabledState={false} headerText="Registrar nueva venta" />
-
+        <Header headerText="Registrar nueva venta" />
+        <CheckoutForm metodoDePago={false} />
         {/* Cuerpo del Formulario */}
         <div className="p-8 space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -100,6 +98,6 @@ export default function CreateTransactionForm() {
           </div>
         </div>
       </main>
-    </form>
+    </div>
   );
 }

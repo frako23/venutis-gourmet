@@ -1,3 +1,5 @@
+"use client";
+
 import {
   BarChart3,
   LayoutDashboard,
@@ -7,7 +9,7 @@ import {
   Utensils,
   Warehouse,
 } from "lucide-react";
-import React from "react";
+import { usePathname } from "next/navigation";
 
 interface SidebarProps {
   icon: LucideIcon;
@@ -17,6 +19,8 @@ interface SidebarProps {
 }
 
 const Sidebar = () => {
+  const pathname = usePathname();
+
   return (
     <div className="flex h-screen overflow-hidden bg-background-light dark:bg-background-dark selection:bg-primary/20">
       {/* Sidebar Navigation */}
@@ -41,23 +45,26 @@ const Sidebar = () => {
           <SidebarLink
             icon={LayoutDashboard}
             label="Dashboard"
+            active={pathname === "/admin/dashboard"}
             link="/admin/dashboard"
           />
           <SidebarLink
             icon={Warehouse}
             label="Inventario"
-            active
+            active={pathname === "/admin/inventory"}
             link="/admin/inventory"
           />
           <SidebarLink
             icon={ShoppingCart}
             label="Transacciones"
+            active={pathname === "/admin/transactions"}
             link="/admin/transactions"
           />
 
           <SidebarLink
             icon={BarChart3}
             label="Analytics"
+            active={pathname === "/admin/analytics"}
             link="/admin/analytics"
           />
         </nav>
@@ -89,7 +96,7 @@ function SidebarLink({
       href={link}
       className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group ${active ? "bg-primary/10 text-primary dark:text-white" : "text-[#738165] dark:text-gray-400 hover:bg-primary/5"}`}
     >
-      <Icon size={20} className={active ? "fill-current" : ""} />
+      <Icon size={20} className={active ? "stroke-2" : ""} />
       <span className={`text-sm ${active ? "font-bold" : "font-semibold"}`}>
         {label}
       </span>

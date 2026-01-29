@@ -1,11 +1,8 @@
 "use client";
 
 import { Plus, Search } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-
 
 const Header = () => {
   const pathname = usePathname();
@@ -61,12 +58,11 @@ const Header = () => {
           <div className="text-right">
             <Link
               href="/"
-              className="text-[10px] text-gold font-black uppercase tracking-tighter hover:underline"
+              className="text-[10px] text-slate-200 font-black uppercase tracking-tighter hover:underline"
             >
               Salir
             </Link>
           </div>
-         
         </div>
       </div>
     </header>
