@@ -1,5 +1,6 @@
 import { AddressManager } from "@/components/finalizar-compra/address-manager";
 import { useDolar } from "@/hooks/useDolar";
+import { addClient } from "@/lib/actions/clients";
 import { PAYMENT_DETAILS } from "@/lib/constants/constants";
 import { useAppStore } from "@/store/appStore";
 import {
@@ -12,8 +13,11 @@ import {
   Truck,
   UserCircle,
 } from "lucide-react";
-import { useState } from "react";
+import { useActionState, useEffect, useState } from "react";
+import { toast } from "sonner";
 import { CopyButton } from "../productos/copy-to-clipboard";
+
+const initialState = { message: "", status: "" };
 
 export const CheckoutForm = ({ metodoDePago }: { metodoDePago: boolean }) => {
   const [deliveryMethod, setDeliveryMethod] = useState("delivery");
@@ -21,9 +25,29 @@ export const CheckoutForm = ({ metodoDePago }: { metodoDePago: boolean }) => {
   const { tasa } = useDolar();
   const totalUSD = useAppStore((s) => s.getTotalUSD());
 
+  const [state, formAction, isPending] = useActionState(
+    addClient,
+    initialState,
+  );
+
+  useEffect(() => {
+    if (state.status === "error") {
+      toast.error(state.message || "Ocurrió un error inesperado");
+    }
+
+    if (state.status === "success") {
+      toast.success(
+        state.message || "¡Datos del cliente guardados correctamente!",
+      );
+    }
+  }, [state]); // Escuchamos el objeto de estado completo
+
   return (
     <div className="lg:col-span-7">
-      <form className="bg-surface-dark rounded-2xl p-8 border border-white/5 shadow-2xl space-y-10">
+      <form
+        action={formAction}
+        className="bg-surface-dark rounded-2xl p-8 border border-white/5 shadow-2xl space-y-10"
+      >
         {/* Progress Stepper */}
         <div className="flex justify-between items-center px-4 relative">
           <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white/10 -z-0"></div>
@@ -41,17 +65,19 @@ export const CheckoutForm = ({ metodoDePago }: { metodoDePago: boolean }) => {
             </h3>
           </div>
           <div className="grid md:grid-cols-2 gap-4">
-            <InputField label="Nombre" placeholder="Gianluca" />
-            <InputField label="Apellido" placeholder="Venuti" />
+            <InputField label="Nombre" placeholder="Ana" name="nombre"/>
+            <InputField label="Apellido" placeholder="Venuti" name="apellido"/>
             <InputField
               label="Teléfono"
-              placeholder="+1 (555) 000-0000"
+              placeholder=" 0412-1234567"
               type="tel"
+              name="celular"
             />
             <InputField
               label="Email"
-              placeholder="g.venuti@excellence.com"
+              placeholder="ana@gmail.com"
               type="email"
+              name="email"
             />
           </div>
         </div>
@@ -262,6 +288,7 @@ Monto: $ ${totalUSD.toFixed(2)} `}
 
         <div className="pt-6">
           <button
+            disabled={isPending}
             className="w-full py-5 rounded-xl bg-gold hover:bg-gold/90 text-primary font-bold text-lg shadow-[0_10px_30px_rgba(128,0,32,0.3)] transition-all transform active:scale-[0.98] flex items-center justify-center gap-3"
             type="submit"
           >

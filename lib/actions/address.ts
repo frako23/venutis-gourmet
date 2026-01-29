@@ -1,12 +1,13 @@
 "use server";
 
-import { prisma } from "../prisma";
-import { z } from "zod";
 import { TipoDireccion } from "@prisma/client";
+import { z } from "zod";
+import { prisma } from "../prisma";
 
 const AddressSchema = z.object({
   clienteId: z.number(),
   direccion: z.string(),
+  urbanizacion: z.string(),
   tipo: z.enum(TipoDireccion),
 });
 
@@ -48,6 +49,7 @@ export async function addAddress(
   try {
     await prisma.direccion.create({
       data: {
+        urbanizacion: parsed.data.urbanizacion,
         direccion: parsed.data.direccion,
         tipo: parsed.data.tipo,
         cliente: {
