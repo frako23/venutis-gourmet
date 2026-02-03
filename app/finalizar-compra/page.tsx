@@ -13,8 +13,7 @@ export default function CheckoutPage() {
   const selectedProducts = useAppStore((s) => s.selectedProducts);
   const { tasa } = useDolar();
   const [mounted, setMounted] = useState(false);
-  const totalUSD = useAppStore((s) => s.getTotalUSD());
-
+  const totalUSD = useAppStore((s) => s.totalUSD);
   useEffect(() => {
     // Simulamos un pequeño delay opcional para que la transición no sea un "parpadeo"
     // o simplemente marcamos como montado inmediatamente.
@@ -58,11 +57,11 @@ export default function CheckoutPage() {
               <div className="space-y-4">
                 {selectedProducts.map((product: any) => (
                   <CartItem
-                    name={product.title}
-                    desc={product.description}
-                    price={product.price}
-                    img={product.image}
-                    quantity={product.quantity}
+                    nombre={product.nombre}
+                    desc={product.descripcion}
+                    precio={product.precio}
+                    imgUrl={product.imgUrl}
+                    cantidad={product.cantidad}
                     id={product.id}
                     key={product.id}
                   />
@@ -157,15 +156,15 @@ export default function CheckoutPage() {
 
 // --- Sub-componentes ---
 
-function CartItem({ name, desc, price, img, quantity, id }: any) {
+function CartItem({ nombre, desc, precio, imgUrl, cantidad, id }: any) {
   const updateQuantity = useAppStore((s) => s.updateQuantity);
 
   return (
     <div className="flex items-center gap-4 p-4 rounded-xl bg-surface-dark border border-white/5 group hover:border-accent-gold/30 transition-all duration-300">
       <div className="relative w-24 h-24 shrink-0 overflow-hidden rounded-lg bg-input-dark">
         <Image
-          alt={name}
-          src={img}
+          alt={nombre || "Producto Venuti's Gourmet"}
+          src={imgUrl}
           width={600}
           height={600}
           className="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-500"
@@ -175,13 +174,13 @@ function CartItem({ name, desc, price, img, quantity, id }: any) {
         <div className="flex justify-between items-start">
           <div>
             <h3 className="font-bold text-white group-hover:text-accent-gold transition-colors">
-              {name}
+              {nombre}
             </h3>
             <p className="text-xs text-accent-gold/70 mt-1 uppercase tracking-tighter">
               {desc}
             </p>
           </div>
-          <span className="font-serif text-lg">${price.toFixed(2)}</span>
+          <span className="font-serif text-lg">${precio.toFixed(2)}</span>
         </div>
         <div className="flex items-center gap-3 mt-3">
           <div className="flex items-center gap-2 border border-white/10 rounded-full px-3 py-1">
@@ -192,7 +191,7 @@ function CartItem({ name, desc, price, img, quantity, id }: any) {
             >
               <Minus size={14} />
             </button>
-            <span className="text-sm px-1 font-medium">{quantity}</span>
+            <span className="text-sm px-1 font-medium">{cantidad}</span>
             <button
               type="button"
               className="opacity-50 hover:opacity-100 cursor-pointer"

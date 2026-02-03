@@ -110,3 +110,22 @@
     margin: 10mm;
   }
 }
+
+/* Cambia el color del icono del calendario en navegadores Chrome, Edge, Safari */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1); /* Esto vuelve el icono negro a blanco */
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Opcional: Para ocultar los spinners de número en otros campos si los usas */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

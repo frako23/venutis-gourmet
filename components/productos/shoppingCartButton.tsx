@@ -1,17 +1,17 @@
 "use client";
 
-import { ShoppingCart, Plus, Minus, Trash2 } from "lucide-react";
-import React, { useState } from "react";
-import { useAppStore } from "@/store/appStore";
 import { useDolar } from "@/hooks/useDolar";
+import { useAppStore } from "@/store/appStore";
+import { Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
 import Image from "next/image";
+import { useState } from "react";
 
 export const ShoppingCartButton = () => {
   const selectedProducts = useAppStore((s) => s.selectedProducts);
   const { tasa } = useDolar();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const updateQuantity = useAppStore((s) => s.updateQuantity);
-  const totalUSD = useAppStore((s) => s.getTotalUSD());
+  const totalUSD = useAppStore((s) => s.totalUSD);
 
   return (
     <div className="relative">
@@ -22,7 +22,7 @@ export const ShoppingCartButton = () => {
         <ShoppingCart size={20} />
         {selectedProducts.length > 0 && (
           <span className="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-background-light">
-            {selectedProducts.reduce((acc, p) => acc + p.quantity, 0)}
+            {selectedProducts.reduce((acc, p) => acc + p.cantidad, 0)}
           </span>
         )}
       </button>
@@ -80,14 +80,14 @@ export const ShoppingCartButton = () => {
                         onClick={() => updateQuantity(product.id, -1)}
                         className="hover:text-gold transition-colors cursor-pointer"
                       >
-                        {product.quantity === 1 ? (
+                        {product.cantidad === 1 ? (
                           <Trash2 size={12} className="text-red-400" />
                         ) : (
                           <Minus size={12} />
                         )}
                       </button>
                       <span className="text-xs font-bold w-4 text-center">
-                        {product.quantity}
+                        {product.cantidad}
                       </span>
                       <button
                         onClick={() => updateQuantity(product.id, 1)}

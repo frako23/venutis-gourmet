@@ -3,11 +3,6 @@ export enum UserRole {
   DETAL = "detal",
 }
 
-export enum TipoDireccion {
-  PRINCIPAL = "principal",
-  SECUNDARIA = "secundaria",
-  TERCIARIA = "terciaria",
-}
 
 export enum EstadoTransaccion {
   PAGADO = "pagado",

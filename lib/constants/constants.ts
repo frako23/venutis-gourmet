@@ -7,7 +7,7 @@ interface PaymentMethodDetails {
 }
 
 export const PAYMENT_DETAILS: Record<string, PaymentMethodDetails> = {
-  "pago-movil": {
+  PagoMovil: {
     bank: "Banco Mercantil",
     phone: "0412-1234567",
     id: "V-12.345.678",
@@ -15,13 +15,13 @@ export const PAYMENT_DETAILS: Record<string, PaymentMethodDetails> = {
     instructions:
       "Recuerda capturar el comprobante con el número de referencia.",
   },
-  zelle: {
+  Zelle: {
     email: "pagos@venutisgourmet.com",
     name: "Venuti's Gourmet LLC",
     currency: "USD",
     instructions: "Por favor, indica tu nombre en el motivo del pago.",
   },
-  transfer: {
+  TransferenciaBs: {
     bank: "Banco Provincial",
     account: "0108-XXXX-XXXX-XXXXXXXXX",
     name: "Venuti's Gourmet C.A.",
@@ -30,10 +30,16 @@ export const PAYMENT_DETAILS: Record<string, PaymentMethodDetails> = {
     instructions:
       "La transferencia debe ser del mismo banco para despacho inmediato.",
   },
-  cash: {
+  EfectivoUsd: {
     instructions:
       "El pago en efectivo se realiza directamente al motorizado al recibir el pedido.",
     currency: "USD / Bs.",
     note: "Asegúrate de tener el monto exacto o indicar si necesitas cambio.",
   },
+};
+
+export const initialState = {
+  message: "",
+  status: "",
+  clientId: null as number | null,
 };

@@ -35,20 +35,14 @@ enum TipoCliente {
 }
 
 model Direccion {
-  id           Int           @id @default(autoincrement())
+  id           Int     @id @default(autoincrement())
   clienteId    Int
-  cliente      Cliente       @relation(fields: [clienteId], references: [id])
+  cliente      Cliente @relation(fields: [clienteId], references: [id])
   urbanizacion String
   direccion    String
-  tipo         TipoDireccion
+  tipo         String
 
   createdAt DateTime @default(now())
-}
-
-enum TipoDireccion {
-  principal
-  secundaria
-  terceraria
 }
 
 model Producto {
@@ -76,17 +70,18 @@ model Inventario {
 }
 
 model Transaccion {
-  id          Int               @id @default(autoincrement())
-  numeroOrden String            @unique
-  clienteId   Int
-  cliente     Cliente           @relation(fields: [clienteId], references: [id])
-  fechaCompra DateTime          @default(now())
-  montoTotal  Float
-  estado      EstadoTransaccion
-  detalles    DetalleCompra[]
-  fidelidades Fidelidad[]
-  pagos       Pago[]
-  resenas     Resena[]
+  id           Int               @id @default(autoincrement())
+  numeroOrden  String            @unique
+  clienteId    Int
+  cliente      Cliente           @relation(fields: [clienteId], references: [id])
+  fechaCompra  DateTime          @default(now())
+  montoTotal   Float
+  estado       EstadoTransaccion
+  tipodeRetiro TipoRetiro
+  detalles     DetalleCompra[]
+  fidelidades  Fidelidad[]
+  pagos        Pago[]
+  resenas      Resena[]
 
   createdAt DateTime @default(now())
 }
@@ -95,6 +90,11 @@ enum EstadoTransaccion {
   pagado
   pendiente
   cancelado
+}
+
+enum TipoRetiro {
+  envio
+  recogida
 }
 
 model DetalleCompra {

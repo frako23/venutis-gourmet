@@ -3,15 +3,13 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { prisma } from "../prisma";
-import { TipoCliente } from "@prisma/client";
 
 const ClientSchema = z.object({
-  tipoCliente: z.enum(TipoCliente),
-  nombre: z.string(),
-  apellido: z.string(),
-  celular: z.string(),
-  email: z.string().optional(),
-  urbanizacion: z.string(),
+  nombre: z.string().min(1, "El nombre es obligatorio"),
+  apellido: z.string().min(1, "El apellido es obligatorio"),
+  celular: z.string().min(10, "Formato de teléfono inválido"),
+  email: z.string().email().optional().or(z.literal("")), // Sigue siendo opcional
+  tipoCliente: z.enum(["mayorista", "detal"]),
 });
 
 export async function deleteClient(formData: FormData) {
@@ -36,15 +34,15 @@ export async function deleteClient(formData: FormData) {
 }
 
 export async function addClient(
-  prevState: { message: string; status: string },
+  prevState: { message: string; status: string; clientId: number | null },
   formData: FormData,
-): Promise<{ message: string; status: string }> {
+): Promise<{ message: string; status: string; clientId: number | null }> {
   const parsed = ClientSchema.safeParse({
     nombre: String(formData.get("name")),
     apellido: String(formData.get("lastname")),
     celular: String(formData.get("celular")),
     email: String(formData.get("email")),
-    urbanizacion: String(formData.get("urbanizacion")),
+    tipoCliente: String(formData.get("tipoCliente")),
   });
 
   if (!parsed.success) {
@@ -52,9 +50,10 @@ export async function addClient(
     return {
       message: "Datos inválidos, revisa el formulario",
       status: "error",
+      clientId: null,
     };
   }
-
+  console.log(parsed.data);
   try {
     const existingClient = await prisma.cliente.findUnique({
       where: { celular: parsed.data.celular },
@@ -62,21 +61,30 @@ export async function addClient(
 
     if (existingClient) {
       return {
-        message: "El código de cliente ingresado ya existe",
+        message: "El cliente ya se encuentra registrado",
         status: "error",
+        clientId: existingClient.id,
       };
     }
 
-    await prisma.cliente.create({
+    const newClient = await prisma.cliente.create({
       data: {
         ...parsed.data,
       },
     });
+    return {
+      message: "Cliente registrado exitosamente",
+      status: "success",
+      clientId: newClient.id,
+    };
   } catch (error) {
     console.error("Error al agregar cliente:", error);
-    return { message: "Error al registrar cliente", status: "error" };
+    return {
+      message: "Error al registrar cliente",
+      status: "error",
+      clientId: null,
+    };
   }
-  return { message: "Cliente registrado exitosamente", status: "success" };
 }
 
 export async function editClient(formData: FormData, clientId: number) {
@@ -85,7 +93,7 @@ export async function editClient(formData: FormData, clientId: number) {
     apellido: String(formData.get("lastname")),
     celular: String(formData.get("celular")),
     email: String(formData.get("email")),
-    urbanizacion: String(formData.get("urbanizacion")),
+    tipoCliente: String(formData.get("tipoCliente")),
   });
 
   if (!parsed.success) {
@@ -105,5 +113,18 @@ export async function editClient(formData: FormData, clientId: number) {
     throw new Error("Failed to edit client");
   }
 
-  redirect("/clients");
+  return { message: "Cliente editado exitosamente" };
+}
+
+export async function getClientByPhone(phone: string) {
+  if (!phone || phone.length < 8) return null;
+
+  try {
+    const cliente = await prisma.cliente.findUnique({
+      where: { celular: phone },
+    });
+    return cliente;
+  } catch (error) {
+    return null;
+  }
 }

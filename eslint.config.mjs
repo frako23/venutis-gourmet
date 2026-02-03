@@ -1,34 +1,26 @@
+import { FlatCompat } from "@eslint/eslintrc";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const compat = new FlatCompat({
   baseDirectory: __dirname,
+  // No incluimos recommendedConfig aquí para evitar que el validador antiguo se active
 });
 
-const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
+export default [
   {
-    // Las reglas deben ir dentro de un objeto que afecte a tus archivos
-    files: ["**/*.ts", "**/*.tsx"],
+    // Es vital que los ignores estén en un objeto independiente al principio
+    ignores: [".next/**", "node_modules/**", "out/**", "build/**"],
+  },
+  ...compat.config({
+    extends: ["next/core-web-vitals", "next/typescript"],
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
-      "@typescript-eslint/no-unused-vars": "warn", // Útil para no dejar basura
-      "react/no-unescaped-entities": "off", // Evita errores por usar tildes o comillas en el texto
+      "@typescript-eslint/no-unused-vars": "warn",
+      "react/no-unescaped-entities": "off",
     },
-  },
-  {
-    ignores: [
-      "node_modules/**",
-      ".next/**",
-      "out/**",
-      "build/**",
-      "next-env.d.ts",
-    ],
-  },
+  }),
 ];
-
-export default eslintConfig;

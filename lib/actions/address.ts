@@ -1,6 +1,5 @@
 "use server";
 
-import { TipoDireccion } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "../prisma";
 
@@ -8,7 +7,7 @@ const AddressSchema = z.object({
   clienteId: z.number(),
   direccion: z.string(),
   urbanizacion: z.string(),
-  tipo: z.enum(TipoDireccion),
+  tipo: z.string(),
 });
 
 export async function deleteAddress(formData: FormData) {
@@ -32,18 +31,23 @@ export async function deleteAddress(formData: FormData) {
 }
 
 export async function addAddress(
-  prevState: { message: string },
+  prevState: { message: string; status: string; clientId: number | null },
   formData: FormData,
-): Promise<{ message: string }> {
+): Promise<{ message: string; status: string; clientId: number | null }> {
   const parsed = AddressSchema.safeParse({
     clienteId: Number(formData.get("clienteId")),
     direccion: String(formData.get("direccion")),
-    tipo: String(formData.get("tipo") as TipoDireccion),
+    urbanizacion: String(formData.get("urbanizacion")),
+    tipo: String(formData.get("tipo")),
   });
-
+  console.log(parsed);
   if (!parsed.success) {
     console.error("Validation errors:", parsed.error.flatten().fieldErrors);
-    return { message: "Datos inválidos, revisa el formulario" };
+    return {
+      message: "Datos inválidos, revisa el formulario",
+      status: "error",
+      clientId: null,
+    };
   }
 
   try {
@@ -57,12 +61,19 @@ export async function addAddress(
         },
       },
     });
+    return {
+      message: "Cliente registrado exitosamente",
+      status: "success",
+      clientId: parsed.data.clienteId,
+    };
   } catch (error) {
-    console.error("Error al agregar cliente:", error);
-    return { message: "Error al registrar cliente" };
+    console.error("Error al agregar dirección:", error);
+    return {
+      message: "Error al registrar dirección",
+      status: "error",
+      clientId: null,
+    };
   }
-
-  return { message: "Dirección agregada exitosamente" };
 }
 
 export async function editAddress(formData: FormData, direccionId: number) {
@@ -70,7 +81,7 @@ export async function editAddress(formData: FormData, direccionId: number) {
     // This is likely incorrect, should be a product schema
     clienteId: Number(formData.get("clienteId")), // These fields don't match the AddressSchema
     direccion: String(formData.get("direccion")),
-    tipo: String(formData.get("tipo") as TipoDireccion),
+    tipo: String(formData.get("tipo")),
   });
 
   if (!parsed.success) {
@@ -91,4 +102,18 @@ export async function editAddress(formData: FormData, direccionId: number) {
   }
 
   return { message: "Dirección editada exitosamente" };
+}
+
+// lib/actions/address.ts
+export async function getAddressesByClient(clientId: number) {
+  try {
+    const addresses = await prisma.direccion.findMany({
+      where: { clienteId: clientId },
+      orderBy: { id: "desc" },
+    });
+    return addresses;
+  } catch (error) {
+    console.error("Error al obtener direcciones:", error);
+    return [];
+  }
 }

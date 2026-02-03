@@ -7,67 +7,118 @@ interface CartItem {
   id: number;
   nombre: string;
   precio: number;
+  descripcion?: string;
   imgUrl: string;
-  quantity: number;
+  cantidad: number;
 }
 
+// Definimos el estado del flujo de compra
+type ProgressStep =
+  | "client-details"
+  | "delivery-method"
+  | "payment"
+  | "confirmation";
+type DeliveryMethod = "envio" | "recogida";
+
 interface AppState {
+  // Estado
   selectedProducts: CartItem[];
+  totalUSD: number;
+  progressStep: ProgressStep;
+  deliveryMethod: DeliveryMethod;
+  clientId: number | null;
+  canContinue: boolean;
+
+  // Acciones (Quitamos los "?" para evitar errores de "undefined")
   setSelectedProducts: (products: CartItem[]) => void;
-  getTotalUSD: () => number;
   updateQuantity: (id: number, delta: number) => void;
-  addToCart: (product: Omit<CartItem, "quantity">) => void;
+  addToCart: (product: Omit<CartItem, "cantidad">) => void;
+  clearCart: () => void;
+  setDeliveryMethod: (method: DeliveryMethod) => void;
+  setProgressStep: (step: ProgressStep) => void;
+  setClientId: (id: number | null) => void;
+  setCanContinue: (val: boolean) => void;
+  nextStep: (metodoDePago: boolean) => void;
 }
+
+const calculateTotal = (products: CartItem[]) =>
+  products.reduce((total, p) => total + p.precio * p.cantidad, 0);
 
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
+      // Valores iniciales
       selectedProducts: [],
-      setSelectedProducts: (products) => set({ selectedProducts: products }),
-      // Esta función calcula el total accediendo al estado interno 'get()'
-      getTotalUSD: () => {
-        return get().selectedProducts.reduce(
-          (total, p) => total + p.precio * p.quantity,
-          0,
-        );
-      },
-      updateQuantity: (id: number, delta: number) =>
-        set((state: any) => ({
-          selectedProducts: state.selectedProducts
-            .map((p: any) =>
-              p.id === id
-                ? { ...p, quantity: Math.max(0, p.quantity + delta) }
-                : p,
-            )
-            .filter((p: any) => p.quantity > 0),
-        })),
-      addToCart: (product) => {
-        set((state) => {
-          const existing = state.selectedProducts.find(
-            (p) => p.id === product.id,
-          );
+      totalUSD: 0,
+      progressStep: "client-details",
+      deliveryMethod: "recogida",
+      clientId: null,
+      canContinue: false,
 
-          if (existing) {
-            // Si ya existe, solo aumentamos la cantidad
-            return {
-              selectedProducts: state.selectedProducts.map((p) =>
-                p.id === product.id ? { ...p, quantity: p.quantity + 1 } : p,
-              ),
-            };
-          }
+      // Métodos
+      setSelectedProducts: (products) =>
+        set({
+          selectedProducts: products,
+          totalUSD: calculateTotal(products),
+        }),
 
-          // Si es nuevo, lo agregamos
-          return {
-            selectedProducts: [
-              ...state.selectedProducts,
-              { ...product, quantity: 1 },
-            ],
-          };
+      updateQuantity: (id, delta) => {
+        const { selectedProducts } = get();
+        const updatedProducts = selectedProducts
+          .map((p) =>
+            p.id === id
+              ? { ...p, cantidad: Math.max(0, p.cantidad + delta) }
+              : p,
+          )
+          .filter((p) => p.cantidad > 0);
+
+        set({
+          selectedProducts: updatedProducts,
+          totalUSD: calculateTotal(updatedProducts),
         });
+      },
+
+      addToCart: (product) => {
+        const { selectedProducts } = get();
+        const existing = selectedProducts.find((p) => p.id === product.id);
+
+        let newProducts;
+        if (existing) {
+          newProducts = selectedProducts.map((p) =>
+            p.id === product.id ? { ...p, cantidad: p.cantidad + 1 } : p,
+          );
+        } else {
+          newProducts = [...selectedProducts, { ...product, cantidad: 1 }];
+        }
+
+        set({
+          selectedProducts: newProducts,
+          totalUSD: calculateTotal(newProducts),
+        });
+      },
+
+      clearCart: () => set({ selectedProducts: [], totalUSD: 0 }),
+
+      setDeliveryMethod: (method) => set({ deliveryMethod: method }),
+
+      setProgressStep: (step) => set({ progressStep: step }),
+
+      setClientId: (id) => set({ clientId: id }),
+
+      setCanContinue: (val) => set({ canContinue: val }),
+
+      nextStep: (metodoDePago) => {
+        const { progressStep } = get();
+        if (progressStep === "client-details")
+          set({ progressStep: "delivery-method" });
+        else if (progressStep === "delivery-method")
+          set({ progressStep: metodoDePago ? "payment" : "confirmation" });
+        else if (progressStep === "payment")
+          set({ progressStep: "confirmation" });
       },
     }),
     {
-      name: "app-storage", // clave en localStorage
+      name: "venuti-app-storage",
     },
   ),
 );
