@@ -1,9 +1,8 @@
 "use client";
 
 import { useAppStore } from "@/store/appStore";
-import { Minus, Plus, ShoppingBag } from "lucide-react";
-import React from "react";
 import { Producto } from "@prisma/client";
+import { Minus, Plus, ShoppingBag } from "lucide-react";
 
 const AddToCartBlock = ({ producto }: { producto: Producto }) => {
   const updateQuantity = useAppStore((s) => s.updateQuantity);
@@ -12,7 +11,7 @@ const AddToCartBlock = ({ producto }: { producto: Producto }) => {
   const selectedProducts = useAppStore((s) => s.selectedProducts);
   const product = selectedProducts.find((p) => p.id === producto.id) || {
     id: producto.id,
-    quantity: 0,
+    cantidad: 0,
   };
   console.log("productId in AddToCartBlock:", product);
   return (
@@ -21,9 +20,9 @@ const AddToCartBlock = ({ producto }: { producto: Producto }) => {
         <div className="flex items-center bg-surface-dark border border-border-dark rounded-lg p-1">
           <button
             onClick={() => updateQuantity(producto.id, -1)}
-            disabled={product.quantity === 0}
+            disabled={product.cantidad === 0}
             className={`size-10 flex items-center justify-center hover:bg-white/5 rounded-md transition-colors text-slate-400  ${
-              product.quantity === 0
+              product.cantidad === 0
                 ? "opacity-50 cursor-not-allowed"
                 : "cursor-pointer"
             }`}
@@ -31,13 +30,13 @@ const AddToCartBlock = ({ producto }: { producto: Producto }) => {
             <Minus size={16} />
           </button>
           <span className="w-12 text-center text-white font-bold">
-            {product.quantity === 0 ? 1 : product.quantity}
+            {product.cantidad === 0 ? 1 : product.cantidad}
           </span>
           <button
             onClick={() => updateQuantity(producto.id, +1)}
-            disabled={product.quantity === 0}
+            disabled={product.cantidad === 0}
             className={`size-10 flex items-center justify-center hover:bg-white/5 rounded-md transition-colors text-slate-400  ${
-              product.quantity === 0
+              product.cantidad === 0
                 ? "opacity-50 cursor-not-allowed"
                 : "cursor-pointer"
             }`}
