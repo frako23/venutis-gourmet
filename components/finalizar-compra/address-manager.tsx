@@ -1,7 +1,8 @@
 "use client";
 import { useCheckout } from "@/context/checkout-context";
 import { addAddress, getAddressesByClient } from "@/lib/actions/address";
-import { initialState } from "@/lib/constants/constants";
+import { DELIVERY_ZONES, initialState } from "@/lib/constants/constants";
+import { useAppStore } from "@/store/appStore";
 import { MapPin, Plus, Trash2 } from "lucide-react";
 import { useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -18,6 +19,7 @@ export function AddressManager() {
   const { setCanContinue, clientId } = useCheckout();
   const [selectedAddress, setSelectedAddress] = useState<number | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const setDeliveyPrice = useAppStore((s) => s.setDeliveryPrice);
 
   // Estado para los campos del nuevo formulario
   const [newAddress, setNewAddress] = useState({
@@ -85,7 +87,13 @@ export function AddressManager() {
             <div
               key={addr.id}
               className={`group relative p-4 bg-white/5 border  rounded-xl hover:border-accent-gold/50 transition-all cursor-pointer ${selectedAddress === addr.id ? "border-accent-gold" : "border-white/10"}`}
-              onClick={() => setSelectedAddress(addr.id)}
+              onClick={() => {
+                setSelectedAddress(addr.id);
+                setDeliveyPrice(
+                  DELIVERY_ZONES.find((z) => z.name === addr.urbanizacion)
+                    ?.price!,
+                );
+              }}
             >
               <div className="flex items-start gap-3">
                 <MapPin size={18} className="text-accent-gold mt-0.5" />
@@ -153,210 +161,70 @@ export function AddressManager() {
                 {/* ZONA CHACAO - Premium Core */}
                 <optgroup
                   className="bg-[#1a1a1a] text-accent-gold font-bold italic"
-                  label="Municipio Chacao"
+                  label="Zona 1 delivery $3"
                 >
-                  <option
-                    className="bg-[#121212] text-white font-normal not-italic"
-                    value="la-castellana"
-                  >
-                    La Castellana
-                  </option>
-                  <option
-                    className="bg-[#121212] text-white font-normal not-italic"
-                    value="altamira"
-                  >
-                    Altamira
-                  </option>
-                  <option
-                    className="bg-[#121212] text-white font-normal not-italic"
-                    value="los-palos-grandes"
-                  >
-                    Los Palos Grandes
-                  </option>
-                  <option
-                    className="bg-[#121212] text-white font-normal not-italic"
-                    value="campo-alegre"
-                  >
-                    Campo Alegre
-                  </option>
-                  <option
-                    className="bg-[#121212] text-white font-normal not-italic"
-                    value="el-rosal"
-                  >
-                    El Rosal
-                  </option>
-                  <option
-                    className="bg-[#121212] text-white font-normal not-italic"
-                    value="chacao"
-                  >
-                    Chacao Centro
-                  </option>
+                  {DELIVERY_ZONES.filter((z) => z.price === 3).map(
+                    (zone, index) => (
+                      <option
+                        key={index}
+                        className="bg-[#121212] text-white font-normal not-italic"
+                        value="la-castellana"
+                      >
+                        {zone.name}
+                      </option>
+                    ),
+                  )}
                 </optgroup>
 
-                {/* ZONA BARUTA - Expansión Gourmet */}
                 <optgroup
                   className="bg-[#1a1a1a] text-accent-gold font-bold italic"
-                  label="Municipio Baruta"
+                  label="Zona 2 delivery $4"
                 >
-                  <option
-                    className="bg-[#121212] text-white font-normal not-italic"
-                    value="las-mercedes"
-                  >
-                    Las Mercedes
-                  </option>
-                  <option
-                    className="bg-[#121212] text-white font-normal not-italic"
-                    value="prados-del-este"
-                  >
-                    Prados del Este
-                  </option>
-                  <option
-                    className="bg-[#121212] text-white font-normal not-italic"
-                    value="cumbres-curumo"
-                  >
-                    Cumbres de Curumo
-                  </option>
-                  <option
-                    className="bg-[#121212] text-white font-normal not-italic"
-                    value="la-trinidad"
-                  >
-                    La Trinidad
-                  </option>
-                  <option
-                    className="bg-[#121212] text-white font-normal not-italic"
-                    value="el-cafetal"
-                  >
-                    El Cafetal
-                  </option>
-                  <option
-                    className="bg-[#121212] text-white font-normal not-italic"
-                    value="santa-fe"
-                  >
-                    Santa Fe
-                  </option>
-                  <option
-                    className="bg-[#121212] text-white font-normal not-italic"
-                    value="terrazas-club-hipico"
-                  >
-                    Terrazas del Club Hípico
-                  </option>
+                  {DELIVERY_ZONES.filter((z) => z.price === 4).map(
+                    (zone, index) => (
+                      <option
+                        key={index}
+                        className="bg-[#121212] text-white font-normal not-italic"
+                        value="la-castellana"
+                      >
+                        {zone.name}
+                      </option>
+                    ),
+                  )}
                 </optgroup>
 
-                {/* ZONA EL HATILLO - Residencial */}
                 <optgroup
                   className="bg-[#1a1a1a] text-accent-gold font-bold italic"
-                  label="Municipio El Hatillo"
+                  label="Zona 3 delivery $5"
                 >
-                  <option
-                    className="bg-[#121212] text-white font-normal not-italic"
-                    value="la-lagunita"
-                  >
-                    La Lagunita
-                  </option>
-                  <option
-                    className="bg-[#121212] text-white font-normal not-italic"
-                    value="el-hatillo"
-                  >
-                    El Hatillo Pueblo
-                  </option>
-                  <option
-                    className="bg-[#121212] text-white font-normal not-italic"
-                    value="lomas-sol"
-                  >
-                    Lomas del Sol
-                  </option>
-                  <option
-                    className="bg-[#121212] text-white font-normal not-italic"
-                    value="los-naranjos"
-                  >
-                    Los Naranjos
-                  </option>
+                  {DELIVERY_ZONES.filter((z) => z.price === 5).map(
+                    (zone, index) => (
+                      <option
+                        key={index}
+                        className="bg-[#121212] text-white font-normal not-italic"
+                        value="la-castellana"
+                      >
+                        {zone.name}
+                      </option>
+                    ),
+                  )}
                 </optgroup>
 
-                {/* ZONA SUCRE - Este */}
                 <optgroup
                   className="bg-[#1a1a1a] text-accent-gold font-bold italic"
-                  label="Municipio Sucre"
+                  label="Zona 4 delivery $6"
                 >
-                  <option
-                    className="bg-[#121212] text-white font-normal not-italic"
-                    value="los-chorros"
-                  >
-                    Los Chorros
-                  </option>
-                  <option
-                    className="bg-[#121212] text-white font-normal not-italic"
-                    value="santa-eduvigis"
-                  >
-                    Santa Eduvigis
-                  </option>
-                  <option
-                    className="bg-[#121212] text-white font-normal not-italic"
-                    value="sebucan"
-                  >
-                    Sebucán
-                  </option>
-                  <option
-                    className="bg-[#121212] text-white font-normal not-italic"
-                    value="la-urbina"
-                  >
-                    La Urbina
-                  </option>
-                  <option
-                    className="bg-[#121212] text-white font-normal not-italic"
-                    value="el-marques"
-                  >
-                    El Marqués
-                  </option>
-                  <option
-                    className="bg-[#121212] text-white font-normal not-italic"
-                    value="boleita"
-                  >
-                    Boleíta
-                  </option>
-                </optgroup>
-
-                {/* ZONA LIBERTADOR - Centro/Oeste */}
-                <optgroup
-                  className="bg-[#1a1a1a] text-accent-gold font-bold italic"
-                  label="Municipio Libertador"
-                >
-                  <option
-                    className="bg-[#121212] text-white font-normal not-italic"
-                    value="la-candelaria"
-                  >
-                    La Candelaria
-                  </option>
-                  <option
-                    className="bg-[#121212] text-white font-normal not-italic"
-                    value="san-bernardino"
-                  >
-                    San Bernardino
-                  </option>
-                  <option
-                    className="bg-[#121212] text-white font-normal not-italic"
-                    value="el-paraiso"
-                  >
-                    El Paraíso
-                  </option>
-                  <option
-                    className="bg-[#121212] text-white font-normal not-italic"
-                    value="montalban"
-                  >
-                    Montalbán
-                  </option>
-                  <option
-                    className="bg-[#121212] text-white font-normal not-italic"
-                    value="los-mancuitales"
-                  >
-                    Los Chaguaramos
-                  </option>
-                  <option
-                    className="bg-[#121212] text-white font-normal not-italic"
-                    value="santa-monica"
-                  >
-                    Santa Mónica
-                  </option>
+                  {DELIVERY_ZONES.filter((z) => z.price === 6).map(
+                    (zone, index) => (
+                      <option
+                        key={index}
+                        className="bg-[#121212] text-white font-normal not-italic"
+                        value="la-castellana"
+                      >
+                        {zone.name}
+                      </option>
+                    ),
+                  )}
                 </optgroup>
               </select>
             </div>

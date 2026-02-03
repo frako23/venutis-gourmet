@@ -11,6 +11,7 @@ import Loading from "../loading";
 
 export default function CheckoutPage() {
   const selectedProducts = useAppStore((s) => s.selectedProducts);
+  const deliveryPrice = useAppStore((s) => s.deliveryPrice);
   const { tasa } = useDolar();
   const [mounted, setMounted] = useState(false);
   const totalUSD = useAppStore((s) => s.totalUSD);
@@ -84,9 +85,14 @@ export default function CheckoutPage() {
 
                 <div className="flex justify-between text-sm">
                   <span className="opacity-60">Envío</span>
-                  <span className="text-accent-gold text-xs uppercase tracking-tighter">
-                    Calculado en el siguiente paso
-                  </span>
+                  <div className="text-right">
+                    <p className="font-medium">${deliveryPrice.toFixed(2)}</p>
+                    {tasa > 0 && (
+                      <p className="text-[10px] opacity-40 italic">
+                        {(deliveryPrice * tasa).toLocaleString("es-VE")} Bs.
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 {/* Total Sección Destacada */}
@@ -95,7 +101,7 @@ export default function CheckoutPage() {
                     <span className="font-serif text-xl">Total</span>
                     <div className="text-right">
                       <span className="font-serif text-4xl font-bold text-white tracking-tighter">
-                        ${totalUSD.toFixed(2)}
+                        ${(totalUSD + deliveryPrice).toFixed(2)}
                       </span>
                     </div>
                   </div>
@@ -108,10 +114,13 @@ export default function CheckoutPage() {
                       </span>
                       <span className="text-lg font-bold text-accent-gold italic">
                         Bs.{" "}
-                        {(totalUSD * tasa).toLocaleString("es-VE", {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
+                        {((totalUSD + deliveryPrice) * tasa).toLocaleString(
+                          "es-VE",
+                          {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          },
+                        )}
                       </span>
                     </div>
                   )}
