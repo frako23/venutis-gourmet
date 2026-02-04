@@ -1,11 +1,16 @@
 "use client";
 import { useCheckout } from "@/context/checkout-context";
-import { addAddress, getAddressesByClient } from "@/lib/actions/address";
+import {
+  addAddress,
+  deleteAddress,
+  getAddressesByClient,
+} from "@/lib/actions/address";
 import { DELIVERY_ZONES, initialState } from "@/lib/constants/constants";
 import { useAppStore } from "@/store/appStore";
 import { MapPin, Plus, Trash2 } from "lucide-react";
 import { useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { ZoneSelector } from "./zone-selector";
 
 interface Address {
   id: number;
@@ -49,6 +54,7 @@ export function AddressManager() {
       if (data.length > 0) setSelectedAddress(data[0].id);
     }
   }
+
   useEffect(() => {
     loadAddresses();
   }, [clientId]);
@@ -111,7 +117,12 @@ export function AddressManager() {
               </div>
               <button
                 className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-500 transition-all cursor-pointer"
-                // onClick={() => handleRemove(addr.id)}
+                type="button"
+                onClick={() => {
+                  deleteAddress(initialState, addr.id);
+                  toast.success("Dirección eliminada con éxito");
+                  loadAddresses();
+                }}
               >
                 <Trash2 size={14} />
               </button>
@@ -140,95 +151,10 @@ export function AddressManager() {
               />
             </div>
 
-            <div className=" space-y-1.5">
-              <label className="text-[10px] uppercase tracking-widest opacity-50 px-1">
-                Sector / Zona
-              </label>
-              <select
-                className="w-full p-3 bg-white/5 border border-white/10 rounded-lg outline-none 
-                 focus:border-accent-gold transition-all text-white appearance-none 
-                 cursor-pointer hover:bg-white/[0.08]"
-                value={newAddress.urbanizacion}
-                name="urbanizacion"
-                onChange={(e) =>
-                  setNewAddress({ ...newAddress, urbanizacion: e.target.value })
-                }
-              >
-                <option value="" className="bg-[#121212] text-white/40">
-                  Selecciona tu zona en Caracas...
-                </option>
-
-                {/* ZONA CHACAO - Premium Core */}
-                <optgroup
-                  className="bg-[#1a1a1a] text-accent-gold font-bold italic"
-                  label="Zona 1 delivery $3"
-                >
-                  {DELIVERY_ZONES.filter((z) => z.price === 3).map(
-                    (zone, index) => (
-                      <option
-                        key={index}
-                        className="bg-[#121212] text-white font-normal not-italic"
-                        value="la-castellana"
-                      >
-                        {zone.name}
-                      </option>
-                    ),
-                  )}
-                </optgroup>
-
-                <optgroup
-                  className="bg-[#1a1a1a] text-accent-gold font-bold italic"
-                  label="Zona 2 delivery $4"
-                >
-                  {DELIVERY_ZONES.filter((z) => z.price === 4).map(
-                    (zone, index) => (
-                      <option
-                        key={index}
-                        className="bg-[#121212] text-white font-normal not-italic"
-                        value="la-castellana"
-                      >
-                        {zone.name}
-                      </option>
-                    ),
-                  )}
-                </optgroup>
-
-                <optgroup
-                  className="bg-[#1a1a1a] text-accent-gold font-bold italic"
-                  label="Zona 3 delivery $5"
-                >
-                  {DELIVERY_ZONES.filter((z) => z.price === 5).map(
-                    (zone, index) => (
-                      <option
-                        key={index}
-                        className="bg-[#121212] text-white font-normal not-italic"
-                        value="la-castellana"
-                      >
-                        {zone.name}
-                      </option>
-                    ),
-                  )}
-                </optgroup>
-
-                <optgroup
-                  className="bg-[#1a1a1a] text-accent-gold font-bold italic"
-                  label="Zona 4 delivery $6"
-                >
-                  {DELIVERY_ZONES.filter((z) => z.price === 6).map(
-                    (zone, index) => (
-                      <option
-                        key={index}
-                        className="bg-[#121212] text-white font-normal not-italic"
-                        value="la-castellana"
-                      >
-                        {zone.name}
-                      </option>
-                    ),
-                  )}
-                </optgroup>
-              </select>
-            </div>
-
+            <ZoneSelector
+              newAddress={newAddress}
+              setNewAddress={setNewAddress}
+            />
             <div className="md:col-span-2 space-y-1.5">
               <label className="text-[10px] uppercase tracking-widest opacity-50 px-1">
                 Dirección Detallada
@@ -269,7 +195,7 @@ export function AddressManager() {
                   : "cursor-pointer"
               }`}
             >
-              {isPending ? "GUARDANDO..." : "AGREGA DIRECCIÓN"}
+              {isPending ? "GUARDANDO..." : "GUARDAR DIRECCIÓN"}
             </button>
           </div>
         </div>

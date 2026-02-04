@@ -44,7 +44,6 @@ export const initialState = {
   clientId: null as number | null,
 };
 
-
 export const DELIVERY_ZONES = [
   // ZONA $3
   { name: "Altamira", price: 3 },
@@ -85,7 +84,7 @@ export const DELIVERY_ZONES = [
   { name: "Los Campitos", price: 3 },
   { name: "Los Caobos", price: 3 },
   { name: "Los Dos Caminos", price: 3 },
-  { name: "Plaza Vzla", price: 3 },
+  { name: "Plaza Venezuela", price: 3 },
   { name: "Los Chaguaramos", price: 3 },
   { name: "Los Chorros", price: 3 },
   { name: "Los Naranjos", price: 3 },

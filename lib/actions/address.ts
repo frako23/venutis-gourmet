@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache"; // 👈 Importante
 import { z } from "zod";
 import { prisma } from "../prisma";
 
@@ -10,11 +11,12 @@ const AddressSchema = z.object({
   tipo: z.string(),
 });
 
-export async function deleteAddress(formData: FormData) {
-  const id = String(formData.get("id") || "").trim();
-
+export async function deleteAddress(
+  prevState: { message: string; status: string; clientId: number | null },
+  id: number,
+) {
   if (!id) {
-    throw new Error("Address ID is required for deletion");
+    throw new Error("id es necesario para poder eliminar la dirección");
   }
 
   try {
@@ -25,9 +27,17 @@ export async function deleteAddress(formData: FormData) {
     });
   } catch (error) {
     console.error("Error al eliminar la dirección:", error);
-    throw new Error("Failed to delete address");
+    return {
+      message: "Error al elminar la dirección",
+      status: "error",
+      clientId: null,
+    };
   }
-  return { message: "Dirección eliminada exitosamente" };
+  return {
+    message: "Dirección eliminada exitosamente",
+    status: "success",
+    clientId: null,
+  };
 }
 
 export async function addAddress(

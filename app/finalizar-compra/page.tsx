@@ -25,7 +25,7 @@ export default function CheckoutPage() {
   if (!mounted) {
     return <Loading />;
   }
-
+  console.log(deliveryPrice);
   return (
     <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
       <div className="layout-container flex flex-col min-h-screen">
@@ -86,10 +86,17 @@ export default function CheckoutPage() {
                 <div className="flex justify-between text-sm">
                   <span className="opacity-60">Envío</span>
                   <div className="text-right">
-                    <p className="font-medium">${deliveryPrice.toFixed(2)}</p>
-                    {tasa > 0 && (
+                    <p className="font-medium">
+                      {deliveryPrice !== 0 && deliveryPrice !== undefined
+                        ? `$${deliveryPrice.toFixed(2)}`
+                        : "$ 0.00"}
+                    </p>
+                    {tasa > 0 && deliveryPrice !== 0 && (
                       <p className="text-[10px] opacity-40 italic">
-                        {(deliveryPrice * tasa).toLocaleString("es-VE")} Bs.
+                        Bs.{" "}
+                        {deliveryPrice !== 0 && deliveryPrice !== undefined
+                          ? (deliveryPrice * tasa).toLocaleString("es-VE")
+                          : "0.00"}{" "}
                       </p>
                     )}
                   </div>
@@ -101,7 +108,10 @@ export default function CheckoutPage() {
                     <span className="font-serif text-xl">Total</span>
                     <div className="text-right">
                       <span className="font-serif text-4xl font-bold text-white tracking-tighter">
-                        ${(totalUSD + deliveryPrice).toFixed(2)}
+                        $
+                        {deliveryPrice !== 0 && deliveryPrice !== undefined
+                          ? (totalUSD + deliveryPrice).toFixed(2)
+                          : totalUSD.toFixed(2)}
                       </span>
                     </div>
                   </div>
@@ -114,13 +124,18 @@ export default function CheckoutPage() {
                       </span>
                       <span className="text-lg font-bold text-accent-gold italic">
                         Bs.{" "}
-                        {((totalUSD + deliveryPrice) * tasa).toLocaleString(
-                          "es-VE",
-                          {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          },
-                        )}
+                        {deliveryPrice > 0
+                          ? ((totalUSD + deliveryPrice) * tasa).toLocaleString(
+                              "es-VE",
+                              {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              },
+                            )
+                          : (totalUSD * tasa).toLocaleString("es-VE", {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}
                       </span>
                     </div>
                   )}
@@ -146,14 +161,17 @@ export default function CheckoutPage() {
               </span>
             </div>
             <div className="flex gap-8 text-[10px] font-bold uppercase tracking-widest opacity-40">
-              <a className="hover:text-accent-gold" href="#">
-                Envíos
+              <a
+                className="hover:text-gold"
+                href="https://www.instagram.com/venutis.gourmet"
+              >
+                Instagram
               </a>
-              <a className="hover:text-accent-gold" href="#">
-                Privacidad
-              </a>
-              <a className="hover:text-accent-gold" href="#">
-                Contacto
+              <a
+                className="hover:text-gold"
+                href="mailto:info@venutisgourmet.com"
+              >
+                Correo
               </a>
             </div>
           </div>
