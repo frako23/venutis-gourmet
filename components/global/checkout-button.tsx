@@ -15,6 +15,8 @@ export const CheckoutButton = ({
   if (progressStep === "client-details") message = "Continuar a Entrega";
   else if (progressStep === "delivery-method") message = "Continuar a Pago";
   else if (progressStep === "payment-method") message = "Confirmar Pedido";
+  else if (progressStep === "confirmation") message = "Finalizar Compra";
+
   return (
     <div className="pt-6">
       <button

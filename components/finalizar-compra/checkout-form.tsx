@@ -3,7 +3,9 @@ import { addClient } from "@/lib/actions/clients";
 import { initialState } from "@/lib/constants/constants";
 import { useActionState, useEffect } from "react";
 import { toast } from "sonner";
+import { CheckoutLoader } from "./checkout-loader";
 import { DeliveryInformation } from "./delivery-information";
+import { OrderSuccess } from "./order-success";
 import { PaymentInformation } from "./payment-information";
 import { PersonalInformation } from "./personal-information";
 
@@ -29,12 +31,15 @@ export const CheckoutForm = ({ metodoDePago }: { metodoDePago: boolean }) => {
 };
 
 const CheckoutContent = ({ metodoDePago }: { metodoDePago: boolean }) => {
-  const { progressStep } = useCheckout();
+  const { progressStep, isSubmitting, orderFinished } = useCheckout();
 
   return (
     <div className="lg:col-span-7">
       <div className="bg-surface-dark rounded-2xl p-8 border border-white/5 shadow-2xl space-y-10">
         {/* Progress Stepper */}
+
+        {isSubmitting && <CheckoutLoader />}
+
         <div className="flex justify-between items-center px-4 relative">
           <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white/10 -z-0"></div>
           <Step
@@ -70,7 +75,10 @@ const CheckoutContent = ({ metodoDePago }: { metodoDePago: boolean }) => {
         ) : progressStep === "payment-method" ? (
           <PaymentInformation />
         ) : (
-          <div>Confirmation Information Component</div>
+          <OrderSuccess
+            orderId={orderFinished?.orderId || 0}
+            resumen={orderFinished?.resumen || {}}
+          />
         )}
       </div>
     </div>

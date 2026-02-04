@@ -1,4 +1,5 @@
 "use client";
+import { OrderSuccessProps } from "@/components/finalizar-compra/order-success";
 import { createContext, useContext, useState } from "react";
 
 const CheckoutContext = createContext<any>(null);
@@ -13,6 +14,10 @@ export function CheckoutProvider({
   const [progressStep, setProgressStep] = useState("client-details");
   const [clientId, setClientId] = useState<number | null>(null);
   const [canContinue, setCanContinue] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [orderFinished, setOrderFinished] = useState<OrderSuccessProps | null>(
+    null,
+  );
 
   const nextStep = () => {
     if (progressStep === "client-details") setProgressStep("delivery-method");
@@ -31,6 +36,10 @@ export function CheckoutProvider({
         setClientId,
         canContinue,
         setCanContinue,
+        isSubmitting,
+        setIsSubmitting,
+        orderFinished,
+        setOrderFinished,
       }}
     >
       {children}

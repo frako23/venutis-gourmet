@@ -1,31 +1,38 @@
 import { useCheckout } from "@/context/checkout-context";
 import { useDolar } from "@/hooks/useDolar";
-import { procesarCompra } from "@/lib/actions/checkout";
+import { CheckoutData, procesarCompra } from "@/lib/actions/checkout";
 import { initialState, PAYMENT_DETAILS } from "@/lib/constants/constants";
 import { useAppStore } from "@/store/appStore";
+import { MetodoPago } from "@prisma/client";
 import { Banknote, CreditCard, Landmark, Smartphone } from "lucide-react";
-import { useActionState, useState } from "react";
+import { useState } from "react";
 import { CheckoutButton } from "../global/checkout-button";
 import { InputField } from "../global/input";
 import { CopyButton } from "../productos/copy-to-clipboard";
 
 interface PaymentDetails {
-  fechaPago?: Date;
-  montoUsd?: number;
-  montoBs?: number;
-  referencia?: string;
-  metodoPago?: string;
+  fechaPago: Date;
+  montoUsd: number;
+  montoBs: number;
+  referencia: string;
+  metodoPago: MetodoPago;
+  tasaCambio: number;
 }
 
 export const PaymentInformation = () => {
   const [paymentMethod, setPaymentMethod] = useState("PagoMovil");
+  const deliveryMethod = useAppStore((s) => s.deliveryMethod);
+  const selectedProducts = useAppStore((s) => s.selectedProducts);
   const { tasa } = useDolar();
   const totalUSD = useAppStore((s) => s.totalUSD);
-  const { setCanContinue, clientId } = useCheckout();
-  const [state, formAction, isPending] = useActionState(
-    procesarCompra,
-    initialState,
-  );
+  const {
+    setCanContinue,
+    clientId,
+    setIsSubmitting,
+    isSubmitting,
+    setOrderFinished,
+  } = useCheckout();
+
   const [paymentRecord, setPaymentRecord] = useState<PaymentDetails | null>(
     null,
   );
@@ -37,8 +44,18 @@ export const PaymentInformation = () => {
     const { name, value } = e.target;
 
     setPaymentRecord((prev) => {
-      // Si prev es null, inicializamos un objeto base
-      const current = prev || {};
+      // 1. Definimos los valores por defecto para un registro nuevo
+      const initialValues: PaymentDetails = {
+        metodoPago: "PAGO_MOVIL" as MetodoPago,
+        fechaPago: new Date(),
+        montoUsd: 0,
+        montoBs: 0,
+        referencia: "",
+        tasaCambio: 0,
+      };
+
+      // 2. Usamos el estado previo o los valores iniciales
+      const current = prev || initialValues;
 
       let processedValue: string | number | Date | null = value;
 
@@ -70,16 +87,55 @@ export const PaymentInformation = () => {
   };
 
   const handleSubmit = async () => {
-    if (!clientId) return;
-    if (!paymentRecord) return;
-    const datos = {
-      clienteId: clientId,
-      ...paymentRecord,
-    };
-    // await procesarCompra(initialState, datos);
-    setPaymentRecord(null);
-    setPaymentMethod("PagoMovil");
-    setCanContinue(false);
+    // 1. Validaciones previas
+    if (!clientId || !paymentRecord) return;
+
+    // 2. Encender el loader
+    setIsSubmitting(true);
+
+    try {
+      const totalPago = deliveryPrice + totalUSD;
+
+      const itemsParaOrden = selectedProducts.map((item) => ({
+        productoId: item.id,
+        cantidad: item.cantidad,
+        precio: item.precio,
+      }));
+
+      const datos: CheckoutData = {
+        clientId,
+        montoTotal: totalPago,
+        tipodeRetiro: deliveryMethod,
+        total: itemsParaOrden.length,
+        carrito: itemsParaOrden,
+        pago: paymentRecord,
+      };
+
+      // 3. Ejecutar la acción del servidor
+      const response = await procesarCompra(initialState, datos);
+      if (response.success) {
+        setOrderFinished({
+          orderId: response.orderId,
+          message: response.message,
+          data: response.resumen,
+        });
+      }
+
+      // 4. Limpiar estados si la compra fue exitosa
+      setCanContinue(false);
+      setPaymentRecord(null);
+      setPaymentMethod("PagoMovil");
+
+      // Aquí podrías redirigir al usuario a una página de "Gracias"
+      // router.push('/gracias');
+    } catch (error) {
+      console.error("Error al procesar la compra:", error);
+      // Aquí podrías mostrar una notificación de error al usuario
+    } finally {
+      // 5. Apagar el loader (esto ocurre siempre, falle o no)
+      setIsSubmitting(false);
+      setCanContinue(false);
+    }
   };
 
   return (
@@ -266,7 +322,8 @@ Monto: $ ${totalUSD.toFixed(2)} `}
               name="monto$"
               type="number"
               value={
-                deliveryPrice !== 0 && deliveryPrice !== undefined
+                paymentRecord?.montoUsd ||
+                (deliveryPrice !== 0 && deliveryPrice !== undefined)
                   ? (totalUSD + deliveryPrice).toFixed(2)
                   : totalUSD.toFixed(2)
               }
@@ -278,7 +335,8 @@ Monto: $ ${totalUSD.toFixed(2)} `}
               name="montoBs"
               type="number"
               value={
-                deliveryPrice !== 0 && deliveryPrice !== undefined
+                paymentRecord?.montoBs ||
+                (deliveryPrice !== 0 && deliveryPrice !== undefined)
                   ? ((totalUSD + deliveryPrice) * tasa).toFixed(2)
                   : (totalUSD * tasa).toFixed(2)
               }
@@ -305,12 +363,28 @@ Monto: $ ${totalUSD.toFixed(2)} `}
                   className="w-full p-3 bg-white/5 border border-white/10 rounded-lg outline-none focus:border-accent-gold transition-colors text-white appearance-none cursor-pointer"
                   name="metodoPago"
                   value={paymentRecord?.metodoPago || paymentMethod}
-                  onChange={(e) =>
-                    setPaymentRecord((prev) => ({
-                      ...prev,
-                      metodoPago: e.target.value,
-                    }))
-                  }
+                  onChange={(e) => {
+                    setPaymentRecord((prev) => {
+                      // 1. Si el estado anterior es null, creamos el objeto base
+                      if (!prev) {
+                        return {
+                          metodoPago: e.target.value as MetodoPago, // Usamos el valor del evento
+                          fechaPago: new Date(),
+                          montoUsd: 0,
+                          montoBs: 0,
+                          referencia: "",
+                          tasaCambio: 0,
+                        };
+                      }
+
+                      // 2. Si ya existe, actualizamos solo el campo necesario
+                      return {
+                        ...prev,
+                        metodoPago: e.target.value as MetodoPago,
+                        fechaPago: prev.fechaPago || new Date(),
+                      };
+                    });
+                  }}
                   required
                 >
                   <option
@@ -364,7 +438,11 @@ Monto: $ ${totalUSD.toFixed(2)} `}
         </>
       )}
 
-      <CheckoutButton isPending={isPending} type="submit" />
+      <CheckoutButton
+        isPending={isSubmitting}
+        type="button"
+        onClick={handleSubmit}
+      />
     </form>
   );
 };
