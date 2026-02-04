@@ -1,35 +1,35 @@
 import {
-  Search,
-  UserCircle,
-  ShoppingBag,
-  Wine,
-  UtensilsCrossed,
-  Fish,
-  Droplets,
-  Soup,
-  Gift,
   ChevronDown,
-  Eye,
-  ShoppingCart,
   ChevronLeft,
   ChevronRight,
+  Droplets,
+  Eye,
+  Fish,
+  Gift,
   Globe,
   Mail,
   Phone,
+  Search,
+  ShoppingBag,
+  ShoppingCart,
+  Soup,
   Star,
   StarHalf,
+  UserCircle,
+  UtensilsCrossed,
+  Wine,
 } from "lucide-react";
 import Image from "next/image";
 
 export default function Productos() {
   return (
-    <div className="bg-background-light dark:bg-background-dark text-[#1d0c10] dark:text-[#f9f7f0] min-h-screen font-display">
+    <div className=" bg-background-dark text-[#f9f7f0] min-h-screen font-display">
       {/* Top Navigation Bar */}
-      <header className="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-primary/10 px-6 lg:px-12 py-4">
+      <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-md border-b border-primary/10 px-6 lg:px-12 py-4">
         <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-8">
           <div className="flex items-center gap-12">
             <div className="flex items-center gap-3">
-              <div className="text-primary dark:text-gold">
+              <div className="text-gold">
                 <svg
                   className="w-8 h-8"
                   fill="none"
@@ -44,7 +44,7 @@ export default function Productos() {
                   ></path>
                 </svg>
               </div>
-              <h1 className="text-2xl font-black tracking-tight text-primary dark:text-gold uppercase">
+              <h1 className="text-2xl font-black tracking-tight text-gold uppercase">
                 Venuti's
               </h1>
             </div>
@@ -90,7 +90,7 @@ export default function Productos() {
         <aside className="w-full lg:w-64 p-6 lg:p-10 border-r border-primary/5 shrink-0">
           <div className="sticky top-28">
             <div className="mb-10">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-primary/40 dark:text-gold mb-4">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-gold mb-4">
                 Marketplace
               </h3>
               <ul className="space-y-1">
@@ -103,7 +103,7 @@ export default function Productos() {
               </ul>
             </div>
             <div>
-              <h3 className="text-xs font-bold uppercase tracking-widest text-primary/40 dark:text-gold mb-4">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-gold mb-4">
                 Filter By
               </h3>
               <div className="space-y-4">
@@ -190,11 +190,8 @@ export default function Productos() {
 
           {/* Pagination */}
           <div className="mt-20 flex justify-center items-center gap-4">
-            <button className="w-10 h-10 flex items-center justify-center rounded-full bg-primary dark:bg-parchment  transition-colors">
-              <ChevronLeft
-                size={20}
-                className="dark:text-primary text-parchment"
-              />
+            <button className="w-10 h-10 flex items-center justify-center rounded-full bg-parchment  transition-colors">
+              <ChevronLeft size={20} className="text-primary" />
             </button>
             <button className="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-white font-bold">
               1
@@ -209,11 +206,8 @@ export default function Productos() {
             <button className="w-10 h-10 flex items-center justify-center rounded-full  transition-colors text-primary/60">
               8
             </button>
-            <button className="w-10 h-10 flex items-center justify-center rounded-full bg-primary dark:bg-parchment  transition-colors">
-              <ChevronRight
-                size={20}
-                className="dark:text-primary text-parchment"
-              />
+            <button className="w-10 h-10 flex items-center justify-center rounded-full bg-parchment  transition-colors">
+              <ChevronRight size={20} className="text-primary" />
             </button>
           </div>
         </main>
@@ -327,7 +321,7 @@ function FilterCheckbox({ label }: { label: string }) {
 
 function ToolbarButton({ label }: { label: string }) {
   return (
-    <button className="flex items-center gap-2 px-4 py-2 bg-parchment dark:bg-primary/10 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-primary/5 transition-colors">
+    <button className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-primary/5 transition-colors">
       <span>{label}</span>
       <ChevronDown size={14} />
     </button>
@@ -355,23 +349,15 @@ function ProductCard({
             return <Star key={i} size={12} fill="currentColor" />;
           if (starValue - 0.5 <= rating)
             return <StarHalf key={i} size={12} fill="currentColor" />;
-          return (
-            <Star
-              key={i}
-              size={12}
-              className="text-gray-300 dark:text-gray-600"
-            />
-          );
+          return <Star key={i} size={12} className="text-gray-600" />;
         })}
-        <span className="text-[10px] text-primary/40 dark:text-gold/40 ml-1">
-          ({reviews})
-        </span>
+        <span className="text-[10px] text-gold/40 ml-1">({reviews})</span>
       </div>
     );
   };
 
   return (
-    <div className="group bg-parchment dark:bg-primary/5 rounded-xl overflow-hidden hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 border border-transparent hover:border-primary/10 flex flex-col">
+    <div className="group bg-primary/5 rounded-xl overflow-hidden hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 border border-transparent hover:border-primary/10 flex flex-col">
       <div className="relative aspect-[4/5] overflow-hidden">
         {badge && (
           <div className="absolute top-4 left-4 z-10">
@@ -399,23 +385,19 @@ function ProductCard({
         <div className="mb-2">{renderStars(rating)}</div>
 
         <div className="flex justify-between items-start mb-2">
-          <h3 className="text-xl font-serif italic group-hover:text-primary dark:group-hover:text-gold transition-colors">
+          <h3 className="text-xl font-serif italic group-hover:text-gold transition-colors">
             {title}
           </h3>
-          <span className="text-xl font-bold text-primary dark:text-gold">
-            ${price}
-          </span>
+          <span className="text-xl font-bold text-gold">${price}</span>
         </div>
 
-        <p className="text-sm text-primary/60 dark:text-gold/70 mb-4 line-clamp-2">
-          {desc}
-        </p>
+        <p className="text-sm text-gold/70 mb-4 line-clamp-2">{desc}</p>
 
         {/* Sección de Inventario / Stock */}
         <div className="mb-6">
           <div className="flex justify-between items-center mb-1.5">
             <span
-              className={`text-[10px] uppercase font-bold tracking-tighter ${stock < 5 ? "text-red-500" : "text-primary/40 dark:text-gold/40"}`}
+              className={`text-[10px] uppercase font-bold tracking-tighter ${stock < 5 ? "text-red-500" : " text-gold/40"}`}
             >
               {stock === 0
                 ? "Out of Stock"
@@ -427,9 +409,9 @@ function ProductCard({
               {stock} units
             </span>
           </div>
-          <div className="h-1 w-full bg-primary/10 dark:bg-white/5 rounded-full overflow-hidden">
+          <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
             <div
-              className={`h-full transition-all duration-1000 ${stock < 5 ? "bg-red-500" : "bg-primary dark:bg-gold"}`}
+              className={`h-full transition-all duration-1000 ${stock < 5 ? "bg-red-500" : "bg-gold"}`}
               style={{ width: `${Math.min((stock / 20) * 100, 100)}%` }} // Asumiendo 20 como stock "lleno"
             />
           </div>

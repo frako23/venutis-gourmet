@@ -18,7 +18,7 @@ export const InventoryHeader = () => {
         <button
           key={tab}
           onClick={() => setActiveTab(tab)}
-          className={` px-1 text-sm font-bold transition-all ${activeTab === tab ? "border-b-2 border-slate-200 text-gold dark:text-white" : "text-[#738165] dark:text-gray-400 hover:text-gold cursor-pointer"}`}
+          className={` px-1 text-sm font-bold transition-all ${activeTab === tab ? "border-b-2 border-slate-200 text-white" : "text-gray-400 hover:text-gold cursor-pointer"}`}
         >
           {tab}
         </button>

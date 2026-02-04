@@ -35,7 +35,7 @@ export const ShoppingCartButton = () => {
             onClick={() => setIsCartOpen(false)}
           />
 
-          <div className="absolute right-0 mt-4 w-80 bg-white dark:bg-zinc-900 shadow-2xl rounded-xl overflow-hidden border border-primary/10 z-[60]">
+          <div className="absolute right-0 mt-4 w-80 bg-zinc-900 shadow-2xl rounded-xl overflow-hidden border border-primary/10 z-[60]">
             <div className="p-4 bg-primary/5 border-b border-primary/10 flex justify-between items-center">
               <span className="font-serif italic font-bold">Tu Carrito</span>
               <button
@@ -55,7 +55,7 @@ export const ShoppingCartButton = () => {
                 selectedProducts.map((product) => (
                   <div
                     key={product.id}
-                    className="flex items-center gap-3 pb-3 border-b border-gray-100 dark:border-white/5 last:border-0"
+                    className="flex items-center gap-3 pb-3 border-b border-white/5 last:border-0"
                   >
                     <Image
                       width={48}
@@ -75,7 +75,7 @@ export const ShoppingCartButton = () => {
                     </div>
 
                     {/* Contador de Cantidad */}
-                    <div className="flex items-center gap-2 bg-gray-100 dark:bg-white/5 rounded-full px-2 py-1">
+                    <div className="flex items-center gap-2 bg-white/5 rounded-full px-2 py-1">
                       <button
                         onClick={() => updateQuantity(product.id, -1)}
                         className="hover:text-gold transition-colors cursor-pointer"
@@ -102,11 +102,11 @@ export const ShoppingCartButton = () => {
             </div>
 
             {/* Totales con Doble Moneda */}
-            <div className="p-4 border-t border-primary/10 bg-gray-50 dark:bg-zinc-800/50">
+            <div className="p-4 border-t border-primary/10 bg-zinc-800/50">
               <div className="space-y-1 mb-4">
                 <div className="flex justify-between items-center font-bold">
                   <span className="text-sm">Total:</span>
-                  <span className="text-lg text-primary dark:text-gold">
+                  <span className="text-lg text-gold">
                     ${totalUSD.toFixed(2)}
                   </span>
                 </div>

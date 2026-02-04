@@ -33,11 +33,11 @@ export function ProductCard({
             <Star
               key={i}
               size={12}
-              className="text-gray-300 dark:text-gray-600"
+              className="text-gray-600"
             />
           );
         })}
-        <span className="text-[10px] text-primary/40 dark:text-gold ml-1">
+        <span className="text-[10px] text-gold ml-1">
           ({reviews})
         </span>
       </div>
@@ -45,7 +45,7 @@ export function ProductCard({
   };
 
   return (
-    <div className="group bg-parchment dark:bg-primary/5 rounded-xl overflow-hidden hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 border border-transparent hover:border-primary/10 flex flex-col">
+    <div className="group bg-primary/5 rounded-xl overflow-hidden hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 border border-transparent hover:border-primary/10 flex flex-col">
       <div className="relative aspect-[4/5] overflow-hidden">
         {badge && (
           <div className="absolute top-4 left-4 z-10">
@@ -83,13 +83,13 @@ export function ProductCard({
           </a>
           <div className="flex flex-row items-baseline justify-end gap-3 leading-tight">
             {/* Precio en Dólares: Destacado a la izquierda */}
-            <span className="text-2xl font-black text-primary dark:text-gold tracking-tighter">
+            <span className="text-2xl font-black text-gold tracking-tighter">
               ${price}
             </span>
 
             {/* Precio en Bs: Elegante y a la derecha */}
             {tasa > 0 ? (
-              <span className="text-[15px] font-medium text-primary/60 dark:text-gold/60 italic whitespace-nowrap">
+              <span className="text-[15px] font-medium text-gold/60 italic whitespace-nowrap">
                 <span className="text-[10px] not-italic mr-1">BS.</span>
                 {(price * tasa).toLocaleString("es-VE", {
                   minimumFractionDigits: 2,
@@ -102,7 +102,7 @@ export function ProductCard({
           </div>
         </div>
 
-        {/* <p className="text-sm text-primary/60 dark:text-gold/70 mb-4 line-clamp-2">
+        {/* <p className="text-sm text-gold/70 mb-4 line-clamp-2">
           {desc}
         </p> */}
 
@@ -110,7 +110,7 @@ export function ProductCard({
         <div className="mb-6">
           <div className="flex justify-between items-center mb-1.5">
             <span
-              className={`text-[10px] uppercase font-bold tracking-tighter ${stock < 5 ? "text-red-500" : "text-primary/40 dark:text-gold/80"}`}
+              className={`text-[10px] uppercase font-bold tracking-tighter ${stock < 5 ? "text-red-500" : "text-gold/80"}`}
             >
               {stock === 0
                 ? "Agotado"
@@ -120,9 +120,9 @@ export function ProductCard({
             </span>
             <span className="text-[10px] font-mono ">{stock} unidades</span>
           </div>
-          <div className="h-1 w-full bg-primary/10 dark:bg-white/5 rounded-full overflow-hidden">
+          <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
             <div
-              className={`h-full transition-all duration-1000 ${stock < 5 ? "bg-red-500" : "bg-primary dark:bg-gold"}`}
+              className={`h-full transition-all duration-1000 ${stock < 5 ? "bg-red-500" : "bg-gold"}`}
               style={{ width: `${Math.min((stock / 20) * 100, 100)}%` }} // Asumiendo 20 como stock "lleno"
             />
           </div>

@@ -17,7 +17,7 @@ export default function CreateTransactionForm() {
     initialState,
   );
   return (
-    <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-800 dark:text-white transition-colors duration-300">
+    <div className="min-h-screen bg-background-dark text-white transition-colors duration-300">
       <main className="max-w-[1100px] mx-auto px-6 py-8">
         {/* Header con Breadcrumbs */}
         <Header headerText="Registrar nueva venta" />

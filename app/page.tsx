@@ -17,7 +17,7 @@ interface ChoiceCardProps {
 
 export default function StorefrontEntry() {
   return (
-    <div className="bg-background-light dark:bg-background-dark font-display text-white overflow-x-hidden">
+    <div className="bg-background-dark font-display text-white overflow-x-hidden">
       {/* Contenedor Principal con Fondo */}
       <div
         className="relative min-h-screen w-full flex flex-col bg-cover bg-center bg-no-repeat"

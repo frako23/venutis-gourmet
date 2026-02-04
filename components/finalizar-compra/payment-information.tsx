@@ -29,6 +29,7 @@ export const PaymentInformation = () => {
   const [paymentRecord, setPaymentRecord] = useState<PaymentDetails | null>(
     null,
   );
+  const deliveryPrice = useAppStore((s) => s.deliveryPrice);
 
   const handlePaymentRecordChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -75,7 +76,7 @@ export const PaymentInformation = () => {
       clienteId: clientId,
       ...paymentRecord,
     };
-    await procesarCompra(initialState, datos);
+    // await procesarCompra(initialState, datos);
     setPaymentRecord(null);
     setPaymentMethod("PagoMovil");
     setCanContinue(false);
@@ -264,7 +265,11 @@ Monto: $ ${totalUSD.toFixed(2)} `}
               label="Monto en $"
               name="monto$"
               type="number"
-              value={totalUSD.toFixed(2)}
+              value={
+                deliveryPrice !== 0 && deliveryPrice !== undefined
+                  ? (totalUSD + deliveryPrice).toFixed(2)
+                  : totalUSD.toFixed(2)
+              }
               onChange={handlePaymentRecordChange}
               required
             />
@@ -272,7 +277,11 @@ Monto: $ ${totalUSD.toFixed(2)} `}
               label="Monto en Bs"
               name="montoBs"
               type="number"
-              value={(totalUSD * tasa).toFixed(2)}
+              value={
+                deliveryPrice !== 0 && deliveryPrice !== undefined
+                  ? ((totalUSD + deliveryPrice) * tasa).toFixed(2)
+                  : (totalUSD * tasa).toFixed(2)
+              }
               onChange={handlePaymentRecordChange}
               required
             />

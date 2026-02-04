@@ -98,8 +98,8 @@ export default async function Productos({
 
       {/* Pagination */}
       <div className="mt-20 flex justify-center items-center gap-4">
-        <button className="w-10 h-10 flex items-center justify-center rounded-full bg-primary dark:bg-parchment  transition-colors">
-          <ChevronLeft size={20} className="dark:text-primary text-parchment" />
+        <button className="w-10 h-10 flex items-center justify-center rounded-full bg-parchment  transition-colors">
+          <ChevronLeft size={20} className="text-primary" />
         </button>
         <button className="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-white font-bold">
           1
@@ -114,10 +114,10 @@ export default async function Productos({
         <button className="w-10 h-10 flex items-center justify-center rounded-full  transition-colors text-primary/60">
           8
         </button>
-        <button className="w-10 h-10 flex items-center justify-center rounded-full bg-primary dark:bg-parchment  transition-colors">
+        <button className="w-10 h-10 flex items-center justify-center rounded-full bg-parchment  transition-colors">
           <ChevronRight
             size={20}
-            className="dark:text-primary text-parchment"
+            className="text-primary"
           />
         </button>
       </div>

@@ -36,7 +36,7 @@ export default async function InventoryManager({
   console.log({ total, totalPages });
   console.log("Products:", products);
   return (
-    <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-800 dark:text-white transition-colors duration-300">
+    <div className="min-h-screen bg-background-dark text-white transition-colors duration-300">
       <div className="p-8 space-y-8">
         {/* Quick Stats */}
         {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -65,7 +65,7 @@ export default async function InventoryManager({
           </div> */}
 
         {/* Table Controls */}
-        <div className="flex items-center justify-between border-b border-[#dbe0d7] dark:border-[#3a3e44]">
+        <div className="flex items-center justify-between border-b border-[#3a3e44]">
           <InventoryHeader />
           <div className="flex gap-2 pb-2">
             <IconButton icon={Filter} />
@@ -74,10 +74,10 @@ export default async function InventoryManager({
         </div>
 
         {/* Product Table */}
-        <div className="bg-white dark:bg-[#1a1c20] border border-[#dbe0d7] dark:border-[#3a3e44] rounded-xl overflow-hidden shadow-sm">
+        <div className="bg-[#1a1c20] border border-[#3a3e44] rounded-xl overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
-              <thead className="bg-background-light dark:bg-[#2c3036] text-[#738165] dark:text-gray-400 uppercase text-[10px] font-black tracking-widest">
+              <thead className="bg-[#2c3036] text-gray-400 uppercase text-[10px] font-black tracking-widest">
                 <tr>
                   <th className="px-6 py-4">Información del producto</th>
                   <th className="px-6 py-4">Categoría</th>
@@ -88,7 +88,7 @@ export default async function InventoryManager({
                   <th className="px-6 py-4 text-right">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#dbe0d7] dark:divide-[#3a3e44]">
+              <tbody className="divide-y divide-[#3a3e44]">
                 {products.map((product) => (
                   <TableRow
                     key={product.id}
@@ -107,13 +107,9 @@ export default async function InventoryManager({
           </div>
 
           {/* Pagination */}
-          <footer className="bg-white dark:bg-[#1a1c20] px-6 py-4 border-t border-[#dbe0d7] dark:border-[#3a3e44] flex items-center justify-between">
+          <footer className="bg-[#1a1c20] px-6 py-4 border-t border-[#3a3e44] flex items-center justify-between">
             <p className="text-[11px] text-[#738165] font-bold uppercase tracking-wider">
-              Mostrando{" "}
-              <span className="text-[#141712] dark:text-white">
-                {" "}
-                {total} productos{" "}
-              </span>
+              Mostrando <span className="text-white"> {total} productos </span>
             </p>
             {/* <div className="flex gap-1">
                 <PaginationBtn label="Prev" />
@@ -143,13 +139,13 @@ export default async function InventoryManager({
 
 // function StatCard({ label, value, trend, icon: Icon, warning = false }: any) {
 //   return (
-//     <div className="bg-white dark:bg-[#1a1c20] p-6 rounded-xl border border-[#dbe0d7] dark:border-[#3a3e44] shadow-sm flex items-center justify-between group hover:border-primary/30 transition-colors">
+//     <div className="bg-white bg-[#1a1c20] p-6 rounded-xl border border-[#dbe0d7] border-[#3a3e44] shadow-sm flex items-center justify-between group hover:border-primary/30 transition-colors">
 //       <div>
-//         <p className="text-[#738165] dark:text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">
+//         <p className="text-[#738165] text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">
 //           {label}
 //         </p>
 //         <h3
-//           className={`text-3xl font-black tracking-tight ${warning ? "text-red-500" : "dark:text-white"}`}
+//           className={`text-3xl font-black tracking-tight ${warning ? "text-red-500" : "text-white"}`}
 //         >
 //           {value}
 //         </h3>
@@ -165,7 +161,7 @@ export default async function InventoryManager({
 //         </p>
 //       </div>
 //       <div
-//         className={`size-14 rounded-xl flex items-center justify-center ${warning ? "bg-red-50 dark:bg-red-900/20 text-red-600" : "bg-primary/10 text-primary"}`}
+//         className={`size-14 rounded-xl flex items-center justify-center ${warning ? "bg-red-50 bg-red-900/20 text-red-600" : "bg-primary/10 text-primary"}`}
 //       >
 //         <Icon size={28} />
 //       </div>
@@ -187,37 +183,37 @@ function TableRow({
   const isOutOfStock = stock === 0;
   return (
     <tr
-      className={`hover:bg-[#fafbf9] dark:hover:bg-white/5 transition-colors ${urgent ? "bg-red-50/30 dark:bg-red-900/5" : ""} ${isOutOfStock ? "grayscale opacity-60" : ""}`}
+      className={` hover:bg-white/5 transition-colors ${urgent ? " bg-red-900/5" : ""} ${isOutOfStock ? "grayscale opacity-60" : ""}`}
     >
       <td className="px-6 py-4">
         <div className="flex items-center gap-4">
           <Image
-            className="size-12 rounded-lg object-cover border border-gray-200 dark:border-gray-700"
+            className="size-12 rounded-lg object-cover border  border-gray-700"
             src={img}
             alt={name}
             width={48}
             height={48}
           />
           <div>
-            <p className="font-bold text-sm text-[#141712] dark:text-white">
+            <p className="font-bold text-sm text-white">
               {name}
             </p>
             {/* <p className="text-[11px] text-[#738165] font-medium">{sub}</p> */}
           </div>
         </div>
       </td>
-      <td className="px-6 py-4 text-sm font-bold text-[#738165] dark:text-gray-300">
+      <td className="px-6 py-4 text-sm font-bold text-gray-300">
         {cat}
       </td>
       <td className="px-6 py-4 text-xs font-mono text-gray-400">{sku}</td>
       <td className="px-6 py-4">
         <div className="flex flex-col gap-1.5">
           <span
-            className={`text-xs font-black ${urgent ? "text-red-500" : "text-[#141712] dark:text-white"}`}
+            className={`text-xs font-black ${urgent ? "text-red-500" : " text-white"}`}
           >
             {stock} paquetes
           </span>
-          <div className="w-24 h-1 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+          <div className="w-24 h-1  bg-gray-800 rounded-full overflow-hidden">
             <div
               className={`h-full transition-all duration-1000 ${urgent ? "bg-red-500" : "bg-primary"}`}
               style={{ width: `${(stock / total) * 100}%` }}
@@ -225,11 +221,11 @@ function TableRow({
           </div>
         </div>
       </td>
-      <td className="px-6 py-4 text-sm font-black dark:text-white">${price}</td>
+      <td className="px-6 py-4 text-sm font-black text-white">${price}</td>
       <td className="px-6 py-4">
         <span
           className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest 
-          ${urgent ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"}`}
+          ${urgent ? " bg-red-900/30 text-red-400" : " bg-emerald-900/30 text-emerald-400"}`}
         >
           <span
             className={`size-1.5 rounded-full ${urgent ? "bg-red-500 animate-pulse" : "bg-emerald-500"}`}
@@ -248,7 +244,7 @@ function TableRow({
 
 function IconButton({ icon: Icon }: any) {
   return (
-    <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-gray-500 transition-colors">
+    <button className="p-2  hover:bg-gray-800 rounded-lg text-gray-500 transition-colors">
       <Icon size={18} />
     </button>
   );
@@ -258,7 +254,7 @@ function PaginationBtn({ label, active = false }: any) {
   return (
     <button
       className={`px-3 py-1.5 rounded text-[11px] font-black uppercase transition-all 
-      ${active ? "bg-primary text-white shadow-md shadow-primary/20" : "border border-[#dbe0d7] dark:border-[#3a3e44] text-[#738165] hover:bg-gray-50"}`}
+      ${active ? "bg-primary text-white shadow-md shadow-primary/20" : "border  border-[#3a3e44] text-[#738165] hover:bg-gray-50"}`}
     >
       {label}
     </button>

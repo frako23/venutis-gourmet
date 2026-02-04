@@ -17,7 +17,7 @@ export default function ProductosLayout({
 }) {
   return (
     // Agregamos 'antialiased' para que la fuente Inter se vea nítida
-    <div className="bg-background-light dark:bg-background-dark text-[#1d0c10] dark:text-[#f9f7f0] min-h-screen font-display">
+    <div className="bg-background-dark text-[#f9f7f0] min-h-screen font-display">
       <Header />
       <div className="max-w-[1440px] mx-auto flex flex-col lg:flex-row min-h-[calc(100vh-80px)]">
         <Sidebar />

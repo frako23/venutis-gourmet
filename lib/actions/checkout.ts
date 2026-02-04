@@ -1,9 +1,29 @@
+import { MetodoPago, TipoRetiro } from "@prisma/client";
 import { prisma } from "../prisma";
 
+interface CheckoutData {
+  clientId: number;
+  montoTotal: number;
+  tipodeRetiro: TipoRetiro;
+  total: number;
+  carrito: [
+    {
+      id: number;
+      cantidad: number;
+      precio: number;
+    },
+  ];
+  pago: {
+    montoBs: number;
+    montoUsd: number;
+    metodoPago: MetodoPago;
+    referencia: string;
+  };
+}
 // lib/actions/checkout.ts
 export async function procesarCompra(
   prevState: { message: string; status: string; clientId: number | null },
-  datos: any,
+  datos: CheckoutData,
 ) {
   return await prisma.$transaction(async (tx) => {
     try {
@@ -15,7 +35,7 @@ export async function procesarCompra(
           clienteId: datos.clientId,
           montoTotal: datos.total,
           estado: "pendiente", // Empieza pendiente hasta validar el pago
-          tipodeRetiro: datos.tipoRetiro,
+          tipodeRetiro: datos.tipodeRetiro,
         },
       });
 

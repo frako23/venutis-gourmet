@@ -1,13 +1,13 @@
+import { PrismaClient } from "@prisma/client";
 import {
   ChevronDown,
-  Eye,
-  ShoppingCart,
   ChevronLeft,
   ChevronRight,
+  Eye,
+  ShoppingCart,
   Star,
   StarHalf,
 } from "lucide-react";
-import { PrismaClient } from "@prisma/client";
 import Image from "next/image";
 
 export default async function Productos({
@@ -104,8 +104,8 @@ export default async function Productos({
 
       {/* Pagination */}
       <div className="mt-20 flex justify-center items-center gap-4">
-        <button className="w-10 h-10 flex items-center justify-center rounded-full bg-primary dark:bg-parchment  transition-colors">
-          <ChevronLeft size={20} className="dark:text-primary text-parchment" />
+        <button className="w-10 h-10 flex items-center justify-center rounded-full  bg-parchment  transition-colors">
+          <ChevronLeft size={20} className="text-primary " />
         </button>
         <button className="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-white font-bold">
           1
@@ -120,11 +120,8 @@ export default async function Productos({
         <button className="w-10 h-10 flex items-center justify-center rounded-full  transition-colors text-primary/60">
           8
         </button>
-        <button className="w-10 h-10 flex items-center justify-center rounded-full bg-primary dark:bg-parchment  transition-colors">
-          <ChevronRight
-            size={20}
-            className="dark:text-primary text-parchment"
-          />
+        <button className="w-10 h-10 flex items-center justify-center rounded-full  bg-parchment  transition-colors">
+          <ChevronRight size={20} className="text-primary " />
         </button>
       </div>
     </main>
@@ -133,7 +130,7 @@ export default async function Productos({
 
 function ToolbarButton({ label }: { label: string }) {
   return (
-    <button className="flex items-center gap-2 px-4 py-2 bg-parchment dark:bg-primary/10 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-primary/5 transition-colors">
+    <button className="flex items-center gap-2 px-4 py-2  bg-primary/10 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-primary/5 transition-colors">
       <span>{label}</span>
       <ChevronDown size={14} />
     </button>
@@ -162,14 +159,10 @@ function ProductCard({
           if (starValue - 0.5 <= rating)
             return <StarHalf key={i} size={12} fill="currentColor" />;
           return (
-            <Star
-              key={i}
-              size={12}
-              className="text-gray-300 dark:text-gray-600"
-            />
+            <Star key={i} size={12} className="text-gray-600" />
           );
         })}
-        <span className="text-[10px] text-primary/40 dark:text-gold/40 ml-1">
+        <span className="text-[10px] text-gold/40 ml-1">
           ({reviews})
         </span>
       </div>
@@ -177,7 +170,7 @@ function ProductCard({
   };
 
   return (
-    <div className="group bg-parchment dark:bg-primary/5 rounded-xl overflow-hidden hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 border border-transparent hover:border-primary/10 flex flex-col">
+    <div className="group bg-primary/5 rounded-xl overflow-hidden hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 border border-transparent hover:border-primary/10 flex flex-col">
       <div className="relative aspect-[4/5] overflow-hidden">
         {badge && (
           <div className="absolute top-4 left-4 z-10">
@@ -205,15 +198,15 @@ function ProductCard({
         <div className="mb-2">{renderStars(rating)}</div>
 
         <div className="flex justify-between items-start mb-2">
-          <h3 className="text-xl font-serif italic group-hover:text-primary dark:group-hover:text-gold transition-colors">
+          <h3 className="text-xl font-serif italic  group-hover:text-gold transition-colors">
             {title}
           </h3>
-          <span className="text-xl font-bold text-primary dark:text-gold">
+          <span className="text-xl font-bold  text-gold">
             ${price}
           </span>
         </div>
 
-        <p className="text-sm text-primary/60 dark:text-gold/70 mb-4 line-clamp-2">
+        <p className="text-sm  text-gold/70 mb-4 line-clamp-2">
           {desc}
         </p>
 
@@ -221,7 +214,7 @@ function ProductCard({
         <div className="mb-6">
           <div className="flex justify-between items-center mb-1.5">
             <span
-              className={`text-[10px] uppercase font-bold tracking-tighter ${stock < 5 ? "text-red-500" : "text-primary/40 dark:text-gold/40"}`}
+              className={`text-[10px] uppercase font-bold tracking-tighter ${stock < 5 ? "text-red-500" : " text-gold/40"}`}
             >
               {stock === 0
                 ? "Out of Stock"
@@ -233,9 +226,9 @@ function ProductCard({
               {stock} units
             </span>
           </div>
-          <div className="h-1 w-full bg-primary/10 dark:bg-white/5 rounded-full overflow-hidden">
+          <div className="h-1 w-full  bg-white/5 rounded-full overflow-hidden">
             <div
-              className={`h-full transition-all duration-1000 ${stock < 5 ? "bg-red-500" : "bg-primary dark:bg-gold"}`}
+              className={`h-full transition-all duration-1000 ${stock < 5 ? "bg-red-500" : " bg-gold"}`}
               style={{ width: `${Math.min((stock / 20) * 100, 100)}%` }} // Asumiendo 20 como stock "lleno"
             />
           </div>

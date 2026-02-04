@@ -17,7 +17,7 @@ import Image from "next/image";
 
 export default function AboutUs() {
   return (
-    <div className="bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-cream selection:bg-gold selection:text-background-dark">
+    <div className="bg-background-dark font-display text-cream selection:bg-gold selection:text-background-dark">
       {/* Sticky Header */}
       <header className="fixed top-0 w-full z-50 border-b border-white/10 bg-background-dark/80 backdrop-blur-md px-6 md:px-20 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3">

@@ -6,7 +6,7 @@ const Sidebar = () => {
     <aside className="w-full lg:w-64 p-6 lg:p-10 border-r border-primary/5 shrink-0">
       <div className="sticky top-28">
         <div className="mb-10">
-          <h3 className="text-xs font-bold uppercase tracking-widest text-primary/40 dark:text-gold mb-4">
+          <h3 className="text-xs font-bold uppercase tracking-widest text-gold mb-4">
             Nuestros Productos
           </h3>
           <ul className="space-y-1">
@@ -18,7 +18,7 @@ const Sidebar = () => {
           </ul>
         </div>
         <div>
-          <h3 className="text-xs font-bold uppercase tracking-widest text-primary/40 dark:text-gold mb-4">
+          <h3 className="text-xs font-bold uppercase tracking-widest text-gold mb-4">
             Filtrar por
           </h3>
           <div className="space-y-4">

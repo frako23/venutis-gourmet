@@ -25,9 +25,8 @@ export default function CheckoutPage() {
   if (!mounted) {
     return <Loading />;
   }
-  console.log(deliveryPrice);
   return (
-    <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+    <div className="bg-background-dark font-display text-slate-100 min-h-screen">
       <div className="layout-container flex flex-col min-h-screen">
         <Header />
 

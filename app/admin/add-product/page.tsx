@@ -35,7 +35,7 @@ export default function AddProductPage() {
   return (
     <form
       action={formAction}
-      className="min-h-screen bg-background-light dark:bg-background-dark text-slate-800 dark:text-white transition-colors duration-300"
+      className="min-h-screen bg-background-dark text-white transition-colors duration-300"
     >
       <main className="max-w-[1100px] mx-auto px-6 py-8">
         {/* Header con Breadcrumbs */}
@@ -44,7 +44,7 @@ export default function AddProductPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Columna Izquierda */}
           <div className="lg:col-span-2 space-y-6">
-            <section className="bg-white dark:bg-charcoal p-8 rounded-[2rem] border border-border-soft shadow-sm relative overflow-hidden">
+            <section className="bg-charcoal p-8 rounded-[2rem] border border-border-soft shadow-sm relative overflow-hidden">
               {/* Decoración sutil */}
               <div className="absolute top-0 right-0 p-4 opacity-5">
                 <Utensils size={120} />
@@ -108,7 +108,7 @@ export default function AddProductPage() {
               </div>
             </section>
 
-            <section className="bg-white dark:bg-charcoal p-8 rounded-[2rem] border border-border-soft shadow-sm">
+            <section className="bg-charcoal p-8 rounded-[2rem] border border-border-soft shadow-sm">
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-3 bg-gold/10 rounded-2xl">
                   <Warehouse className="text-gold" size={20} />
@@ -133,7 +133,7 @@ export default function AddProductPage() {
 
           {/* Columna Derecha */}
           <div className="space-y-6">
-            <section className="bg-white dark:bg-charcoal p-6 rounded-[2rem] border border-border-soft shadow-sm">
+            <section className="bg-charcoal p-6 rounded-[2rem] border border-border-soft shadow-sm">
               <h3 className="text-sm font-black text-cream mb-6 uppercase tracking-widest text-center">
                 Imagen de Portada
               </h3>
@@ -168,7 +168,7 @@ export default function AddProductPage() {
                 <Label className="mb-4 block text-center italic text-cream">
                   Vista Previa
                 </Label>
-                <div className="relative aspect-[4/5] rounded-[2rem] overflow-hidden border-4 border-white dark:border-slate-800 shadow-2xl bg-parchment">
+                <div className="relative aspect-[4/5] rounded-[2rem] overflow-hidden border-4 border-slate-800 shadow-2xl bg-parchment">
                   {imageUrl ? (
                     <div
                       className="w-full h-full bg-cover bg-center transition-transform hover:scale-110 duration-700"

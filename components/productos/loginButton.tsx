@@ -15,7 +15,7 @@ export const LoginButton = () => {
       </button>
 
       {isLoginOpen && (
-        <div className="absolute right-0 mt-4 w-72 bg-white dark:bg-zinc-900 shadow-2xl rounded-xl p-6 border border-primary/10 z-[60]">
+        <div className="absolute right-0 mt-4 w-72 bg-zinc-900 shadow-2xl rounded-xl p-6 border border-primary/10 z-[60]">
           <button
             onClick={() => setIsLoginOpen(false)}
             className="absolute top-2 right-2 text-gray-500 hover:text-gray-300 cursor-pointer"

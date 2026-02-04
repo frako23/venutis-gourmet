@@ -69,7 +69,6 @@ export function AddressManager() {
     }
   }, [state]);
 
-  console.log(selectedAddress);
   return (
     <form action={formAction} className="space-y-6">
       <div className="flex justify-between items-center">
