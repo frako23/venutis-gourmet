@@ -1,5 +1,4 @@
-import { LucideIcon, Mail, MessageCircleMore, Phone } from "lucide-react";
-import React from "react";
+import { Instagram, LucideIcon, Mail, MessageCircleMore } from "lucide-react";
 
 const Footer = () => {
   return (
@@ -24,7 +23,10 @@ const Footer = () => {
               link="https://wa.me/584123456789"
             />
             <FooterSocial icon={Mail} link="mailto:info@venutisgourmet.com" />
-            <FooterSocial icon={Phone} link="tel:+584123456789" />
+            <FooterSocial
+              icon={Instagram}
+              link="https://instagram.com/venutisgourmet"
+            />
           </div>
         </div>
         <div>
@@ -67,7 +69,13 @@ const Footer = () => {
 
 export default Footer;
 
-function FooterSocial({ icon: Icon, link }: { icon: LucideIcon; link: string }) {
+function FooterSocial({
+  icon: Icon,
+  link,
+}: {
+  icon: LucideIcon;
+  link: string;
+}) {
   return (
     <a className="hover:text-white transition-colors" href={link}>
       <Icon size={20} strokeWidth={1.5} />
