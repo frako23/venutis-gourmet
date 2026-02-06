@@ -50,23 +50,24 @@ model Producto {
   nombre      String
   precio      Float
   categoria   String
-  imgUrl      String?
   descripcion String?
-  inventarios Inventario[]
+  inventario  Int
+  ubicacion   String?
+  imagenes    Imagen[]
   detalles    DetalleCompra[]
-  resenas     Resena[] // reseñas que recibe el producto
+  resenas     Resena[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model Inventario {
+model Imagen {
   id         Int      @id @default(autoincrement())
+  url        String // URL de Cloudinary, S3, etc.
   productoId Int
-  producto   Producto @relation(fields: [productoId], references: [id])
-  cantidad   Int
-  ubicacion  String?
-  fecha      DateTime @default(now())
+  producto   Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
 }
 
 model Transaccion {

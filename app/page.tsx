@@ -17,7 +17,7 @@ interface ChoiceCardProps {
 
 export default function StorefrontEntry() {
   return (
-    <div className="bg-background-dark font-display text-white overflow-x-hidden">
+    <div className="bg-background-dark font-reklame text-white overflow-x-hidden">
       {/* Contenedor Principal con Fondo */}
       <div
         className="relative min-h-screen w-full flex flex-col bg-cover bg-center bg-no-repeat"
@@ -69,10 +69,16 @@ export default function StorefrontEntry() {
         {/* Contenido Principal */}
         <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-12">
           <div className="text-center mb-16 space-y-4">
-            <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-white text-shadow-elegant">
-              Sabores Exquisitos. Tradición Atemporal.
+            <h1 className="text-4xl md:text-9xl tracking-tight text-white text-shadow-elegant">
+              Pastas Artesanales
             </h1>
-            <p className="text-gold text-lg md:text-xl tracking-widest italic opacity-90">
+            <p className="text-white font-dk-coal-brush text-lg md:text-6xl tracking-widest  opacity-90">
+              Arte en tu mesa
+            </p>
+            <p
+              className="text-gold
+              font-century-gothic text-lg md:text-2xl tracking-widest  opacity-90"
+            >
               Selecciona tu experiencia de compra
             </p>
           </div>
@@ -81,16 +87,16 @@ export default function StorefrontEntry() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl w-full">
             <ChoiceCard
               icon={ShoppingCart}
-              title="Compradores Individuales"
-              description="Lleva a casa el auténtico sabor de nuestras pastas artesanales elaboradas con sémola de la mejor calidad. Explora nuestra cuidada selección de variedades frescas y secas, creadas para realzar cada plato con textura y sabor únicos."
-              buttonText="Comprar Ahora"
+              title="Consumidores"
+              description="Pastas artesanales elaboradas con sémola de calidad. Variedades frescas para llevar el sabor gourmet a casa"
+              buttonText={"Ver \n catálogo"}
               link="/productos/consumidores"
             />
             <ChoiceCard
               icon={BriefcaseBusiness}
-              title="Socios Comerciales"
-              description="Eleva tu propuesta gastronómica con nuestra colección premium al por mayor. Ofrecemos soluciones personalizadas para restaurantes, boutiques especializadas y regalos gourmet que buscan diferenciarse con productos auténticos y de calidad superior."
-              buttonText="Consulta Mayorista"
+              title="Mayoristas"
+              description="Soluciones premium para restaurantes y negocios grastronómicos. Productos diferenciadores, calidad constante y atención personalizada"
+              buttonText={"Ver \n catálogo"}
               link="/productos/mayoristas"
             />
           </div>
@@ -136,19 +142,19 @@ function ChoiceCard({
   link,
 }: ChoiceCardProps) {
   return (
-    <div className="group relative bg-charcoal/80 backdrop-blur-md gold-border p-10 rounded-xl flex flex-col items-center text-center transition-transform hover:-translate-y-2 duration-500 shadow-2xl">
+    <div className="group relative bg-charcoal/80 backdrop-blur-md gold-border p-10 rounded-xl flex flex-col items-center text-center transition-transform hover:-translate-y-2 duration-500 shadow-2xl font-dk-coal-brush">
       <div className="mb-8 p-4 bg-background-dark rounded-full border border-gold/20 text-gold group-hover:scale-110 transition-transform duration-500">
         <Icon className="w-10 h-10 " />
       </div>
-      <h2 className="text-2xl font-bold mb-4 tracking-wide uppercase text-white">
+      <h2 className="text-6xl font-bold mb-4 tracking-wide uppercase text-white">
         {title}
       </h2>
-      <p className="text-gray-300 text-sm leading-relaxed mb-10 max-w-xs">
+      <p className="text-gray-300 text-2xl leading-relaxed mb-10 max-w-xs font-century-gothic">
         {description}
       </p>
       <a
         href={link}
-        className="w-full bg-gold py-4 rounded-lg font-bold tracking-[0.2em] uppercase text-primary hover:bg-opacity-90 transition-all active:scale-95 shadow-lg"
+        className="w-full bg-gold py-4 rounded-lg tracking-[0.2em] uppercase text-primary hover:bg-opacity-90 transition-all active:scale-95 shadow-lg font-good-brush text-4xl"
       >
         {buttonText}
       </a>

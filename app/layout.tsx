@@ -1,17 +1,27 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import { Toaster } from "sonner";
 import { WhatsAppButton } from "@/components/global/whatssapp-button";
+import type { Metadata } from "next";
+import localFont from "next/font/local";
+import { Toaster } from "sonner";
+import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const reklameScript = localFont({
+  src: "./fonts/ReklameScript-Regular_DEMO.otf",
+  variable: "--font-reklame",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const goodBrush = localFont({
+  src: "./fonts/GoodBrush.ttf",
+  variable: "--font-good-brush",
+});
+
+const dkCoalBrushed = localFont({
+  src: "./fonts/DKCoalBrush.otf",
+  variable: "--font-dk-coal-brush",
+});
+
+const centuryGothic = localFont({
+  src: "./fonts/nu_century_gothic.ttf",
+  variable: "--font-century-gothic",
 });
 
 export const metadata: Metadata = {
@@ -26,9 +36,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html
+      lang="es"
+      // Inyectamos las variables en el HTML para que Tailwind 4 las reconozca
+      className={`
+        ${reklameScript.variable} 
+        ${goodBrush.variable} 
+        ${dkCoalBrushed.variable} 
+        ${centuryGothic.variable}
+      `}
+    >
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        // 1. Quitamos las variables del body (ya están en el html)
+        // 2. Aplicamos la fuente base (Century Gothic) para que todo el texto sea legible por defecto
+        className="font-century-gothic antialiased bg-background-dark text-cream"
       >
         {children}
         <WhatsAppButton />
@@ -36,11 +57,12 @@ export default function RootLayout({
           position="top-right"
           expand={false}
           richColors
-          theme="light"
+          theme="dark" // Cambiado a dark para combinar con Venuti's
           toastOptions={{
             style: {
               borderRadius: "1.2rem",
-              fontFamily: "var(--font-inter)",
+              // Usamos una variable que ya existe en tu @theme
+              fontFamily: "var(--font-century-gothic)",
             },
           }}
         />

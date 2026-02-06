@@ -16,7 +16,7 @@ export const Header = ({
           </h1>
         </div>
 
-        {disabledState ? (
+        {!disabledState ? (
           <div className="flex gap-3">
             <a
               href="/admin/inventory"

@@ -27,6 +27,11 @@
 
   /* Tu fuente caligráfica para Venuti's */
   --font-artisan: "Pinyon Script", cursive;
+  /* Registro de Tipografías */
+  --font-reklame: var(--font-reklame);
+  --font-good-brush: var(--font-good-brush);
+  --font-dk-coal-brush: var(--font-dk-coal-brush);
+  --font-century-gothic: var(--font-century-gothic);
 
   /* --- ANIMACIONES V4 --- */
   /* Registramos la animación para usarla como animate-loading-slide */
@@ -75,7 +80,8 @@
 /* Estilos base */
 @layer base {
   body {
-    font-family: Arial, Helvetica, sans-serif;
+    /* Eliminamos Arial y usamos la variable de tu @theme */
+    font-family: var(--font-century-gothic), ui-sans-serif, system-ui;
     @apply bg-background-dark;
   }
 }

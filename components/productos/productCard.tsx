@@ -29,17 +29,9 @@ export function ProductCard({
             return <Star key={i} size={12} fill="currentColor" />;
           if (starValue - 0.5 <= rating)
             return <StarHalf key={i} size={12} fill="currentColor" />;
-          return (
-            <Star
-              key={i}
-              size={12}
-              className="text-gray-600"
-            />
-          );
+          return <Star key={i} size={12} className="text-gray-600" />;
         })}
-        <span className="text-[10px] text-gold ml-1">
-          ({reviews})
-        </span>
+        <span className="text-[10px] text-gold ml-1">({reviews})</span>
       </div>
     );
   };
@@ -64,9 +56,12 @@ export function ProductCard({
           src={image}
         />
         <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
-          <button className="bg-white text-primary p-3 rounded-full hover:bg-gold hover:text-white transition-all shadow-xl">
+          <a
+            href={`/productos/consumidores/${id}`}
+            className="bg-white text-primary p-3 rounded-full hover:bg-gold hover:text-white transition-all shadow-xl"
+          >
             <Eye size={20} />
-          </button>
+          </a>
         </div>
       </div>
 
@@ -77,9 +72,10 @@ export function ProductCard({
         <div className="flex justify-between items-start mb-2">
           <a
             href={`/productos/consumidores/${id}`}
-            className="text-xl font-serif italic  transition-colors"
+            className="text-2xl transition-colors "
           >
-            {title}
+            <span className="font-good-brush"></span>{" "}
+            <span className="font-century-gothic"></span> {title}
           </a>
           <div className="flex flex-row items-baseline justify-end gap-3 leading-tight">
             {/* Precio en Dólares: Destacado a la izquierda */}

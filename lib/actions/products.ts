@@ -1,12 +1,14 @@
 "use server";
 
-import { prisma } from "../prisma";
 import { z } from "zod";
+import { prisma } from "../prisma";
 
 const ProductSchema = z.object({
   nombre: z.string(),
   precio: z.number(),
   categoria: z.string(),
+  inventario: z.number().int(),
+  ubicacion: z.string().min(1, "La ubicación es requerida"),
   imgUrl: z.string(),
   descripcion: z.string(),
 });
@@ -39,6 +41,8 @@ export async function addProduct(
     nombre: String(formData.get("nombre")),
     precio: Number(formData.get("precio")),
     categoria: String(formData.get("categoria")),
+    inventario: Number(formData.get("inventario")),
+    ubicacion: formData.get("ubicacion")?.toString(),
     imgUrl: String(formData.get("imgUrl")),
     descripcion: String(formData.get("descripcion")),
   });
@@ -70,6 +74,8 @@ export async function editProduct(formData: FormData, productoId: number) {
     nombre: String(formData.get("nombre")),
     precio: Number(formData.get("precio")),
     categoria: String(formData.get("categoria")),
+    inventario: Number(formData.get("inventario")),
+    ubicacion: formData.get("ubicacion")?.toString(),
     imgUrl: String(formData.get("imgUrl")),
     descripcion: String(formData.get("descripcion")),
   });

@@ -4,7 +4,7 @@ import { Header } from "@/components/admin/UI/header";
 import { Input } from "@/components/admin/UI/input";
 import { Label } from "@/components/admin/UI/label";
 import { addProduct } from "@/lib/actions/products";
-import { CloudUpload, Utensils, Warehouse, X } from "lucide-react";
+import { CloudUpload, Utensils, X } from "lucide-react";
 import { CldUploadButton } from "next-cloudinary";
 import { useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -13,7 +13,7 @@ const initialState = { message: "", status: "" };
 
 export default function AddProductPage() {
   // const [status, setStatus] = useState("draft");
-  const [imageUrl, setImageUrl] = useState("");
+  const [images, setImages] = useState<any[]>([]);
   const [state, formAction, isPending] = useActionState(
     addProduct,
     initialState,
@@ -27,7 +27,7 @@ export default function AddProductPage() {
     if (state.status === "success") {
       toast.success(state.message || "¡Producto guardado!");
       // Limpiamos la imagen y los estados locales tras el éxito
-      setImageUrl("");
+      setImages([]);
       // Opcional: podrías resetear el formulario completo aquí si fuera necesario
     }
   }, [state]); // Escuchamos el objeto de estado completo
@@ -39,7 +39,7 @@ export default function AddProductPage() {
     >
       <main className="max-w-[1100px] mx-auto px-6 py-8">
         {/* Header con Breadcrumbs */}
-        <Header disabledState={isPending} headerText="Agregar producto" />
+        <Header disabledState={false} headerText="Agregar producto" />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Columna Izquierda */}
@@ -59,40 +59,78 @@ export default function AddProductPage() {
                 </h3>
               </div>
 
-              <div className="space-y-6">
-                <div className="flex flex-col gap-2">
-                  <Label>Nombre del Producto</Label>
-                  <Input placeholder="Ej. Pappardelle al Huevo" name="nombre" />
-                </div>
-
+              <div className="space-y-6 ">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="flex flex-col gap-2">
-                    <Label>Precio Sugerido (USD)</Label>
-                    <div className="relative group">
-                      <span className="absolute left-5 top-1/2 -translate-y-1/2 text-gold font-black transition-colors group-focus-within:text-primary">
-                        $
-                      </span>
-                      <Input
-                        placeholder="0.00"
-                        className="pl-12"
-                        type="number"
-                        step="any"
-                        name="precio"
-                      />
-                    </div>
+                    <Label>Nombre del Producto</Label>
+                    <Input
+                      placeholder="Ej. Pappardelle al Huevo"
+                      name="nombre"
+                      className="placeholder:text-slate-500"
+                    />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <Label>Categoría Gourmet</Label>
+                    <Label>Ubicación</Label>
                     <select
                       className="w-full rounded-2xl border-2 border-slate-100 bg-slate-50 focus:ring-4 focus:ring-gold/10 focus:border-gold h-14 px-5 font-bold text-slate-700 outline-none transition-all cursor-pointer appearance-none"
-                      name="categoria"
+                      name="ubicacion"
                     >
-                      <option>Pastas</option>
-                      <option>Salsas</option>
-                      <option>Pan de Jamón</option>
-                      <option>Encurtidos</option>
-                      <option>Postres</option>
+                      <option value="NEVERA 1">Nevera 1</option>
+                      <option value="NEVERA 2">Nevera 2</option>
+                      <option value="NEVERA 3">Nevera 3</option>
                     </select>
+                  </div>
+                </div>
+                <div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Cambiamos grid-cols-2 por la proporción específica */}
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-6">
+                      {/* Columna de Cantidad (más estrecha) */}
+                      <div className="flex flex-col gap-2">
+                        <Label>Inventario</Label>
+                        <Input
+                          type="number"
+                          placeholder="20"
+                          name="inventario"
+                          className="placeholder:text-slate-500"
+                        />
+                      </div>
+
+                      {/* Columna de Precio (más ancha) */}
+                      <div className="flex flex-col gap-2">
+                        <Label>Precio (USD)</Label>
+                        <div className="relative group">
+                          <span className="absolute left-5 top-1/2 -translate-y-1/2 text-gold font-black transition-colors group-focus-within:text-primary">
+                            $
+                          </span>
+                          <Input
+                            placeholder="0.00"
+                            className="pl-12 placeholder:text-slate-500"
+                            type="number"
+                            step="any"
+                            name="precio"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Label>Categoría Gourmet</Label>
+                      <select
+                        className="w-full rounded-2xl border-2 border-slate-100 bg-slate-50 focus:ring-4 focus:ring-gold/10 focus:border-gold h-14 px-5 font-bold text-slate-700 outline-none transition-all cursor-pointer appearance-none "
+                        name="categoria"
+                        required
+                        defaultValue=""
+                      >
+                        <option value="" disabled>
+                          Selecciona una categoría
+                        </option>
+                        <option value="PASTAS">Pastas</option>
+                        <option value="SALSAS">Salsas</option>
+                        <option value="PAN_DE_JAMON">Pan de Jamón</option>
+                        <option value="ENCURTIDOS">Encurtidos</option>
+                        <option value="POSTRES">Postres</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
 
@@ -101,97 +139,86 @@ export default function AddProductPage() {
                   <textarea
                     rows={4}
                     placeholder="Cuéntanos sobre el origen del trigo, el tiempo de secado o sugerencias de maridaje..."
-                    className="w-full rounded-2xl border-2 border-slate-100 bg-slate-50 focus:ring-4 focus:ring-gold/10 focus:border-gold p-5 font-medium text-slate-700 outline-none transition-all resize-none placeholder:italic"
+                    className="w-full rounded-2xl border-2 border-slate-100 bg-slate-50 focus:ring-4 focus:ring-gold/10 focus:border-gold p-5 font-medium text-slate-700 outline-none transition-all resize-none placeholder:italic placeholder:text-slate-500"
                     name="descripcion"
                   />
-                </div>
-              </div>
-            </section>
-
-            <section className="bg-charcoal p-8 rounded-[2rem] border border-border-soft shadow-sm">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-3 bg-gold/10 rounded-2xl">
-                  <Warehouse className="text-gold" size={20} />
-                </div>
-                <h3 className="text-xl font-black text-cream uppercase tracking-tight">
-                  Control de Almacén
-                </h3>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="flex flex-col gap-2">
-                  <Label>SKU Único</Label>
-                  <Input placeholder="VEN-PASTA-001" />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <Label>Unidades Disponibles</Label>
-                  <Input placeholder="0" type="number" />
                 </div>
               </div>
             </section>
           </div>
 
           {/* Columna Derecha */}
-          <div className="space-y-6">
-            <section className="bg-charcoal p-6 rounded-[2rem] border border-border-soft shadow-sm">
-              <h3 className="text-sm font-black text-cream mb-6 uppercase tracking-widest text-center">
-                Imagen de Portada
-              </h3>
+          <section className="bg-charcoal p-6 rounded-[2rem] border border-border-soft shadow-sm">
+            <h3 className="text-sm font-black text-cream mb-6 uppercase tracking-widest text-center">
+              Galería de Productos
+            </h3>
 
-              {/* USAMOS CldUploadButton como el contenedor principal. 
-      Le pasamos la clase de Tailwind para que HEREDE el estilo punteado.
-  */}
-              <CldUploadButton
-                uploadPreset="upload-unsigned-images"
-                onSuccess={(result: any) => {
-                  setImageUrl(result?.info?.secure_url);
-                }}
-                // El padre tiene la clase 'group'
-                className="w-full border-2 border-dashed border-slate-200 rounded-[1.5rem] p-10 flex flex-col items-center justify-center text-center hover:border-gold hover:bg-gold/5 transition-all group bg-slate-50/50 cursor-pointer"
-              >
-                <div className="size-14 bg-white rounded-2xl flex items-center justify-center shadow-md mb-4 group-hover:scale-110 transition-transform">
-                  <CloudUpload className="text-gold" size={28} />
-                </div>
+            <CldUploadButton
+              uploadPreset="upload-unsigned-images"
+              onSuccess={(result: any) => {
+                const newImage = {
+                  url: result?.info?.secure_url,
+                  publicId: result?.info?.public_id,
+                };
+                setImages((prev) => [...prev, newImage]);
+              }}
+              className="w-full border-2 border-dashed border-slate-200 rounded-[1.5rem] p-8 flex flex-col items-center justify-center text-center hover:border-gold hover:bg-gold/5 transition-all group bg-slate-50/50 cursor-pointer"
+            >
+              <div className="size-12 bg-white rounded-2xl flex items-center justify-center shadow-md mb-3 group-hover:scale-110 transition-transform">
+                <CloudUpload className="text-gold" size={24} />
+              </div>
+              <p className="text-[10px] font-black text-slate-700 uppercase tracking-tighter">
+                Añadir Foto Artesanal
+              </p>
+            </CldUploadButton>
 
-                {/* Usamos group-hover: para que el texto cambie cuando pases el mouse por el recuadro punteado */}
-                <p className="text-xs font-black text-slate-700 group-hover:text-gold uppercase tracking-tighter mb-1 transition-colors">
-                  {imageUrl ? "Cambiar foto" : "Subir foto artesanal"}
-                </p>
-
-                <p className="text-[9px] text-primary group-hover:text-cream font-bold uppercase tracking-widest transition-colors">
-                  PNG, JPG hasta 10MB
-                </p>
-              </CldUploadButton>
-
-              {/* Vista Previa Condicional */}
-              <div className="mt-14">
-                <Label className="mb-4 block text-center italic text-cream">
-                  Vista Previa
+            {/* Vista Previa en Grid */}
+            {images.length > 0 && (
+              <div className="mt-6">
+                <Label className="mb-3 block text-center italic text-cream text-xs">
+                  Fotos seleccionadas ({images.length})
                 </Label>
-                <div className="relative aspect-[4/5] rounded-[2rem] overflow-hidden border-4 border-slate-800 shadow-2xl bg-parchment">
-                  {imageUrl ? (
+
+                <div className="grid grid-cols-2 gap-3">
+                  {images.map((img, index) => (
                     <div
-                      className="w-full h-full bg-cover bg-center transition-transform hover:scale-110 duration-700"
-                      style={{ backgroundImage: `url('${imageUrl}')` }}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-primary italic text-xs font-bold">
-                      Sin imagen seleccionada
-                    </div>
-                  )}
-                  <input type="hidden" name="imgUrl" value={imageUrl} />
-                  {imageUrl && (
-                    <button
-                      onClick={() => setImageUrl("")}
-                      className="absolute top-4 right-4 bg-white/90 backdrop-blur-md p-2 rounded-full shadow-lg text-red-500 hover:bg-red-50 transition-colors active:scale-90 cursor-pointer"
+                      key={img.publicId}
+                      className="relative aspect-square rounded-2xl overflow-hidden border-2 border-slate-800 shadow-lg group"
                     >
-                      <X size={18} />
-                    </button>
-                  )}
+                      <div
+                        className="w-full h-full bg-cover bg-center transition-transform group-hover:scale-110 duration-500"
+                        style={{ backgroundImage: `url('${img.url}')` }}
+                      />
+
+                      {/* Badge de Portada para la primera imagen */}
+                      {index === 0 && (
+                        <span className="absolute top-2 left-2 bg-gold text-[8px] font-black px-2 py-1 rounded-full uppercase text-black">
+                          Portada
+                        </span>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setImages(images.filter((_, i) => i !== index))
+                        }
+                        className="absolute top-2 right-2 bg-white/90 p-1.5 rounded-full text-red-500 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </div>
-            </section>
-          </div>
+            )}
+
+            {/* Campo oculto para el formulario (envía JSON al Server Action) */}
+            <input
+              type="hidden"
+              name="imagenes"
+              value={JSON.stringify(images)}
+            />
+          </section>
         </div>
       </main>
     </form>
