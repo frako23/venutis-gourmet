@@ -227,7 +227,7 @@ Bs ${(totalUSD * tasa).toLocaleString("es-VE")}`}
                     <p className="opacity-40 text-[10px] uppercase">
                       Correo Zelle
                     </p>
-                    <p className="text-lg font-serif italic text-white">
+                    <p className="text-lg text-white">
                       {PAYMENT_DETAILS["Zelle"].email}
                     </p>
                     <CopyButton
@@ -279,7 +279,7 @@ Monto: $ ${totalUSD.toFixed(2)} `}
               {paymentMethod === "EfectivoUsd" && (
                 <div className="flex items-center gap-3 p-3 bg-accent-gold/5 border border-accent-gold/20 rounded-lg">
                   <div className="w-2 h-2 rounded-full bg-accent-gold animate-pulse" />
-                  <p className="text-xs italic opacity-80">
+                  <p className="text-xs opacity-80">
                     {PAYMENT_DETAILS["EfectivoUsd"].instructions}
                   </p>
                 </div>

@@ -26,7 +26,7 @@ export default function CheckoutPage() {
     return <Loading />;
   }
   return (
-    <div className="bg-background-dark font-display text-slate-100 min-h-screen">
+    <div className="bg-background-dark font-century-gothic text-slate-100 min-h-screen">
       <div className="layout-container flex flex-col min-h-screen">
         <Header />
 
@@ -48,7 +48,7 @@ export default function CheckoutPage() {
             {/* Left Column: Order Summary */}
             <div className="lg:col-span-5 space-y-6">
               <div className="flex flex-col gap-2">
-                <h2 className="font-serif text-4xl font-bold">Tu Selección</h2>
+                <h2 className="text-4xl font-bold">Tu Selección</h2>
                 <p className="text-sm opacity-60 uppercase tracking-widest">
                   {selectedProducts.length} Artículos en tu curaduría
                 </p>
@@ -75,7 +75,7 @@ export default function CheckoutPage() {
                   <div className="text-right">
                     <p className="font-medium">${totalUSD.toFixed(2)}</p>
                     {tasa > 0 && (
-                      <p className="text-[10px] opacity-40 italic">
+                      <p className="text-[10px] opacity-40">
                         {(totalUSD * tasa).toLocaleString("es-VE")} Bs.
                       </p>
                     )}
@@ -91,7 +91,7 @@ export default function CheckoutPage() {
                         : "$ 0.00"}
                     </p>
                     {tasa > 0 && deliveryPrice !== 0 && (
-                      <p className="text-[10px] opacity-40 italic">
+                      <p className="text-[10px] opacity-40">
                         Bs.{" "}
                         {deliveryPrice !== 0 && deliveryPrice !== undefined
                           ? (deliveryPrice * tasa).toLocaleString("es-VE")
@@ -104,9 +104,9 @@ export default function CheckoutPage() {
                 {/* Total Sección Destacada */}
                 <div className="pt-4 border-t border-white/5">
                   <div className="flex justify-between items-baseline">
-                    <span className="font-serif text-xl">Total</span>
+                    <span className=" text-xl">Total</span>
                     <div className="text-right">
-                      <span className="font-serif text-4xl font-bold text-white tracking-tighter">
+                      <span className="text-4xl font-bold text-white tracking-tighter">
                         $
                         {deliveryPrice !== 0 && deliveryPrice !== undefined
                           ? (totalUSD + deliveryPrice).toFixed(2)
@@ -121,7 +121,7 @@ export default function CheckoutPage() {
                       <span className="text-[10px] uppercase tracking-widest opacity-60">
                         Tasa BCV: {tasa.toFixed(2)}
                       </span>
-                      <span className="text-lg font-bold text-accent-gold italic">
+                      <span className="text-lg font-bold text-accent-gold ">
                         Bs.{" "}
                         {deliveryPrice > 0
                           ? ((totalUSD + deliveryPrice) * tasa).toLocaleString(

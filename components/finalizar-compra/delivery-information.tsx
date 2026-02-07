@@ -1,14 +1,14 @@
 import { useCheckout } from "@/context/checkout-context";
 import { useAppStore } from "@/store/appStore";
-import { Store, Truck } from "lucide-react";
+import { Truck } from "lucide-react";
 import { CheckoutButton } from "../global/checkout-button";
 import { AddressManager } from "./address-manager";
 
 export const DeliveryInformation = () => {
   const deliveryMethod = useAppStore((s) => s.deliveryMethod);
-  const setDeliveryMethod = useAppStore((s) => s.setDeliveryMethod);
+  // const setDeliveryMethod = useAppStore((s) => s.setDeliveryMethod);
 
-  const { setCanContinue, nextStep, canContinue } = useCheckout();
+  const { nextStep, canContinue } = useCheckout();
 
   return (
     <div className="space-y-6">
@@ -16,7 +16,7 @@ export const DeliveryInformation = () => {
         <Truck className="text-accent-gold" size={24} />
         <h3 className="text-lg font-bold tracking-tight">Método de Entrega</h3>
       </div>
-      <div className="grid grid-cols-2 gap-4 p-1 bg-input-dark rounded-xl border border-white/5">
+      {/* <div className="grid grid-cols-2 gap-4 p-1 bg-input-dark rounded-xl border border-white/5">
         <button
           type="button"
           onClick={() => {
@@ -37,11 +37,9 @@ export const DeliveryInformation = () => {
         >
           <Store size={16} /> Retiro en Tienda
         </button>
-      </div>
+      </div> */}
 
-      {deliveryMethod === "envio" ? (
-        <AddressManager />
-      ) : null}
+      {deliveryMethod === "envio" ? <AddressManager /> : null}
       <CheckoutButton
         isPending={canContinue}
         type={deliveryMethod === "envio" ? "submit" : "button"}

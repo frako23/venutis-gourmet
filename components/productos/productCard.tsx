@@ -83,8 +83,8 @@ export function ProductCard({
 
             {/* Precio en Bs: Elegante y a la derecha */}
             {tasa > 0 ? (
-              <span className="text-[15px] font-medium text-gold whitespace-nowrap">
-                <span className="text-[15px] not-italic mr-1">BS.</span>
+              <span className="text-[15px] font-medium opacity-70 whitespace-nowrap">
+                <span className="text-[15px] mr-1">BS.</span>
                 {(price * tasa).toLocaleString("es-VE", {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
@@ -112,7 +112,7 @@ export function ProductCard({
                   ? `Solo quedan ${stock} unidades`
                   : "Disponible"}
             </span>
-            <span className="text-[20px] ">{stock} unidades</span>
+            <span className="text-[20px] opacity-70">{stock} unidades</span>
           </div>
           <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
             <div

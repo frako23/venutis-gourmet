@@ -175,7 +175,7 @@ export default function AddProductPage() {
             {/* Vista Previa en Grid */}
             {images.length > 0 && (
               <div className="mt-6">
-                <Label className="mb-3 block text-center italic text-cream text-xs">
+                <Label className="mb-3 block text-center text-cream text-xs">
                   Fotos seleccionadas ({images.length})
                 </Label>
 

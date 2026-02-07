@@ -1,18 +1,27 @@
 "use client";
+import { useAppStore } from "@/store/appStore";
 import { UserCircle } from "lucide-react";
 import { useState } from "react";
 
 export const LoginButton = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const client = useAppStore((s) => s.client);
+
   return (
     <div className="relative">
-      <button
-        onClick={() => setIsLoginOpen(!isLoginOpen)}
-        className="flex items-center gap-3 px-4 py-3 rounded-lg transition-all group bg-gold text-primary shadow-lg shadow-gold/20 hover:font-bold cursor-pointer"
-      >
-        <UserCircle size={20} />
-        <span className="hidden sm:inline">Ingresar</span>
-      </button>
+      {client ? (
+        <span className="px-4 py-3  text-gold ">
+          {client.nombre} {client.apellido}
+        </span>
+      ) : (
+        <button
+          onClick={() => setIsLoginOpen(!isLoginOpen)}
+          className="flex items-center gap-3 px-4 py-3 rounded-lg transition-all group bg-gold text-primary shadow-lg shadow-gold/20 hover:font-bold cursor-pointer"
+        >
+          <UserCircle size={20} />
+          <span className="hidden sm:inline">Ingresar</span>
+        </button>
+      )}
 
       {isLoginOpen && (
         <div className="absolute right-0 mt-4 w-72 bg-zinc-900 shadow-2xl rounded-xl p-6 border border-primary/10 z-[60]">

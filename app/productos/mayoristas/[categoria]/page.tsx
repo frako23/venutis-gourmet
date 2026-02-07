@@ -23,7 +23,7 @@ import Image from "next/image";
 
 export default function Productos() {
   return (
-    <div className=" bg-background-dark text-[#f9f7f0] min-h-screen font-display">
+    <div className=" bg-background-dark text-[#f9f7f0] min-h-screen font-century-gothic">
       {/* Top Navigation Bar */}
       <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-md border-b border-primary/10 px-6 lg:px-12 py-4">
         <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-8">

@@ -1,6 +1,7 @@
 import { useCheckout } from "@/context/checkout-context";
 import { addClient, getClientByPhone } from "@/lib/actions/clients";
 import { initialState } from "@/lib/constants/constants";
+import { useAppStore } from "@/store/appStore";
 import { UserCircle } from "lucide-react";
 import { useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -18,6 +19,8 @@ export const PersonalInformation = () => {
     celular: "",
     tipoCliente: "detal",
   });
+  const setClient = useAppStore((s) => s.setClient);
+
   useEffect(() => {
     // Definimos qué hace que este paso sea válido
     const isValid =
@@ -62,6 +65,12 @@ export const PersonalInformation = () => {
           email: cliente.email || "",
           celular: phone,
           tipoCliente: cliente.tipoCliente || "detal",
+        });
+        setClient({
+          nombre: cliente.nombre,
+          apellido: cliente.apellido,
+          email: cliente.email ? cliente.email : "",
+          celular: phone,
         });
       } else {
         setIsExistingClient(false); // 👈 Es un cliente nuevo

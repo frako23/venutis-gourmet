@@ -46,7 +46,7 @@ export default function StorefrontEntry() {
                 ></path>
               </svg>
             </div>
-            <h1 className="text-white text-xl font-bold tracking-widest uppercase">
+            <h1 className="text-white text-xl font-century-gothic font-bold tracking-widest uppercase">
               Venuti's
             </h1>
           </div>

@@ -77,7 +77,7 @@ export default async function Productos({
 
       {/* Product Toolbar */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 border-b border-primary/5 pb-6">
-        <h2 className="text-2xl font-serif italic">
+        <h2 className="text-2xl font-serif">
           Curated Wines{" "}
           <span className="text-primary/30 text-base font-sans ml-2 not-italic">
             (42 items)
@@ -198,7 +198,7 @@ function ProductCard({
         <div className="mb-2">{renderStars(rating)}</div>
 
         <div className="flex justify-between items-start mb-2">
-          <h3 className="text-xl font-serif italic  group-hover:text-gold transition-colors">
+          <h3 className="text-xl font-serif group-hover:text-gold transition-colors">
             {title}
           </h3>
           <span className="text-xl font-bold  text-gold">

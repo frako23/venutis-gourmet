@@ -2,7 +2,6 @@ import { useCheckout } from "@/context/checkout-context";
 import { ArrowRight } from "lucide-react";
 
 export const CheckoutButton = ({
-  isPending,
   type,
   onClick,
 }: {

@@ -20,6 +20,13 @@ type ProgressStep =
   | "confirmation";
 type DeliveryMethod = "envio" | "recogida";
 
+export interface Client {
+  nombre: string;
+  apellido: string;
+  celular: string;
+  email?: string;
+}
+
 interface AppState {
   // Estado
   selectedProducts: CartItem[];
@@ -29,6 +36,7 @@ interface AppState {
   clientId: number | null;
   canContinue: boolean;
   deliveryPrice: number;
+  client?: Client | null;
 
   // Acciones (Quitamos los "?" para evitar errores de "undefined")
   setSelectedProducts: (products: CartItem[]) => void;
@@ -41,6 +49,7 @@ interface AppState {
   setCanContinue: (val: boolean) => void;
   nextStep: (metodoDePago: boolean) => void;
   setDeliveryPrice: (price: number) => void;
+  setClient: (client: Client) => void;
 }
 
 const calculateTotal = (products: CartItem[]) =>
@@ -53,10 +62,12 @@ export const useAppStore = create<AppState>()(
       selectedProducts: [],
       totalUSD: 0,
       progressStep: "client-details",
-      deliveryMethod: "recogida",
+      deliveryMethod: "envio",
       clientId: null,
       canContinue: false,
       deliveryPrice: 0,
+      setClient: (client) => set({ client }),
+      client: null,
 
       setDeliveryPrice: (price) => set({ deliveryPrice: price }),
 

@@ -16,10 +16,10 @@ export default function Loading() {
 
       {/* Texto de Marca (Fuente Caligráfica Artística) */}
       <div className="text-center space-y-2">
-        <h1 className="font-artisan text-5xl text-gold leading-tight">
-          Venuti's Gourmet
+        <h1 className="font-reklame text-9xl text-gold leading-tight">
+          Venutis Gourmet
         </h1>
-        <p className="font-display text-[10px] uppercase tracking-[0.4em] text-white font-black">
+        <p className="font-century-gothic text-[25px] uppercase tracking-[0.4em] text-white font-black">
           Preparando la mesa
         </p>
       </div>
@@ -30,7 +30,7 @@ export default function Loading() {
       </div>
 
       {/* Frase inspiracional aleatoria (Opcional) */}
-      <p className="mt-6 font-display text-xs text-white italic font-medium">
+      <p className="mt-6 font-century-gothic text-2xl text-white font-medium">
         "La verdadera pasta se amasa con tiempo y pasión..."
       </p>
     </div>

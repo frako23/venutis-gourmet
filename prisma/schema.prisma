@@ -46,16 +46,18 @@ model Direccion {
 }
 
 model Producto {
-  id          Int             @id @default(autoincrement())
-  nombre      String
-  precio      Float
-  categoria   String
-  descripcion String?
-  inventario  Int
-  ubicacion   String?
-  imagenes    Imagen[]
-  detalles    DetalleCompra[]
-  resenas     Resena[]
+  id              Int             @id @default(autoincrement())
+  nombre          String
+  precioDetal     Float
+  precioMayorista Float
+  categoria       String
+  descripcion     String?
+  tipoCliente     TipoCliente     @default(detal)
+  inventario      Int
+  ubicacion       String?
+  imagenes        Imagen[]
+  detalles        DetalleCompra[]
+  resenas         Resena[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -78,7 +80,7 @@ model Transaccion {
   fechaCompra  DateTime          @default(now())
   montoTotal   Float
   estado       EstadoTransaccion
-  tipodeRetiro TipoRetiro
+  tipodeRetiro TipoRetiro        @default(envio)
   detalles     DetalleCompra[]
   fidelidades  Fidelidad[]
   pagos        Pago[]

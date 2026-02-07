@@ -19,7 +19,7 @@ export const ShoppingCartButton = () => {
         onClick={() => setIsCartOpen(!isCartOpen)}
         className=" bg-white relative p-2 rounded-full bg-accent-gold/10 text-accent-gold hover:bg-accent-gold hover:text-white transition-all duration-300 cursor-pointer"
       >
-        <ShoppingCart size={20} color="#5d4037"/>
+        <ShoppingCart size={20} color="#5d4037" />
         {selectedProducts.length > 0 && (
           <span className="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-background-light">
             {selectedProducts.reduce((acc, p) => acc + p.cantidad, 0)}
@@ -37,7 +37,7 @@ export const ShoppingCartButton = () => {
 
           <div className="absolute right-0 mt-4 w-80 bg-zinc-900 shadow-2xl rounded-xl overflow-hidden border border-primary/10 z-[60]">
             <div className="p-4 bg-primary/5 border-b border-primary/10 flex justify-between items-center">
-              <span className="font-serif italic font-bold">Tu Carrito</span>
+              <span className="font-century-gothic text-xl ">Tu Carrito</span>
               <button
                 onClick={() => setIsCartOpen(false)}
                 className="absolute top-2 right-2 text-gray-500 hover:text-gray-300 cursor-pointer"
@@ -69,7 +69,7 @@ export const ShoppingCartButton = () => {
                       <p className="text-xs font-bold truncate">
                         {product.nombre}
                       </p>
-                      <p className="text-[11px] text-gold font-mono">
+                      <p className="text-[11px] text-gold">
                         ${product.precio.toFixed(2)}
                       </p>
                     </div>
@@ -111,7 +111,7 @@ export const ShoppingCartButton = () => {
                   </span>
                 </div>
                 {tasa > 0 && totalUSD > 0 && (
-                  <div className="flex justify-between items-center text-[13px] opacity-70 italic">
+                  <div className="flex justify-between items-center text-[13px] opacity-70 ">
                     <span>Equivalente:</span>
                     <span>
                       Bs.{" "}

@@ -32,7 +32,7 @@ export const PAYMENT_DETAILS: Record<string, PaymentMethodDetails> = {
   },
   EfectivoUsd: {
     instructions:
-      "El pago en efectivo se realiza directamente al motorizado al recibir el pedido.",
+      "El pago en efectivo se realiza directamente al delivery al recibir el pedido.",
     currency: "USD / Bs.",
     note: "Asegúrate de tener el monto exacto o indicar si necesitas cambio.",
   },

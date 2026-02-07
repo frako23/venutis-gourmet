@@ -46,7 +46,7 @@ export default async function ProductDetail({ params }: Props) {
   // const [quantity, setQuantity] = useState(1);
 
   return (
-    <div className="bg-background-dark text-slate-100 min-h-screen font-display">
+    <div className="bg-background-dark text-slate-100 min-h-screen font-century-gothic">
       {/* Top Navigation Bar */}
 
       <main className="max-w-[1280px] mx-auto px-6 py-8">
@@ -103,7 +103,7 @@ export default async function ProductDetail({ params }: Props) {
           {/* Right: Product Info */}
           <div className="lg:col-span-5 flex flex-col">
             <div className="sticky top-24">
-              <h1 className="text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-4 italic font-serif">
+              <h1 className="text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-4 font-serif">
                 {producto.nombre}
               </h1>
 
@@ -236,7 +236,7 @@ export default async function ProductDetail({ params }: Props) {
                     <Star key={i} size={14} fill="currentColor" />
                   ))}
                 </div>
-                <h3 className="text-xl font-bold text-white mb-4 italic">
+                <h3 className="text-xl font-bold text-white mb-4">
                   "Liquid Gold. The complexity is unmatched."
                 </h3>
                 <p className="text-slate-400 leading-relaxed mb-6">

@@ -1,31 +1,31 @@
 "use client";
 
-import React, { useState } from "react";
 import {
-  Search,
-  Heart,
-  ShoppingCart,
-  ChevronRight,
-  Star,
-  MapPin,
-  Minus,
-  Plus,
-  ShoppingBag,
-  Truck,
   BadgeCheck,
-  ThumbsUp,
-  MessageSquare,
-  PenSquare,
-  Share2,
+  ChevronRight,
   EclipseIcon,
+  Heart,
+  MapPin,
+  MessageSquare,
+  Minus,
+  PenSquare,
+  Plus,
+  Search,
+  Share2,
+  ShoppingBag,
+  ShoppingCart,
+  Star,
+  ThumbsUp,
+  Truck,
 } from "lucide-react";
 import Image from "next/image";
+import { useState } from "react";
 
 export default function ProductDetail() {
   const [quantity, setQuantity] = useState(1);
 
   return (
-    <div className="bg-background-dark text-slate-100 min-h-screen font-display">
+    <div className="bg-background-dark text-slate-100 min-h-screen font-century-gothic">
       {/* Top Navigation Bar */}
       <header className="sticky top-0 z-50 w-full border-b border-border-dark bg-background-dark/80 backdrop-blur-md">
         <div className="max-w-[1280px] mx-auto px-6 h-16 flex items-center justify-between">

@@ -20,7 +20,7 @@ const dkCoalBrushed = localFont({
 });
 
 const centuryGothic = localFont({
-  src: "./fonts/nu_century_gothic.ttf",
+  src: "./fonts/CenturyGothic.otf",
   variable: "--font-century-gothic",
 });
 

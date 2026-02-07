@@ -1,6 +1,5 @@
 import {
   CheckCircle2,
-  ChevronDown,
   Instagram,
   Mail,
   MapPin,
@@ -13,9 +12,9 @@ import React from "react";
 
 export default function AboutUs() {
   return (
-    <div className="bg-background-dark font-display text-cream selection:bg-gold selection:text-background-dark">
+    <div className="bg-background-dark  font-century-gothic text-cream selection:bg-gold selection:text-background-dark">
       {/* Sticky Header */}
-      <header className="fixed top-0 w-full z-50 font-century-gothic border-gold border-b-2 bg-background-dark/80 backdrop-blur-md px-6 md:px-20 py-4 flex items-center justify-between">
+      <header className="fixed top-0 w-full z-50  border-gold border-b-2 bg-background-dark/80 backdrop-blur-md px-6 md:px-20 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
           <div className="size-8 text-gold">
             <svg
@@ -45,94 +44,89 @@ export default function AboutUs() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative h-screen w-full flex items-start justify-center overflow-hidden">
+      <section className="relative w-full items-start justify-center overflow-hidden">
         <div
           className="absolute inset-0 parallax-bg sepia-filter opacity-60 bg-cover bg-center"
           style={{
             backgroundImage: `linear-gradient(to bottom, rgba(26,26,26,0.6), rgba(26,26,26,0.9)), url('https://lh3.googleusercontent.com/aida-public/AB6AXuBhCALuKQGR8D6eS_iCZ-PNEFTKVY-uMyDqILlwHeHtD7HCDGDyo4McizZhJCM42YSy68aHsqyo-6cLLQUPPNvzKbdAh7hTi1pcKnnCkgXS9PAjA9F2dXxEF3VJUOty1AZVy5TM183QKgTHjOs6SiXczpgltYNcYc8Fg5QwCAQmDasigEijv9Tnj_MmaJvdVHuC5Ov-8tfwoEv4sZYmbphXya2w30HY2dp4jMxrtuJ28ZTUEUpPVFENx9mC_vH4x2SqZWr0ubazTwY')`,
           }}
         />
-        <div className="relative z-10 text-center px-4 pt-20">
-          <h1 className="font-reklame text-6xl text-white md:text-9xl tracking-tighter mb-6">
+        <div className="relative z-10 text-center px-4 pt-24">
+          <h1 className="font-reklame text-6xl text-white md:text-9xl tracking-tighter mb-4">
             Nuestra Historia
           </h1>
-          <div className="w-24 h-px bg-gold mx-auto mb-8"></div>
-          <p className=" max-w-xl mx-auto text-gold text-2xl leading-relaxed font-century-gothic">
+          {/* <div className="w-96 h-px bg-gold mx-auto mb-8"></div> */}
+          <p className="max-w-6xl mx-auto text-gold text-2xl leading-relaxed font-century-gothic">
             En Venuti's creemos que la comida tiene el poder de reunir, de crear
             recuerdos y de decir te quiero sin palabras.
           </p>
         </div>
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce text-gold">
-          <ChevronDown size={40} />
-        </div>
-      </section>
 
-      {/* Capítulo I: Orígenes */}
-      <section className="py-24 px-6 md:px-20 max-w-7xl mx-auto overflow-hidden">
-        <div className="grid md:grid-cols-2 gap-16 items-center">
-          <div className="order-2 md:order-1">
-            <p className="text-cream/90 text-2xl leading-relaxed mb-6 drop-cap font-century-gothic">
-              Nuestra historia comienza en casa, en la cocina familiar. Desde
-              pequeña, <span className="font-bold">Antonieta Venuti</span> vivió
-              rodeada de manos que amasan, aromas de sémla y la alegría de una
-              mesa que une generaciones. La pasta no era solo comida; era
-              tradición, era familia, era amor compartido.
-            </p>
+        <div className="py-24 px-6 md:px-20 max-w-7xl mx-auto overflow-hidden relative z-10">
+          <div className="grid md:grid-cols-2 gap-16 items-center">
+            <div className="order-2 md:order-1">
+              <p className="text-white text-2xl leading-relaxed mb-6 drop-cap font-century-gothic">
+                Nuestra historia comienza en casa, en la cocina familiar. Desde
+                pequeña, <span className="font-bold">Antonieta Venuti</span>{" "}
+                vivió rodeada de manos que amasan, aromas de sémla y la alegría
+                de una mesa que une generaciones. La pasta no era solo comida;
+                era tradición, era familia, era amor compartido.
+              </p>
+            </div>
+            <div className="order-1 md:order-2 relative">
+              <div className="absolute -top-4 -left-4 w-full h-full border border-gold/20 -z-10"></div>
+              <Image
+                width={800}
+                height={500}
+                alt="Vintage recipe book"
+                className="w-full h-[500px] object-cover sepia-filter rounded shadow-2xl"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBup6t-t7gsgaD9TJpf2jrSKzitTccBkqNjG4rfbmvYy6AJLdNO4krrcs8jplE1k8bZYElNFeJc8j1YRNjGvBmgbFLU2z2z45YB9OIW8baJ50JoW4fJGYsF0umCNMOXjd-9x_ufsdOiTq9P39BhxIIXWDbrOOrzfNOqrzqcL_KXaEkaWZ-kwOpZV10E_Ncrguv2fGabzDGyKbCIvXPYuKJeAnbxLRWihFWUobZinzG7FVy3Xzoiw4lMsLApb33Pp-z499WfbKUklRM"
+              />
+            </div>
           </div>
-          <div className="order-1 md:order-2 relative">
-            <div className="absolute -top-4 -left-4 w-full h-full border border-gold/20 -z-10"></div>
-            <Image
-              width={800}
-              height={500}
-              alt="Vintage recipe book"
-              className="w-full h-[500px] object-cover sepia-filter rounded shadow-2xl"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBup6t-t7gsgaD9TJpf2jrSKzitTccBkqNjG4rfbmvYy6AJLdNO4krrcs8jplE1k8bZYElNFeJc8j1YRNjGvBmgbFLU2z2z45YB9OIW8baJ50JoW4fJGYsF0umCNMOXjd-9x_ufsdOiTq9P39BhxIIXWDbrOOrzfNOqrzqcL_KXaEkaWZ-kwOpZV10E_Ncrguv2fGabzDGyKbCIvXPYuKJeAnbxLRWihFWUobZinzG7FVy3Xzoiw4lMsLApb33Pp-z499WfbKUklRM"
-            />
-          </div>
+          <p className="text-white text-2xl leading-relaxed mb-6 drop-cap font-century-gothic pt-12">
+            Esa conexión profunda con la cocina y el sabor verdadero dio origen
+            a <span className="font-bold">Venuti's Gourmet</span>, una marca que
+            rescata el arte de la pasta artesanal, hecha a mano, con dedicación,
+            respeto por los ingredientes y por las recetas que se trabajan sin
+            prisa.
+          </p>
         </div>
-        <p className="text-cream/90 text-2xl leading-relaxed mb-6 drop-cap font-century-gothic">
-          Esa conexión profunda con la cocina y el sabor verdadero dio origen a{" "}
-          <span className="font-bold">Venuti's Gourmet</span>, una marca que
-          rescata el arte de la pasta artesanal, hecha a mano, con dedicación,
-          respeto por los ingredientes y por las recetas que se trabajan sin
-          prisa.
-        </p>
-      </section>
 
-      {/* Capítulo II: Calidad */}
-      <section className="py-24 px-6 md:px-20 max-w-7xl mx-auto overflow-hidden">
-        <div className="grid md:grid-cols-2 gap-16 items-center">
-          <div className="relative">
-            <div className="absolute -bottom-4 -right-4 w-full h-full border border-primary/30 -z-10"></div>
-            <Image
-              width={800}
-              height={500}
-              alt="Artisanal ingredients"
-              className="w-full h-[500px] object-cover grayscale brightness-75 rounded shadow-2xl"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuArWYabT3G8I8O_Yf3_4EtBapLaQGW8fFjVKB_pmO8pFiUevZa9pQ7HhyfvjMuFX1bzVMWWk3SifsOrhU4HcoU3pYJtF8k98wzGexkXfDgUZC9Ux89rcez-JG5dManFzUeux48f-ksj0Lvm-kfLGfPmd9MOW_jwi-WIe20eJQy_JUST0p4haA2_8l7FmiKbkbSVeVzyCxjuYD7blJic2xgh5kqfAasaSiIOgqlUfMd4IpZmxjsAdq6w8DHSy6h0ULf1EIYFkiuMJto"
-            />
+        <div className=" px-6 md:px-20 max-w-7xl mx-auto overflow-hidden relative z-10">
+          <div className="grid md:grid-cols-2 gap-16 items-center">
+            <div className="relative">
+              <div className="absolute -bottom-4 -right-4 w-full h-full border border-primary/30 -z-10"></div>
+              <Image
+                width={800}
+                height={500}
+                alt="Artisanal ingredients"
+                className="w-full h-[500px] object-cover grayscale brightness-75 rounded shadow-2xl"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuArWYabT3G8I8O_Yf3_4EtBapLaQGW8fFjVKB_pmO8pFiUevZa9pQ7HhyfvjMuFX1bzVMWWk3SifsOrhU4HcoU3pYJtF8k98wzGexkXfDgUZC9Ux89rcez-JG5dManFzUeux48f-ksj0Lvm-kfLGfPmd9MOW_jwi-WIe20eJQy_JUST0p4haA2_8l7FmiKbkbSVeVzyCxjuYD7blJic2xgh5kqfAasaSiIOgqlUfMd4IpZmxjsAdq6w8DHSy6h0ULf1EIYFkiuMJto"
+              />
+            </div>
+            <div>
+              <p className="text-white text-2xl leading-relaxed mb-6 drop-cap font-century-gothic">
+                Cada pasta que hacemos lleva tiempo, cuidado y atención al
+                detalle, porque sabemos que del otro lado hay una mesa, una
+                familia y una ocasión especial. Nada aquí es automático: cada
+                pieza se rellena, se cierra y se revisa con el mismo cariño con
+                el que cocinaríamos para los nuestros.
+              </p>
+            </div>
           </div>
-          <div>
-            <p className="text-cream/90 text-2xl leading-relaxed mb-6 drop-cap font-century-gothic">
-              Cada pasta que hacemos lleva tiempo, cuidado y atención al
-              detalle, porque sabemos que del otro lado hay una mesa, una
-              familia y una ocasión especial. Nada aquí es automático: cada
-              pieza se rellena, se cierra y se revisa con el mismo cariño con el
-              que cocinaríamos para los nuestros.
-            </p>
-          </div>
+          <p className="text-white text-2xl leading-relaxed mb-6 drop-cap font-century-gothic pt-12">
+            Elegimos <span className="font-bold">sémola de calidad</span>,
+            rellenos honestos y sabores equilibrados para que cada bocado se
+            sienta auténtico, reconfortable y mmemorable
+          </p>
+          <p className="text-white text-2xl leading-relaxed mb-6 drop-cap font-century-gothic pt-12">
+            Hoy, Venuti's llega tanto a hogares que buscan algo especial, como a
+            restaurantes y negocios gastronómicos que valoran la contrancia, la
+            calidad y el detalle. Es tradición, es pasión y es amor por lo bien
+            hecho.
+          </p>
         </div>
-        <p className="text-cream/90 text-2xl leading-relaxed mb-6 drop-cap font-century-gothic">
-          Elegimos <span className="font-bold">sémola de calidad</span>,
-          rellenos honestos y sabores equilibrados para que cada bocado se
-          sienta auténtico, reconfortable y mmemorable
-        </p>
-        <p className="text-cream/90 text-2xl leading-relaxed mb-6 drop-cap font-century-gothic">
-          Hoy, Venuti's llega tanto a hogares que buscan algo especial, como a
-          restaurantes y negocios gastronómicos que valoran la contrancia, la
-          calidad y el detalle. Es tradición, es pasión y es amor por lo bien
-          hecho.
-        </p>
       </section>
 
       {/* Legacy Quote */}

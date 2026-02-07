@@ -17,7 +17,7 @@ export default async function AdminLogin() {
   // }
 
   return (
-    <div className="bg-background-dark font-display text-white overflow-hidden h-screen flex flex-col relative">
+    <div className="bg-background-dark font-century-gothic text-white overflow-hidden h-screen flex flex-col relative">
       {/* Background Section con utilidades de Tailwind 4 */}
       <div className="fixed inset-0 z-0">
         <div
@@ -42,7 +42,7 @@ export default async function AdminLogin() {
             <h1 className="text-2xl font-bold mb-2 tracking-wide text-white uppercase">
               Admin Portal
             </h1>
-            <p className="text-gold text-sm tracking-widest italic mb-10">
+            <p className="text-gold text-sm tracking-widest mb-10">
               Venuti's Gourmet
             </p>
 
@@ -84,7 +84,7 @@ export default async function AdminLogin() {
                 <div className="flex-1 h-px bg-gold/20"></div>
               </div>
 
-              <p className="text-[10px] text-gray-400 leading-relaxed max-w-[240px] mx-auto italic">
+              <p className="text-[10px] text-gray-400 leading-relaxed max-w-[240px] mx-auto">
                 Access is restricted to authorized administrative personnel
                 only.
               </p>

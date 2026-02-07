@@ -1,5 +1,6 @@
 "use client";
 import { useCheckout } from "@/context/checkout-context";
+import { useDolar } from "@/hooks/useDolar";
 import {
   addAddress,
   deleteAddress,
@@ -7,7 +8,7 @@ import {
 } from "@/lib/actions/address";
 import { DELIVERY_ZONES, initialState } from "@/lib/constants/constants";
 import { useAppStore } from "@/store/appStore";
-import { MapPin, Plus, Trash2 } from "lucide-react";
+import { MapPin, MessageCircle, Plus, Trash2 } from "lucide-react";
 import { useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ZoneSelector } from "./zone-selector";
@@ -25,6 +26,9 @@ export function AddressManager() {
   const [selectedAddress, setSelectedAddress] = useState<number | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const setDeliveyPrice = useAppStore((s) => s.setDeliveryPrice);
+  const client = useAppStore((s) => s.client);
+  const selectedProducts = useAppStore((s) => s.selectedProducts);
+  const { tasa } = useDolar();
 
   // Estado para los campos del nuevo formulario
   const [newAddress, setNewAddress] = useState({
@@ -68,6 +72,42 @@ export function AddressManager() {
       setNewAddress({ tipo: "", urbanizacion: "", direccion: "" }); // Limpiamos campos
     }
   }, [state]);
+
+  console.log("selectedProduct", selectedProducts);
+
+  const handleWhatsAppCheckout = () => {
+    const phone = "584123456789"; // Tu número de Venuti's
+
+    // 1. Formateamos la lista de productos con su cantidad
+    const listaProductos = selectedProducts
+      .map(
+        (p) =>
+          `- ${p.cantidad}x ${p.nombre} ($${(p.precio * p.cantidad).toFixed(2)} / Bs${(p.precio * p.cantidad * tasa).toFixed(2)})`,
+      )
+      .join("\n");
+
+    // 2. Calculamos el total general
+    const totalPedido = selectedProducts.reduce(
+      (acc, p) => acc + p.precio * p.cantidad,
+      0,
+    );
+
+    // 3. Construimos el mensaje con saltos de línea claros
+    const mensaje = `Hola Venuti's! 🍝
+Soy *${client?.nombre && client?.apellido ? `${client.nombre} ${client.apellido}` : "un cliente"}*.
+
+Mi sector no aparece en la página y deseo terminar mi pedido:
+${listaProductos}
+
+*Total Estimado: $${totalPedido.toFixed(2)} / Bs${(totalPedido * tasa).toFixed(2)}
+
+
+Quedo atento para coordinar la entrega.`;
+
+    // 4. Generamos y abrimos la URL
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(mensaje)}`;
+    window.open(url, "_blank");
+  };
 
   return (
     <form action={formAction} className="space-y-6">
@@ -137,7 +177,7 @@ export function AddressManager() {
 
             <div className=" space-y-1.5">
               <label className="text-[10px] uppercase tracking-widest opacity-50 px-1">
-                Alias (Ej: className)
+                Alias (Ej: Casa)
               </label>
               <input
                 name="tipo"
@@ -170,32 +210,48 @@ export function AddressManager() {
             </div>
           </div>
 
+          <div className="mt-4 p-2 border-2 border-dashed border-white/5 rounded-2xl text-center ">
+            <p className="text-xs uppercase tracking-widest font-medium ">
+              Si tu sector no está en la lista, puedes terminar tu pedido por
+              WhatsApp.
+            </p>
+          </div>
+
           <div className="flex gap-3 mt-4">
             <button
+              type="button"
               onClick={() => setIsAdding(false)}
               className="flex-1 py-2 text-[10px] font-bold border border-white/10 rounded-lg hover:bg-white/5 cursor-pointer"
             >
               CANCELAR
             </button>
-            <button
-              type="submit"
-              disabled={
-                !newAddress.tipo ||
-                !newAddress.urbanizacion ||
-                !newAddress.direccion ||
-                isPending
-              }
-              className={`flex-1 py-2 text-[10px] font-bold bg-accent-gold text-gold rounded-lg hover:bg-white hover:text-primary transition-colors  ${
-                !newAddress.tipo ||
-                !newAddress.urbanizacion ||
-                !newAddress.direccion ||
-                isPending
-                  ? "opacity-50 cursor-not-allowed"
-                  : "cursor-pointer"
-              }`}
-            >
-              {isPending ? "GUARDANDO..." : "GUARDAR DIRECCIÓN"}
-            </button>
+
+            {!newAddress.urbanizacion ? (
+              /* BOTÓN WHATSAPP: Solo aparece si no hay urbanización/zona seleccionada */
+              <button
+                type="button"
+                onClick={handleWhatsAppCheckout}
+                className="flex-1 cursor-pointer py-2 text-[10px] font-bold bg-[#128C7E] text-white rounded-lg hover:bg-[#25D366] transition-colors flex items-center justify-center gap-2"
+              >
+                <MessageCircle size={14} />
+                TERMINAR PEDIDO EN WHATSAPP
+              </button>
+            ) : (
+              /* BOTÓN GUARDAR: Solo aparece si los datos están completos */
+              <button
+                type="submit"
+                disabled={
+                  !newAddress.tipo || !newAddress.direccion || isPending
+                }
+                className={`flex-1 py-2 text-[10px] font-bold bg-accent-gold text-gold rounded-lg hover:bg-white hover:text-primary transition-colors ${
+                  !newAddress.tipo || !newAddress.direccion || isPending
+                    ? "opacity-50 cursor-not-allowed"
+                    : "cursor-pointer"
+                }`}
+              >
+                {isPending ? "GUARDANDO..." : "GUARDAR DIRECCIÓN"}
+              </button>
+            )}
           </div>
         </div>
       )}
