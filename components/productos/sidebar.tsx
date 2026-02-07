@@ -62,7 +62,7 @@ function SidebarItem({
         href="#"
       >
         <Icon
-          className={`${active ? "text-primary" : "text-gold/60 group-hover:text-gold"}`}
+          className={`shrink-0 ${active ? "text-primary" : "text-gold/60 group-hover:text-gold"}`}
           size={24}
         />
         <span className="font-medium ">{label}</span>
@@ -75,10 +75,10 @@ function FilterCheckbox({ label }: { label: string }) {
   return (
     <label className="flex items-center gap-3 cursor-pointer group font-dk-coal-brush text-2xl">
       <input
-        className="rounded text-primary focus:ring-primary bg-background-light border-primary/20"
+        className="rounded text-primary focus:ring-gold bg-background-light border-primary/20"
         type="checkbox"
       />
-      <span className=" font-medium group-hover:text-primary transition-colors">
+      <span className=" font-medium group-hover:text-gold transition-colors">
         {label}
       </span>
     </label>

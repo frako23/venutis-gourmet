@@ -52,14 +52,14 @@ export default function StorefrontEntry() {
           </div>
           <div className="flex gap-8 items-center">
             <a
-              className="text-sm tracking-widest uppercase hover:text-gold transition-colors hidden md:block"
+              className="text-lg font-century-gothic tracking-widest uppercase hover:text-gold transition-colors hidden md:block"
               href="/about-us"
             >
               Nuestra historia
             </a>
             <a
               href="/admin-login"
-              className="bg-gold px-6 py-2 rounded-lg text-sm font-bold tracking-widest uppercase hover:bg-opacity-80 transition-all border border-gold/30 text-primary"
+              className="bg-gold px-6 py-2 rounded-lg text-lg font-century-gothic tracking-widest uppercase hover:bg-opacity-80 transition-all border border-gold/30 text-primary"
             >
               Admin Login
             </a>
@@ -67,7 +67,7 @@ export default function StorefrontEntry() {
         </header>
 
         {/* Contenido Principal */}
-        <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-12">
+        <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 ">
           <div className="text-center mb-16 space-y-4">
             <h1 className="text-4xl md:text-9xl tracking-tight text-white text-shadow-elegant">
               Pastas Artesanales
@@ -103,8 +103,8 @@ export default function StorefrontEntry() {
         </main>
 
         {/* Footer */}
-        <footer className="relative z-10 w-full px-6 py-10">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 border-t border-gold/20 pt-10">
+        <footer className="relative z-10 w-full px-6 py-10 font-century-gothic">
+          <div className=" mx-auto flex flex-col md:flex-row justify-between items-center gap-6 border-t border-gold/20 pt-10">
             <div className="flex gap-8">
               <FooterLink text="Nuestra Historia" link="/about-us" />
               <FooterLink text="Consumidores" link="/productos/consumidores" />
@@ -165,7 +165,7 @@ function ChoiceCard({
 function FooterLink({ text, link }: { text: string; link: string }) {
   return (
     <a
-      className="text-xs tracking-widest uppercase text-gray-400 hover:text-gold"
+      className="text-lg tracking-widest uppercase text-gray-400 hover:text-gold"
       href={link}
     >
       {text}
@@ -176,7 +176,7 @@ function FooterLink({ text, link }: { text: string; link: string }) {
 function SocialIcon({ icon: Icon, link }: { icon: LucideIcon; link: string }) {
   return (
     <a className="text-gray-400 hover:text-gold" href={link}>
-      <Icon />
+      <Icon size={32} />
     </a>
   );
 }

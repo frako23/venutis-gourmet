@@ -1,6 +1,6 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { PrismaClient } from "@prisma/client";
 import { ProductCard } from "@/components/productos/productCard";
+import { PrismaClient } from "@prisma/client";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default async function Productos({
   searchParams,
@@ -69,10 +69,10 @@ export default async function Productos({
       </section>
 
       {/* Product Toolbar */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 border-b border-primary/5 pb-6">
-        <h2 className="text-2xl font-serif italic">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 border-b border-primary/5 pb-6 font-century-gothic">
+        <h2 className="text-2xl">
           Nuestro Menú{" "}
-          <span className="text-gold/70 text-base font-sans ml-2 not-italic">
+          <span className="text-gold text-base ml-2 not-italic">
             ({total} productos)
           </span>
         </h2>
@@ -115,10 +115,7 @@ export default async function Productos({
           8
         </button>
         <button className="w-10 h-10 flex items-center justify-center rounded-full bg-parchment  transition-colors">
-          <ChevronRight
-            size={20}
-            className="text-primary"
-          />
+          <ChevronRight size={20} className="text-primary" />
         </button>
       </div>
     </main>

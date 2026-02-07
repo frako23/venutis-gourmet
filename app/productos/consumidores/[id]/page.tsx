@@ -206,7 +206,7 @@ export default async function ProductDetail({ params }: Props) {
           </div>
 
           {/* Bento Reviews Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="">
             {/* Highlighted Review */}
             <div className="lg:col-span-2 p-8 rounded-2xl bg-surface-dark border border-border-dark flex flex-col justify-between hover:border-primary/40 transition-colors">
               <div>
@@ -252,7 +252,7 @@ export default async function ProductDetail({ params }: Props) {
             </div>
 
             {/* Photo Review */}
-            <div className="p-6 rounded-2xl bg-surface-dark/40 border border-border-dark flex flex-col hover:border-primary/40 transition-colors">
+            {/* <div className="p-6 rounded-2xl bg-surface-dark/40 border border-border-dark flex flex-col hover:border-primary/40 transition-colors">
               <div className="aspect-video w-full rounded-lg overflow-hidden mb-4">
                 <Image
                   width={600}
@@ -269,7 +269,7 @@ export default async function ProductDetail({ params }: Props) {
               <p className="text-slate-400 text-sm leading-relaxed">
                 Look at that shine! Perfection on seasonal fruit.
               </p>
-            </div>
+            </div> */}
           </div>
         </section>
       </main>

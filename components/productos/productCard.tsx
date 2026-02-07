@@ -13,7 +13,6 @@ export function ProductCard({
   badge,
   badgeColor = "bg-accent-gold",
   rating = 5, // Nueva prop para estrellas
-  reviews = 3, // Nueva prop para número de reseñas
   stock = 20, // Nueva prop para inventario
 }: any) {
   const { tasa } = useDolar();
@@ -31,7 +30,6 @@ export function ProductCard({
             return <StarHalf key={i} size={12} fill="currentColor" />;
           return <Star key={i} size={12} className="text-gray-600" />;
         })}
-        <span className="text-[10px] text-gold ml-1">({reviews})</span>
       </div>
     );
   };
@@ -69,7 +67,7 @@ export function ProductCard({
         {/* Calificación */}
         <div className="mb-2">{renderStars(rating)}</div>
 
-        <div className="flex justify-between items-start mb-2">
+        <div className="flex justify-between items-start mb-2 font-good-brush">
           <a
             href={`/productos/consumidores/${id}`}
             className="text-2xl transition-colors "
@@ -77,16 +75,16 @@ export function ProductCard({
             <span className="font-good-brush"></span>{" "}
             <span className="font-century-gothic"></span> {title}
           </a>
-          <div className="flex flex-row items-baseline justify-end gap-3 leading-tight">
+          <div className="flex flex-col items-baseline  leading-tight font-century-gothic">
             {/* Precio en Dólares: Destacado a la izquierda */}
-            <span className="text-2xl font-black text-gold tracking-tighter">
+            <span className="text-4xl font-bold text-gold tracking-tighter">
               ${price}
             </span>
 
             {/* Precio en Bs: Elegante y a la derecha */}
             {tasa > 0 ? (
-              <span className="text-[15px] font-medium text-gold/60 italic whitespace-nowrap">
-                <span className="text-[10px] not-italic mr-1">BS.</span>
+              <span className="text-[15px] font-medium text-gold whitespace-nowrap">
+                <span className="text-[15px] not-italic mr-1">BS.</span>
                 {(price * tasa).toLocaleString("es-VE", {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
@@ -104,9 +102,9 @@ export function ProductCard({
 
         {/* Sección de Inventario / Stock */}
         <div className="mb-6">
-          <div className="flex justify-between items-center mb-1.5">
+          <div className="flex justify-between items-center mb-1.5 font-century-gothic">
             <span
-              className={`text-[10px] uppercase font-bold tracking-tighter ${stock < 5 ? "text-red-500" : "text-gold/80"}`}
+              className={`text-[20px] uppercase font-bold tracking-tighter ${stock < 5 ? "text-red-500" : "text-gold"}`}
             >
               {stock === 0
                 ? "Agotado"
@@ -114,7 +112,7 @@ export function ProductCard({
                   ? `Solo quedan ${stock} unidades`
                   : "Disponible"}
             </span>
-            <span className="text-[10px] font-mono ">{stock} unidades</span>
+            <span className="text-[20px] ">{stock} unidades</span>
           </div>
           <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
             <div
@@ -126,8 +124,8 @@ export function ProductCard({
 
         <button
           disabled={stock === 0}
-          className={`mt-auto w-full py-3 rounded-lg font-bold uppercase tracking-widest text-[11px] 
-    flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 cursor-pointer
+          className={`mt-auto w-full py-3 rounded-lg  uppercase tracking-widest text-[18px] 
+    flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 cursor-pointer font-century-gothic
     ${
       stock === 0
         ? "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
@@ -142,8 +140,8 @@ export function ProductCard({
             });
           }}
         >
-          <ShoppingCart size={14} />
-          {stock === 0 ? "Sin Stock" : "Añadir al Carrito"}
+          <ShoppingCart size={20} />
+          {stock === 0 ? "Sin Stock" : "Agregar al Carrito"}
         </button>
       </div>
     </div>

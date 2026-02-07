@@ -1,6 +1,6 @@
 "use client";
-import { useState } from "react";
 import { UserCircle } from "lucide-react";
+import { useState } from "react";
 
 export const LoginButton = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -8,7 +8,7 @@ export const LoginButton = () => {
     <div className="relative">
       <button
         onClick={() => setIsLoginOpen(!isLoginOpen)}
-        className="flex items-center gap-2 text-sm font-bold uppercase tracking-tighter hover:text-gold transition-colors cursor-pointer"
+        className="flex items-center gap-3 px-4 py-3 rounded-lg transition-all group bg-gold text-primary shadow-lg shadow-gold/20 hover:font-bold cursor-pointer"
       >
         <UserCircle size={20} />
         <span className="hidden sm:inline">Ingresar</span>
@@ -22,7 +22,7 @@ export const LoginButton = () => {
           >
             X
           </button>
-          <h3 className="text-lg font-serif italic mb-4">Bienvenido</h3>
+          <h3 className="text-lg mb-4">Bienvenido</h3>
           <input
             type="tel"
             placeholder="Tu Celular (Ej: 0412...)"

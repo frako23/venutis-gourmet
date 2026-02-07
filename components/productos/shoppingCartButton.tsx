@@ -17,9 +17,9 @@ export const ShoppingCartButton = () => {
     <div className="relative">
       <button
         onClick={() => setIsCartOpen(!isCartOpen)}
-        className="relative p-2 rounded-full bg-accent-gold/10 text-accent-gold hover:bg-accent-gold hover:text-white transition-all duration-300 cursor-pointer"
+        className=" bg-white relative p-2 rounded-full bg-accent-gold/10 text-accent-gold hover:bg-accent-gold hover:text-white transition-all duration-300 cursor-pointer"
       >
-        <ShoppingCart size={20} />
+        <ShoppingCart size={20} color="#5d4037"/>
         {selectedProducts.length > 0 && (
           <span className="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-background-light">
             {selectedProducts.reduce((acc, p) => acc + p.cantidad, 0)}

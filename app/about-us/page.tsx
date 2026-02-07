@@ -1,25 +1,21 @@
-import React from "react";
 import {
-  ChevronDown,
-  Award,
-  Leaf,
-  History,
-  Handshake,
   CheckCircle2,
+  ChevronDown,
   Instagram,
   Mail,
   MapPin,
-  Phone,
   MessageCircleMore,
+  Phone,
 } from "lucide-react";
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
+import React from "react";
 
 export default function AboutUs() {
   return (
     <div className="bg-background-dark font-display text-cream selection:bg-gold selection:text-background-dark">
       {/* Sticky Header */}
-      <header className="fixed top-0 w-full z-50 border-b border-white/10 bg-background-dark/80 backdrop-blur-md px-6 md:px-20 py-4 flex items-center justify-between">
+      <header className="fixed top-0 w-full z-50 font-century-gothic border-gold border-b-2 bg-background-dark/80 backdrop-blur-md px-6 md:px-20 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
           <div className="size-8 text-gold">
             <svg
@@ -49,24 +45,21 @@ export default function AboutUs() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative h-screen w-full flex items-center justify-center overflow-hidden">
+      <section className="relative h-screen w-full flex items-start justify-center overflow-hidden">
         <div
           className="absolute inset-0 parallax-bg sepia-filter opacity-60 bg-cover bg-center"
           style={{
             backgroundImage: `linear-gradient(to bottom, rgba(26,26,26,0.6), rgba(26,26,26,0.9)), url('https://lh3.googleusercontent.com/aida-public/AB6AXuBhCALuKQGR8D6eS_iCZ-PNEFTKVY-uMyDqILlwHeHtD7HCDGDyo4McizZhJCM42YSy68aHsqyo-6cLLQUPPNvzKbdAh7hTi1pcKnnCkgXS9PAjA9F2dXxEF3VJUOty1AZVy5TM183QKgTHjOs6SiXczpgltYNcYc8Fg5QwCAQmDasigEijv9Tnj_MmaJvdVHuC5Ov-8tfwoEv4sZYmbphXya2w30HY2dp4jMxrtuJ28ZTUEUpPVFENx9mC_vH4x2SqZWr0ubazTwY')`,
           }}
         />
-        <div className="relative z-10 text-center px-4">
-          <span className="text-gold tracking-[0.5em] uppercase text-sm mb-4 block">
-            Desde 1920
-          </span>
-          <h1 className="text-white text-6xl md:text-8xl font-bold tracking-tighter mb-6">
+        <div className="relative z-10 text-center px-4 pt-20">
+          <h1 className="font-reklame text-6xl text-white md:text-9xl tracking-tighter mb-6">
             Nuestra Historia
           </h1>
           <div className="w-24 h-px bg-gold mx-auto mb-8"></div>
-          <p className="text-cream/80 max-w-xl mx-auto italic text-lg leading-relaxed">
-            Un legado de excelencia gourmet artesanal nacido entre los aromas de
-            la vieja Italia y el corazón de nuestra familia.
+          <p className=" max-w-xl mx-auto text-gold text-2xl leading-relaxed font-century-gothic">
+            En Venuti's creemos que la comida tiene el poder de reunir, de crear
+            recuerdos y de decir te quiero sin palabras.
           </p>
         </div>
         <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce text-gold">
@@ -78,23 +71,12 @@ export default function AboutUs() {
       <section className="py-24 px-6 md:px-20 max-w-7xl mx-auto overflow-hidden">
         <div className="grid md:grid-cols-2 gap-16 items-center">
           <div className="order-2 md:order-1">
-            <span className="text-primary font-bold tracking-widest uppercase text-xs mb-2 block">
-              Capítulo I
-            </span>
-            <h2 className="text-gold text-4xl md:text-5xl font-bold mb-8">
-              Nuestros Orígenes
-            </h2>
-            <p className="text-cream/90 text-lg leading-relaxed mb-6 drop-cap">
-              Todo comenzó con un cuaderno de recetas escrito a mano y el sueño
-              de traer los sabores más puros del Mediterráneo a la mesa moderna.
-              Giuseppe Venuti no solo trajo consigo ingredientes; trajo una
-              filosofía de respeto absoluto por la tierra y el tiempo.
-            </p>
-            <p className="text-cream/70 text-base leading-relaxed">
-              En nuestro primer taller artesanal, cada lote de pasta se secaba
-              lentamente al aire, y cada oliva se seleccionaba por su madurez
-              perfecta. Esa paciencia sigue siendo el ingrediente secreto de
-              cada producto que lleva nuestro nombre.
+            <p className="text-cream/90 text-2xl leading-relaxed mb-6 drop-cap font-century-gothic">
+              Nuestra historia comienza en casa, en la cocina familiar. Desde
+              pequeña, <span className="font-bold">Antonieta Venuti</span> vivió
+              rodeada de manos que amasan, aromas de sémla y la alegría de una
+              mesa que une generaciones. La pasta no era solo comida; era
+              tradición, era familia, era amor compartido.
             </p>
           </div>
           <div className="order-1 md:order-2 relative">
@@ -108,25 +90,13 @@ export default function AboutUs() {
             />
           </div>
         </div>
-      </section>
-
-      {/* Filosofía Callout */}
-      <section className="bg-background-alt py-24 px-6 border-y border-gold/10">
-        <div className="max-w-4xl mx-auto text-center">
-          <Award className="mx-auto text-gold mb-6" size={48} strokeWidth={1} />
-          <h2 className="text-white text-3xl md:text-4xl font-bold mb-8">
-            La Filosofía del "Slow Food"
-          </h2>
-          <p className="text-gold italic text-2xl md:text-3xl leading-snug">
-            "No se trata de alimentar el cuerpo, sino de nutrir el alma a través
-            de la artesanía que solo el tiempo puede perfeccionar."
-          </p>
-          <div className="mt-12 flex justify-center gap-12">
-            <PhilosophyItem icon={Leaf} label="Sostenible" />
-            <PhilosophyItem icon={History} label="Tradición" />
-            <PhilosophyItem icon={Handshake} label="Ético" />
-          </div>
-        </div>
+        <p className="text-cream/90 text-2xl leading-relaxed mb-6 drop-cap font-century-gothic">
+          Esa conexión profunda con la cocina y el sabor verdadero dio origen a{" "}
+          <span className="font-bold">Venuti's Gourmet</span>, una marca que
+          rescata el arte de la pasta artesanal, hecha a mano, con dedicación,
+          respeto por los ingredientes y por las recetas que se trabajan sin
+          prisa.
+        </p>
       </section>
 
       {/* Capítulo II: Calidad */}
@@ -143,67 +113,34 @@ export default function AboutUs() {
             />
           </div>
           <div>
-            <span className="text-primary font-bold tracking-widest uppercase text-xs mb-2 block">
-              Capítulo II
-            </span>
-            <h2 className="text-gold text-4xl md:text-5xl font-bold mb-8">
-              Compromiso con la Calidad
-            </h2>
-            <p className="text-cream/90 text-lg leading-relaxed mb-6">
-              Nuestra búsqueda de la excelencia nos lleva a los rincones más
-              remotos. Desde el aceite prensado en frío de olivares centenarios
-              hasta el grano molido a piedra, cada ingrediente es un testimonio
-              de nuestra integridad.
+            <p className="text-cream/90 text-2xl leading-relaxed mb-6 drop-cap font-century-gothic">
+              Cada pasta que hacemos lleva tiempo, cuidado y atención al
+              detalle, porque sabemos que del otro lado hay una mesa, una
+              familia y una ocasión especial. Nada aquí es automático: cada
+              pieza se rellena, se cierra y se revisa con el mismo cariño con el
+              que cocinaríamos para los nuestros.
             </p>
-            <div className="space-y-6">
-              <QualityFeature
-                title="Origen Controlado"
-                desc="Trabajamos directamente con agricultores que comparten nuestro respeto por la biodiversidad."
-              />
-              <QualityFeature
-                title="Procesado Manual"
-                desc="Mantenemos técnicas de producción manuales para preservar la textura y el sabor original."
-              />
-            </div>
           </div>
         </div>
+        <p className="text-cream/90 text-2xl leading-relaxed mb-6 drop-cap font-century-gothic">
+          Elegimos <span className="font-bold">sémola de calidad</span>,
+          rellenos honestos y sabores equilibrados para que cada bocado se
+          sienta auténtico, reconfortable y mmemorable
+        </p>
+        <p className="text-cream/90 text-2xl leading-relaxed mb-6 drop-cap font-century-gothic">
+          Hoy, Venuti's llega tanto a hogares que buscan algo especial, como a
+          restaurantes y negocios gastronómicos que valoran la contrancia, la
+          calidad y el detalle. Es tradición, es pasión y es amor por lo bien
+          hecho.
+        </p>
       </section>
 
       {/* Legacy Quote */}
       <section className="relative py-32 overflow-hidden bg-background-dark">
         <div className="max-w-3xl mx-auto px-6 text-center">
-          <div className="text-primary text-8xl font-serif leading-none mb-0 select-none opacity-50">
-            “
-          </div>
-          <p className="text-white text-3xl font-light italic -mt-8 mb-8">
-            Mi abuelo decía que la comida es la forma más honesta de amor. Si no
-            pones tu corazón en la receta, el comensal lo notará en el primer
-            bocado.
-          </p>
-          <h5 className="text-gold font-bold tracking-widest uppercase text-sm">
-            — Marco Venuti, Tercera Generación
+          <h5 className="text-gold font-bold tracking-widest uppercase font-century-gothic text-4xl">
+            Venuti's es ARTE EN TU MESA
           </h5>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 px-6 bg-primary">
-        <div className="max-w-4xl mx-auto text-center text-white">
-          <h2 className="text-4xl md:text-5xl font-bold mb-8">
-            Vive la Tradición
-          </h2>
-          <p className="opacity-80 mb-10 text-lg">
-            Descubre nuestra selección curada de productos gourmet y lleva un
-            pedazo de nuestra historia a tu hogar.
-          </p>
-          <div className="flex flex-col sm:row gap-4 justify-center">
-            <button className="bg-gold text-background-dark font-bold px-10 py-4 rounded hover:bg-white transition-all tracking-widest uppercase text-sm">
-              Explorar la Tienda
-            </button>
-            <button className="border border-white/30 font-bold px-10 py-4 rounded hover:bg-white/10 transition-all tracking-widest uppercase text-sm">
-              Nuestros Artesanos
-            </button>
-          </div>
         </div>
       </section>
 

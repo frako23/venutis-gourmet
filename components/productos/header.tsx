@@ -5,8 +5,8 @@ import { ShoppingCartButton } from "./shoppingCartButton";
 
 const Header = () => {
   return (
-    <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-md border-b border-primary/10 px-6 lg:px-12 py-4">
-      <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-8">
+    <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-md border-b-2 border-gold px-6 lg:px-12 py-4 font-century-gothic">
+      <div className=" mx-auto flex items-center justify-between gap-8">
         <div className="flex items-center gap-12">
           <Link href="/" className="flex items-center gap-3">
             <div className="text-gold">

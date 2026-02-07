@@ -2,7 +2,7 @@ import { Instagram, LucideIcon, Mail, MessageCircleMore } from "lucide-react";
 
 const Footer = () => {
   return (
-    <footer className="bg-primary text-white/60 py-12 px-6 lg:px-12 mt-20">
+    <footer className="bg-primary text-white/60 py-12 px-6 lg:px-12 mt-20 font-century-gothic">
       <div className="max-w-[1440px] mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
         <div className="col-span-1 md:col-span-2">
           <div className="flex items-center gap-3 mb-6 text-white">
