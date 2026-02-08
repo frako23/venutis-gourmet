@@ -49,19 +49,21 @@ export function AddressManager() {
   );
 
   async function loadAddresses() {
-    if (clientId) {
-      const data = await getAddressesByClient(clientId);
+    if (clientId || client?.id) {
+      const data = await getAddressesByClient(clientId || client?.id);
       // Mapeamos los campos si los nombres en DB son diferentes a tu interfaz
       setAddresses(data as Address[]);
-
+      console.log("paso por aqui");
       // Seleccionar la primera automáticamente si existe
       if (data.length > 0) setSelectedAddress(data[0].id);
     }
   }
-
+  console.log("addresses", addresses);
+  console.log("selectedAddress", selectedAddress);
+  console.log("cliente", client);
   useEffect(() => {
     loadAddresses();
-  }, [clientId]);
+  }, [clientId, client?.id]);
 
   useEffect(() => {
     // Asumiendo que tu Server Action devuelve algo como { success: true }

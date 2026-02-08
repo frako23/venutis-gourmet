@@ -59,20 +59,102 @@ export default function AddProductPage() {
                 </h3>
               </div>
 
-              <div className="space-y-6 ">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="flex flex-col gap-2">
-                    <Label>Nombre del Producto</Label>
+              <div className="space-y-8 max-w-4xl mx-auto">
+                {/* Nombre del Producto - Full Width */}
+                <div className="flex flex-col gap-3">
+                  <Label className="text-gold font-bold tracking-widest uppercase text-xs px-1">
+                    Nombre del Producto
+                  </Label>
+                  <Input
+                    placeholder="Ej. Pappardelle al Huevo"
+                    name="nombre"
+                    className="h-14 rounded-2xl border-2 border-slate-100 bg-slate-50 focus:border-gold focus:ring-4 focus:ring-gold/10 font-bold transition-all placeholder:text-slate-400"
+                  />
+                </div>
+
+                {/* Grid Principal: Inventario y Precios */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Inventario */}
+                  <div className="flex flex-col gap-3">
+                    <Label className="text-gold font-bold tracking-widest uppercase text-xs px-1">
+                      Inventario
+                    </Label>
                     <Input
-                      placeholder="Ej. Pappardelle al Huevo"
-                      name="nombre"
-                      className="placeholder:text-slate-500"
+                      type="number"
+                      placeholder="20"
+                      name="inventario"
+                      className="h-14 rounded-2xl border-2 border-slate-100 bg-slate-50 focus:border-gold font-bold"
                     />
                   </div>
-                  <div className="flex flex-col gap-2">
-                    <Label>Ubicación</Label>
+
+                  {/* Precio Detal */}
+                  <div className="flex flex-col gap-3">
+                    <Label className="text-gold font-bold tracking-widest uppercase text-xs px-1">
+                      Precio Detal
+                    </Label>
+                    <div className="relative group">
+                      <span className="absolute left-5 top-1/2 -translate-y-1/2 text-gold font-black z-10">
+                        $
+                      </span>
+                      <Input
+                        placeholder="0.00"
+                        className="h-14 pl-10 rounded-2xl border-2 border-slate-100 bg-slate-50 focus:border-gold font-bold"
+                        type="number"
+                        step="0.01"
+                        name="precioDetal"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Precio Mayorista */}
+                  <div className="flex flex-col gap-3">
+                    <Label className="text-gold font-bold tracking-widest uppercase text-xs px-1">
+                      Precio Mayorista
+                    </Label>
+                    <div className="relative group">
+                      <span className="absolute left-5 top-1/2 -translate-y-1/2 text-gold font-black z-10">
+                        $
+                      </span>
+                      <Input
+                        placeholder="0.00"
+                        className="h-14 pl-10 rounded-2xl border-2 border-slate-100 bg-slate-50 focus:border-gold font-bold"
+                        type="number"
+                        step="0.01"
+                        name="precioMayorista"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Categoría y Ubicación */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="flex flex-col gap-3">
+                    <Label className="text-gold font-bold tracking-widest uppercase text-xs px-1">
+                      Categoría Gourmet
+                    </Label>
                     <select
-                      className="w-full rounded-2xl border-2 border-slate-100 bg-slate-50 focus:ring-4 focus:ring-gold/10 focus:border-gold h-14 px-5 font-bold text-slate-700 outline-none transition-all cursor-pointer appearance-none"
+                      className="h-14 w-full rounded-2xl border-2 border-slate-100 bg-slate-50 focus:border-gold focus:ring-4 focus:ring-gold/10 px-5 font-bold text-slate-700 outline-none transition-all cursor-pointer appearance-none"
+                      name="categoria"
+                      required
+                      defaultValue=""
+                    >
+                      <option value="" disabled>
+                        Selecciona una categoría
+                      </option>
+                      <option value="PASTAS">Pastas</option>
+                      <option value="SALSAS">Salsas</option>
+                      <option value="PAN_DE_JAMON">Pan de Jamón</option>
+                      <option value="ENCURTIDOS">Encurtidos</option>
+                      <option value="POSTRES">Postres</option>
+                    </select>
+                  </div>
+
+                  <div className="flex flex-col gap-3">
+                    <Label className="text-gold font-bold tracking-widest uppercase text-xs px-1">
+                      Ubicación en Almacén
+                    </Label>
+                    <select
+                      className="h-14 w-full rounded-2xl border-2 border-slate-100 bg-slate-50 focus:border-gold focus:ring-4 focus:ring-gold/10 px-5 font-bold text-slate-700 outline-none transition-all cursor-pointer appearance-none"
                       name="ubicacion"
                     >
                       <option value="NEVERA 1">Nevera 1</option>
@@ -81,65 +163,16 @@ export default function AddProductPage() {
                     </select>
                   </div>
                 </div>
-                <div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Cambiamos grid-cols-2 por la proporción específica */}
-                    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-6">
-                      {/* Columna de Cantidad (más estrecha) */}
-                      <div className="flex flex-col gap-2">
-                        <Label>Inventario</Label>
-                        <Input
-                          type="number"
-                          placeholder="20"
-                          name="inventario"
-                          className="placeholder:text-slate-500"
-                        />
-                      </div>
 
-                      {/* Columna de Precio (más ancha) */}
-                      <div className="flex flex-col gap-2">
-                        <Label>Precio (USD)</Label>
-                        <div className="relative group">
-                          <span className="absolute left-5 top-1/2 -translate-y-1/2 text-gold font-black transition-colors group-focus-within:text-primary">
-                            $
-                          </span>
-                          <Input
-                            placeholder="0.00"
-                            className="pl-12 placeholder:text-slate-500"
-                            type="number"
-                            step="any"
-                            name="precio"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <Label>Categoría Gourmet</Label>
-                      <select
-                        className="w-full rounded-2xl border-2 border-slate-100 bg-slate-50 focus:ring-4 focus:ring-gold/10 focus:border-gold h-14 px-5 font-bold text-slate-700 outline-none transition-all cursor-pointer appearance-none "
-                        name="categoria"
-                        required
-                        defaultValue=""
-                      >
-                        <option value="" disabled>
-                          Selecciona una categoría
-                        </option>
-                        <option value="PASTAS">Pastas</option>
-                        <option value="SALSAS">Salsas</option>
-                        <option value="PAN_DE_JAMON">Pan de Jamón</option>
-                        <option value="ENCURTIDOS">Encurtidos</option>
-                        <option value="POSTRES">Postres</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <Label>Nota de Cata / Descripción</Label>
+                {/* Descripción */}
+                <div className="flex flex-col gap-3">
+                  <Label className="text-gold font-bold tracking-widest uppercase text-xs px-1">
+                    Nota de Cata / Descripción
+                  </Label>
                   <textarea
                     rows={4}
                     placeholder="Cuéntanos sobre el origen del trigo, el tiempo de secado o sugerencias de maridaje..."
-                    className="w-full rounded-2xl border-2 border-slate-100 bg-slate-50 focus:ring-4 focus:ring-gold/10 focus:border-gold p-5 font-medium text-slate-700 outline-none transition-all resize-none placeholder:italic placeholder:text-slate-500"
+                    className="w-full rounded-2xl border-2 border-slate-100 bg-slate-50 focus:border-gold focus:ring-4 focus:ring-gold/10 p-5 font-medium text-slate-700 outline-none transition-all resize-none placeholder:italic placeholder:text-slate-400"
                     name="descripcion"
                   />
                 </div>
@@ -202,7 +235,7 @@ export default function AddProductPage() {
                         onClick={() =>
                           setImages(images.filter((_, i) => i !== index))
                         }
-                        className="absolute top-2 right-2 bg-white/90 p-1.5 rounded-full text-red-500 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                        className="absolute top-2 cursor-pointer right-2 bg-white/90 p-1.5 rounded-full text-red-500 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
                       >
                         <X size={14} />
                       </button>

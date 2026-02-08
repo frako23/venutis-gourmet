@@ -1,6 +1,7 @@
 import { CheckoutProvider, useCheckout } from "@/context/checkout-context";
 import { addClient } from "@/lib/actions/clients";
 import { initialState } from "@/lib/constants/constants";
+import { useAppStore } from "@/store/appStore";
 import { useActionState, useEffect } from "react";
 import { toast } from "sonner";
 import { CheckoutLoader } from "./checkout-loader";
@@ -11,6 +12,7 @@ import { PersonalInformation } from "./personal-information";
 
 export const CheckoutForm = ({ metodoDePago }: { metodoDePago: boolean }) => {
   const [state] = useActionState(addClient, initialState);
+
   useEffect(() => {
     if (state.status === "error") {
       toast.error(state.message || "Ocurrió un error inesperado");
@@ -31,8 +33,13 @@ export const CheckoutForm = ({ metodoDePago }: { metodoDePago: boolean }) => {
 };
 
 const CheckoutContent = ({ metodoDePago }: { metodoDePago: boolean }) => {
-  const { progressStep, isSubmitting, orderFinished } = useCheckout();
+  const { progressStep, isSubmitting, orderFinished, setProgressStep } =
+    useCheckout();
+  const client = useAppStore((s) => s.client);
 
+  useEffect(() => {
+    if (client) setProgressStep("delivery-method");
+  }, [client]);
   return (
     <div className="lg:col-span-7">
       <div className="bg-surface-dark rounded-2xl p-8 border border-white/5 shadow-2xl space-y-10">

@@ -3,38 +3,19 @@ import { PrismaClient } from "@prisma/client";
 import { Download, Filter, MoreHorizontal } from "lucide-react";
 import Image from "next/image";
 
-export default async function InventoryManager({
-  searchParams,
-}: {
-  searchParams: Promise<{ q?: string; page?: string }>;
-}) {
-  const params = await searchParams;
-  const q = (params.q ?? "").trim();
-  const pageSize = 12;
-  const page = Math.max(1, Number(params.page ?? "1"));
-
-  const where: any = {
-    ...(q
-      ? {
-          OR: [{ nombre: { contains: q, mode: "insensitive" } }],
-        }
-      : {}),
-  };
+export default async function InventoryManager() {
   const prisma = new PrismaClient();
-  const [totalCount, products] = await Promise.all([
-    prisma.producto.count({ where }),
+  const [products] = await Promise.all([
     prisma.producto.findMany({
-      where,
       orderBy: { createdAt: "desc" },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
+
+      // AGREGAR ESTO:
+      include: {
+        imagenes: true, // Esto hace el "JOIN" con la tabla de imágenes
+      },
     }),
   ]);
 
-  const total = totalCount;
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  console.log({ total, totalPages });
-  console.log("Products:", products);
   return (
     <div className="min-h-screen bg-background-dark text-white transition-colors duration-300">
       <div className="p-8 space-y-8">
@@ -83,7 +64,8 @@ export default async function InventoryManager({
                   <th className="px-6 py-4">Categoría</th>
                   <th className="px-6 py-4">SKU</th>
                   <th className="px-6 py-4">Inventario</th>
-                  <th className="px-6 py-4">Precio</th>
+                  <th className="px-6 py-4">Precio al detal</th>
+                  <th className="px-6 py-4">Precio al mayor</th>
                   <th className="px-6 py-4">Estatus</th>
                   <th className="px-6 py-4 text-right">Acciones</th>
                 </tr>
@@ -92,13 +74,13 @@ export default async function InventoryManager({
                 {products.map((product) => (
                   <TableRow
                     key={product.id}
-                    img={product.imgUrl}
+                    img={product.imagenes[0]}
                     name={product.nombre}
                     cat={product.categoria}
                     sku={product.id}
                     stock="4"
                     total="100"
-                    price={product.precio}
+                    price={product.precioDetal}
                     status="Suficiente"
                   />
                 ))}
@@ -109,7 +91,8 @@ export default async function InventoryManager({
           {/* Pagination */}
           <footer className="bg-[#1a1c20] px-6 py-4 border-t border-[#3a3e44] flex items-center justify-between">
             <p className="text-[11px] text-[#738165] font-bold uppercase tracking-wider">
-              Mostrando <span className="text-white"> {total} productos </span>
+              Mostrando{" "}
+              <span className="text-white"> {products.length} productos </span>
             </p>
             {/* <div className="flex gap-1">
                 <PaginationBtn label="Prev" />
@@ -187,24 +170,31 @@ function TableRow({
     >
       <td className="px-6 py-4">
         <div className="flex items-center gap-4">
-          <Image
-            className="size-12 rounded-lg object-cover border  border-gray-700"
-            src={img}
-            alt={name}
-            width={48}
-            height={48}
-          />
+          {img ? (
+            <Image
+              className="size-12 rounded-lg object-cover border  border-gray-700"
+              src={img}
+              alt={name}
+              width={48}
+              height={48}
+            />
+          ) : (
+            <Image
+              className="size-12 rounded-lg object-cover border  border-gray-700"
+              src="/food-avatar.png"
+              alt={name}
+              width={48}
+              height={48}
+            />
+          )}
+
           <div>
-            <p className="font-bold text-sm text-white">
-              {name}
-            </p>
+            <p className="font-bold text-sm text-white">{name}</p>
             {/* <p className="text-[11px] text-[#738165] font-medium">{sub}</p> */}
           </div>
         </div>
       </td>
-      <td className="px-6 py-4 text-sm font-bold text-gray-300">
-        {cat}
-      </td>
+      <td className="px-6 py-4 text-sm font-bold text-gray-300">{cat}</td>
       <td className="px-6 py-4 text-xs font-mono text-gray-400">{sku}</td>
       <td className="px-6 py-4">
         <div className="flex flex-col gap-1.5">

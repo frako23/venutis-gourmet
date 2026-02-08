@@ -94,7 +94,7 @@ export default async function Productos({
         {products.map((product) => (
           <ProductCard
             key={product.id}
-            image={product.imgUrl}
+            image={product.imagenes[0]}
             title={product.nombre}
             price={product.precio}
             desc={product.descripcion}
@@ -158,13 +158,9 @@ function ProductCard({
             return <Star key={i} size={12} fill="currentColor" />;
           if (starValue - 0.5 <= rating)
             return <StarHalf key={i} size={12} fill="currentColor" />;
-          return (
-            <Star key={i} size={12} className="text-gray-600" />
-          );
+          return <Star key={i} size={12} className="text-gray-600" />;
         })}
-        <span className="text-[10px] text-gold/40 ml-1">
-          ({reviews})
-        </span>
+        <span className="text-[10px] text-gold/40 ml-1">({reviews})</span>
       </div>
     );
   };
@@ -201,14 +197,10 @@ function ProductCard({
           <h3 className="text-xl font-serif group-hover:text-gold transition-colors">
             {title}
           </h3>
-          <span className="text-xl font-bold  text-gold">
-            ${price}
-          </span>
+          <span className="text-xl font-bold  text-gold">${price}</span>
         </div>
 
-        <p className="text-sm  text-gold/70 mb-4 line-clamp-2">
-          {desc}
-        </p>
+        <p className="text-sm  text-gold/70 mb-4 line-clamp-2">{desc}</p>
 
         {/* Sección de Inventario / Stock */}
         <div className="mb-6">

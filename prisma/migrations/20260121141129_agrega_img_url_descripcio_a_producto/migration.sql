@@ -1,3 +1,3 @@
 -- AlterTable
 ALTER TABLE "Producto" ADD COLUMN     "descripcion" TEXT,
-ADD COLUMN     "imgUrl" TEXT;
+ADD COLUMN     "imagenes[0]" TEXT;

@@ -136,7 +136,7 @@ export function ProductCard({
               id,
               nombre: title,
               precio: price,
-              imgUrl: image,
+              imagenes[0]: image,
             });
           }}
         >

@@ -5,11 +5,12 @@ import { prisma } from "../prisma";
 
 const ProductSchema = z.object({
   nombre: z.string(),
-  precio: z.number(),
+  precioDetal: z.number(), // Changed from 'precio'
+  precioMayorista: z.number(), // Added new field
   categoria: z.string(),
   inventario: z.number().int(),
   ubicacion: z.string().min(1, "La ubicación es requerida"),
-  imgUrl: z.string(),
+  imagenes: z.string(),
   descripcion: z.string(),
 });
 
@@ -37,36 +38,43 @@ export async function addProduct(
   prevState: { message: string; status: string },
   formData: FormData,
 ): Promise<{ message: string; status: string }> {
+  
+  // 1. Extraemos el JSON de imágenes del input oculto
+  const imagenesRaw = formData.get("imagenes")?.toString();
+  const imagenesData = imagenesRaw ? JSON.parse(imagenesRaw) : [];
+
   const parsed = ProductSchema.safeParse({
     nombre: String(formData.get("nombre")),
-    precio: Number(formData.get("precio")),
+    precioDetal: Number(formData.get("precioDetal")),
+    precioMayorista: Number(formData.get("precioMayorista")),
     categoria: String(formData.get("categoria")),
     inventario: Number(formData.get("inventario")),
-    ubicacion: formData.get("ubicacion")?.toString(),
-    imgUrl: String(formData.get("imgUrl")),
+    ubicacion: formData.get("ubicacion")?.toString() || null,
     descripcion: String(formData.get("descripcion")),
   });
 
   if (!parsed.success) {
-    console.error("Validation errors:", parsed.error.flatten().fieldErrors);
-    return {
-      message: "Datos inválidos, revisa el formulario",
-      status: "error",
-    };
+    return { message: "Datos inválidos", status: "error" };
   }
 
   try {
     await prisma.producto.create({
       data: {
         ...parsed.data,
+        // 2. Creamos múltiples entradas en la tabla Imagen
+        imagenes: {
+          create: imagenesData.map((img: { url: string }) => ({
+            url: img.url,
+          })),
+        },
       },
     });
-  } catch (error) {
-    console.error("Error al agregar cliente:", error);
-    return { message: "Error al registrar cliente", status: "error" };
-  }
 
-  return { message: "Producto agregado exitosamente", status: "success" };
+    return { message: "¡Producto y galería guardados!", status: "success" };
+  } catch (error) {
+    console.error(error);
+    return { message: "Error en la base de datos", status: "error" };
+  }
 }
 
 export async function editProduct(formData: FormData, productoId: number) {
@@ -76,7 +84,7 @@ export async function editProduct(formData: FormData, productoId: number) {
     categoria: String(formData.get("categoria")),
     inventario: Number(formData.get("inventario")),
     ubicacion: formData.get("ubicacion")?.toString(),
-    imgUrl: String(formData.get("imgUrl")),
+    imagenes: String(formData.get("imagenes[0]")),
     descripcion: String(formData.get("descripcion")),
   });
 

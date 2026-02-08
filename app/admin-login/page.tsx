@@ -40,7 +40,7 @@ export default async function AdminLogin() {
             </div>
 
             <h1 className="text-2xl font-bold mb-2 tracking-wide text-white uppercase">
-              Admin Portal
+              Portal Administrativo
             </h1>
             <p className="text-gold text-sm tracking-widest mb-10">
               Venuti's Gourmet
@@ -75,32 +75,19 @@ export default async function AdminLogin() {
                   },
                 }}
               /> */}
-              {/* Divisor de Seguridad */}
-              <div className="flex items-center gap-4 py-2">
-                <div className="flex-1 h-px bg-gold/20"></div>
-                <span className="text-[10px] uppercase tracking-[0.3em] text-gray-500">
-                  Security Encrypted
-                </span>
-                <div className="flex-1 h-px bg-gold/20"></div>
-              </div>
-
-              <p className="text-[10px] text-gray-400 leading-relaxed max-w-[240px] mx-auto">
-                Access is restricted to authorized administrative personnel
-                only.
-              </p>
             </div>
           </div>
 
           {/* Enlace de Regreso */}
           <Link
-            className="mt-8 flex items-center justify-center gap-2 text-xs uppercase tracking-widest text-gray-400 hover:text-gold transition-colors group"
+            className="mt-8 flex items-center justify-center gap-2 text-2xl uppercase tracking-widest text-gray-400 hover:text-gold transition-colors group"
             href="/"
           >
             <ArrowLeft
-              size={14}
+              size={24}
               className="group-hover:-translate-x-1 transition-transform"
             />
-            Back to Storefront
+            Regresar
           </Link>
         </div>
       </main>

@@ -66,12 +66,7 @@ export const PersonalInformation = () => {
           celular: phone,
           tipoCliente: cliente.tipoCliente || "detal",
         });
-        setClient({
-          nombre: cliente.nombre,
-          apellido: cliente.apellido,
-          email: cliente.email ? cliente.email : "",
-          celular: phone,
-        });
+        setClient(cliente);
       } else {
         setIsExistingClient(false); // 👈 Es un cliente nuevo
         // Si no existe, solo actualizamos el celular pero dejamos el resto vacío

@@ -1,20 +1,17 @@
+import AddToCartBlock from "@/components/producto/add-to-cart";
+import { prisma } from "@/lib/prisma";
 import {
-  Star,
-  MapPin,
-  Minus,
-  Plus,
-  ShoppingBag,
-  Truck,
   BadgeCheck,
-  ThumbsUp,
+  EclipseIcon,
+  MapPin,
   MessageSquare,
   PenSquare,
-  EclipseIcon,
+  Star,
+  ThumbsUp,
+  Truck,
 } from "lucide-react";
-import { prisma } from "@/lib/prisma";
-import { notFound } from "next/navigation";
 import Image from "next/image";
-import AddToCartBlock from "@/components/producto/add-to-cart";
+import { notFound } from "next/navigation";
 
 interface Props {
   params: Promise<{ id: number }>;
@@ -73,7 +70,9 @@ export default async function ProductDetail({ params }: Props) {
                 height={1000}
                 alt="Aged Balsamic Vinegar"
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                src={producto.imgUrl || "https://picsum.photos/id/11/600/750"}
+                src={
+                  producto.imagenes[0] || "https://picsum.photos/id/11/600/750"
+                }
               />
               <div className="absolute top-4 left-4 px-3 py-1 bg-primary/90 text-white text-[10px] font-bold uppercase tracking-widest rounded">
                 Best Seller
@@ -90,7 +89,7 @@ export default async function ProductDetail({ params }: Props) {
                     height={200}
                     className="w-full h-full object-cover"
                     src={
-                      producto.imgUrl ||
+                      producto.imagenes[0] ||
                       `https://picsum.photos/id/${img}/200/200`
                     }
                     alt="Gallery thumbnail"

@@ -51,7 +51,7 @@ const AddToCartBlock = ({ producto }: { producto: Producto }) => {
               id: producto.id,
               nombre: producto.nombre,
               precio: producto.precio,
-              imgUrl: producto.imgUrl || "",
+              imagenes[0]: producto.imagenes[0] || "",
             })
           }
         >

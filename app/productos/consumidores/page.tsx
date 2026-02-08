@@ -87,7 +87,7 @@ export default async function Productos({
         {products.map((product) => (
           <ProductCard
             key={product.id}
-            image={product.imgUrl}
+            image={product.imagenes[0]}
             id={product.id}
             title={product.nombre}
             price={product.precio}

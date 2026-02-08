@@ -60,7 +60,7 @@ export default function CheckoutPage() {
                     nombre={product.nombre}
                     desc={product.descripcion}
                     precio={product.precio}
-                    imgUrl={product.imgUrl}
+                    imagenes[0]={product.imagenes[0]}
                     cantidad={product.cantidad}
                     id={product.id}
                     key={product.id}
@@ -182,7 +182,7 @@ export default function CheckoutPage() {
 
 // --- Sub-componentes ---
 
-function CartItem({ nombre, desc, precio, imgUrl, cantidad, id }: any) {
+function CartItem({ nombre, desc, precio, imagenes[0], cantidad, id }: any) {
   const updateQuantity = useAppStore((s) => s.updateQuantity);
 
   return (
@@ -190,7 +190,7 @@ function CartItem({ nombre, desc, precio, imgUrl, cantidad, id }: any) {
       <div className="relative w-24 h-24 shrink-0 overflow-hidden rounded-lg bg-input-dark">
         <Image
           alt={nombre || "Producto Venuti's Gourmet"}
-          src={imgUrl}
+          src={imagenes[0]}
           width={600}
           height={600}
           className="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-500"

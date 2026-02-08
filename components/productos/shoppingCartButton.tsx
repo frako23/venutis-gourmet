@@ -60,7 +60,7 @@ export const ShoppingCartButton = () => {
                     <Image
                       width={48}
                       height={48}
-                      src={product.imgUrl}
+                      src={product.imagenes[0]}
                       alt={product.nombre}
                       className="w-12 h-12 object-cover rounded-lg bg-gray-50"
                     />
