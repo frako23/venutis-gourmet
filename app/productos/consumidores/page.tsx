@@ -2,38 +2,22 @@ import { ProductCard } from "@/components/productos/productCard";
 import { PrismaClient } from "@prisma/client";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-export default async function Productos({
-  searchParams,
-}: {
-  searchParams: Promise<{ q?: string; page?: string }>;
-}) {
+export default async function Productos() {
   // await new Promise((resolve) => setTimeout(resolve, 5000));
-  const params = await searchParams;
-  const q = (params.q ?? "").trim();
-  const pageSize = 12;
-  const page = Math.max(1, Number(params.page ?? "1"));
-
-  const where: any = {
-    ...(q
-      ? {
-          OR: [{ nombre: { contains: q, mode: "insensitive" } }],
-        }
-      : {}),
-  };
   const prisma = new PrismaClient();
-  const [totalCount, products] = await Promise.all([
-    prisma.producto.count({ where }),
+  const [products] = await Promise.all([
     prisma.producto.findMany({
-      where,
       orderBy: { createdAt: "desc" },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
+
+      // AGREGAR ESTO:
+      include: {
+        imagenes: true, // Esto hace el "JOIN" con la tabla de imágenes
+      },
     }),
   ]);
 
-  const total = totalCount;
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  // console.log("Products:", products);
+  console.log(products);
+
   return (
     <main className="flex-1 p-6 lg:p-12 overflow-x-hidden">
       {/* Hero Section */}
@@ -73,7 +57,7 @@ export default async function Productos({
         <h2 className="text-2xl">
           Nuestro Menú{" "}
           <span className="text-gold text-base ml-2 not-italic">
-            ({total} productos)
+            ({products.length} productos)
           </span>
         </h2>
         {/* <div className="flex gap-3 flex-wrap">
@@ -87,11 +71,12 @@ export default async function Productos({
         {products.map((product) => (
           <ProductCard
             key={product.id}
-            image={product.imagenes[0]}
+            image={product.imagenes}
             id={product.id}
             title={product.nombre}
-            price={product.precio}
-            desc={product.descripcion}
+            price={product.precioDetal}
+            desc={product.descripcion || ""}
+            inventario={product.inventario}
           />
         ))}
       </div>

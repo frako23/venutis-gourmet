@@ -38,7 +38,6 @@ export async function addProduct(
   prevState: { message: string; status: string },
   formData: FormData,
 ): Promise<{ message: string; status: string }> {
-  
   // 1. Extraemos el JSON de imágenes del input oculto
   const imagenesRaw = formData.get("imagenes")?.toString();
   const imagenesData = imagenesRaw ? JSON.parse(imagenesRaw) : [];
@@ -77,20 +76,26 @@ export async function addProduct(
   }
 }
 
-export async function editProduct(formData: FormData, productoId: number) {
+export async function editProduct(
+  prevState: { message: string; status: string },
+  formData: FormData,
+  productoId: number,
+) {
+  const imagenesRaw = formData.get("imagenes")?.toString();
+  const imagenesData = imagenesRaw ? JSON.parse(imagenesRaw) : [];
+
   const parsed = ProductSchema.safeParse({
     nombre: String(formData.get("nombre")),
-    precio: Number(formData.get("precio")),
+    precioDetal: Number(formData.get("precioDetal")),
+    precioMayorista: Number(formData.get("precioMayorista")),
     categoria: String(formData.get("categoria")),
     inventario: Number(formData.get("inventario")),
-    ubicacion: formData.get("ubicacion")?.toString(),
-    imagenes: String(formData.get("imagenes[0]")),
+    ubicacion: formData.get("ubicacion")?.toString() || null,
     descripcion: String(formData.get("descripcion")),
   });
 
   if (!parsed.success) {
-    console.error("Validation errors:", parsed.error.flatten().fieldErrors);
-    throw new Error("Invalid form data");
+    return { message: "Datos inválidos, revisa los campos.", status: "error" };
   }
 
   try {
@@ -98,12 +103,18 @@ export async function editProduct(formData: FormData, productoId: number) {
       where: { id: productoId },
       data: {
         ...parsed.data,
+        imagenes: {
+          deleteMany: {},
+          create: imagenesData.map((img: { url: string }) => ({
+            url: img.url,
+          })),
+        },
       },
     });
+
+    return { message: "Producto actualizado con éxito", status: "success" };
   } catch (error) {
     console.error("Error al editar producto:", error);
-    throw new Error("Failed to edit product");
+    return { message: "No se pudo actualizar el producto", status: "error" };
   }
-
-  return { message: "Producto editado exitosamente", status: "success" };
 }

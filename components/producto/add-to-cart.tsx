@@ -1,10 +1,14 @@
 "use client";
 
 import { useAppStore } from "@/store/appStore";
-import { Producto } from "@prisma/client";
+import { Imagen, Producto } from "@prisma/client";
 import { Minus, Plus, ShoppingBag } from "lucide-react";
 
-const AddToCartBlock = ({ producto }: { producto: Producto }) => {
+type ProductoConImagenes = Producto & {
+  imagenes: Imagen[];
+};
+
+const AddToCartBlock = ({ producto }: { producto: ProductoConImagenes }) => {
   const updateQuantity = useAppStore((s) => s.updateQuantity);
   const addToCart = useAppStore((s) => s.addToCart);
   console.log("producto in AddToCartBlock:", producto);
@@ -14,6 +18,9 @@ const AddToCartBlock = ({ producto }: { producto: Producto }) => {
     cantidad: 0,
   };
   console.log("productId in AddToCartBlock:", product);
+
+  const mainImage =
+    producto.imagenes?.[0]?.url || "/images/placeholder-venutis.png";
   return (
     <div className="space-y-4">
       <div className="flex gap-4">
@@ -50,8 +57,8 @@ const AddToCartBlock = ({ producto }: { producto: Producto }) => {
             addToCart({
               id: producto.id,
               nombre: producto.nombre,
-              precio: producto.precio,
-              imagenes[0]: producto.imagenes[0] || "",
+              precio: producto.precioDetal,
+              imagen: mainImage,
             })
           }
         >

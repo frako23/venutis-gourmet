@@ -30,7 +30,11 @@ export default async function ProductDetail({ params }: Props) {
 
   const producto = await prisma.producto.findUnique({
     where: {
-      id: productId, // ✅ Ahora pasamos un Int, no un String
+      id: productId,
+    },
+    // DEBES AÑADIR ESTO:
+    include: {
+      imagenes: true,
     },
   });
 
@@ -70,9 +74,7 @@ export default async function ProductDetail({ params }: Props) {
                 height={1000}
                 alt="Aged Balsamic Vinegar"
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                src={
-                  producto.imagenes[0] || "https://picsum.photos/id/11/600/750"
-                }
+                src={producto.imagenes[0]?.url || "/food-avatar.png"}
               />
               <div className="absolute top-4 left-4 px-3 py-1 bg-primary/90 text-white text-[10px] font-bold uppercase tracking-widest rounded">
                 Best Seller
@@ -88,10 +90,7 @@ export default async function ProductDetail({ params }: Props) {
                     width={200}
                     height={200}
                     className="w-full h-full object-cover"
-                    src={
-                      producto.imagenes[0] ||
-                      `https://picsum.photos/id/${img}/200/200`
-                    }
+                    src={producto.imagenes[0]?.url || "/food-avatar.png"}
                     alt="Gallery thumbnail"
                   />
                 </div>
@@ -122,7 +121,7 @@ export default async function ProductDetail({ params }: Props) {
               </div>
 
               <p className="text-3xl font-bold text-white mb-8">
-                ${producto.precio.toFixed(2)}
+                ${producto.precioDetal.toFixed(2)}
                 {/* <span className="text-lg font-normal text-slate-500 line-through ml-2">
                   $145.00
                 </span> */}

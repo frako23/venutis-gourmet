@@ -60,7 +60,7 @@ export default function CheckoutPage() {
                     nombre={product.nombre}
                     desc={product.descripcion}
                     precio={product.precio}
-                    imagenes[0]={product.imagenes[0]}
+                    imagenes={product.imagenes}
                     cantidad={product.cantidad}
                     id={product.id}
                     key={product.id}
@@ -182,7 +182,7 @@ export default function CheckoutPage() {
 
 // --- Sub-componentes ---
 
-function CartItem({ nombre, desc, precio, imagenes[0], cantidad, id }: any) {
+function CartItem({ nombre, desc, precio, imagenes, cantidad, id }: any) {
   const updateQuantity = useAppStore((s) => s.updateQuantity);
 
   return (

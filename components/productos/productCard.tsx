@@ -3,7 +3,20 @@ import { Eye, ShoppingCart, Star, StarHalf } from "lucide-react";
 
 import { useDolar } from "@/hooks/useDolar";
 import { useAppStore } from "@/store/appStore";
+import { Imagen } from "@prisma/client";
 import Image from "next/image";
+
+interface ProductCardProps {
+  id: number;
+  image: Imagen[];
+  title: string;
+  price: number;
+  badge?: string;
+  badgeColor?: string;
+  rating?: number;
+  inventario: number;
+  desc?: string;
+}
 
 export function ProductCard({
   id,
@@ -11,10 +24,10 @@ export function ProductCard({
   title,
   price,
   badge,
+  inventario,
   badgeColor = "bg-accent-gold",
   rating = 5, // Nueva prop para estrellas
-  stock = 20, // Nueva prop para inventario
-}: any) {
+}: ProductCardProps) {
   const { tasa } = useDolar();
   // Lógica para renderizar estrellas (ej. 4.5)
 
@@ -33,6 +46,7 @@ export function ProductCard({
       </div>
     );
   };
+  const imageSrc = image?.[0]?.url || "/food-avatar.png";
 
   return (
     <div className="group bg-primary/5 rounded-xl overflow-hidden hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 border border-transparent hover:border-primary/10 flex flex-col">
@@ -51,7 +65,7 @@ export function ProductCard({
           width={500}
           height={500}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-          src={image}
+          src={imageSrc}
         />
         <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
           <a
@@ -104,30 +118,32 @@ export function ProductCard({
         <div className="mb-6">
           <div className="flex justify-between items-center mb-1.5 font-century-gothic">
             <span
-              className={`text-[20px] uppercase font-bold tracking-tighter ${stock < 5 ? "text-red-500" : "text-gold"}`}
+              className={`text-[20px] uppercase font-bold tracking-tighter ${inventario < 5 ? "text-red-500" : "text-gold"}`}
             >
-              {stock === 0
+              {inventario === 0
                 ? "Agotado"
-                : stock < 5
-                  ? `Solo quedan ${stock} unidades`
+                : inventario < 5
+                  ? `Solo quedan ${inventario} unidades`
                   : "Disponible"}
             </span>
-            <span className="text-[20px] opacity-70">{stock} unidades</span>
+            <span className="text-[20px] opacity-70">
+              {inventario} unidades
+            </span>
           </div>
           <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
             <div
-              className={`h-full transition-all duration-1000 ${stock < 5 ? "bg-red-500" : "bg-gold"}`}
-              style={{ width: `${Math.min((stock / 20) * 100, 100)}%` }} // Asumiendo 20 como stock "lleno"
+              className={`h-full transition-all duration-1000 ${inventario < 5 ? "bg-red-500" : "bg-gold"}`}
+              style={{ width: `${Math.min((inventario / 20) * 100, 100)}%` }} // Asumiendo 20 como inventario "lleno"
             />
           </div>
         </div>
 
         <button
-          disabled={stock === 0}
+          disabled={inventario === 0}
           className={`mt-auto w-full py-3 rounded-lg  uppercase tracking-widest text-[18px] 
     flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 cursor-pointer font-century-gothic
     ${
-      stock === 0
+      inventario === 0
         ? "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
         : "bg-gold text-primary hover:bg-gold/90 hover:shadow-gold/20 shadow-gold/10"
     }`}
@@ -136,12 +152,12 @@ export function ProductCard({
               id,
               nombre: title,
               precio: price,
-              imagenes[0]: image,
+              imagen: imageSrc,
             });
           }}
         >
           <ShoppingCart size={20} />
-          {stock === 0 ? "Sin Stock" : "Agregar al Carrito"}
+          {inventario === 0 ? "Sin Stock" : "Agregar al Carrito"}
         </button>
       </div>
     </div>
