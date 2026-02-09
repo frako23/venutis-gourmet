@@ -16,8 +16,6 @@ export default async function Productos() {
     }),
   ]);
 
-  console.log(products);
-
   return (
     <main className="flex-1 p-6 lg:p-12 overflow-x-hidden">
       {/* Hero Section */}

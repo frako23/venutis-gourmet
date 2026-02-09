@@ -1,14 +1,12 @@
 import AddToCartBlock from "@/components/producto/add-to-cart";
+import { ReviewButton } from "@/components/producto/review-button";
 import { prisma } from "@/lib/prisma";
 import {
   BadgeCheck,
-  EclipseIcon,
-  MapPin,
   MessageSquare,
   PenSquare,
   Star,
   ThumbsUp,
-  Truck,
 } from "lucide-react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
@@ -129,48 +127,13 @@ export default async function ProductDetail({ params }: Props) {
 
               <div className="space-y-6 pb-8 border-b border-border-dark mb-8 text-slate-300 leading-relaxed">
                 <p>{producto.descripcion}</p>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center gap-3 group">
-                    <div className="p-2 rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
-                      <EclipseIcon size={16} />
-                    </div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                      Certified Organic
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3 group">
-                    <div className="p-2 rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
-                      <MapPin size={16} />
-                    </div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                      Origin: Modena
-                    </span>
-                  </div>
-                </div>
+
               </div>
 
               {/* Add to Cart Block */}
               <AddToCartBlock producto={producto} />
 
-              {/* Shipping Info */}
-              <div className="mt-8 grid grid-cols-2 gap-4 p-4 rounded-xl bg-surface-dark/50 border border-white/5 backdrop-blur-sm">
-                <div className="flex items-center gap-3">
-                  <Truck className="text-slate-400" size={20} />
-                  <div className="text-[10px]">
-                    <p className="text-white font-bold uppercase">
-                      Free Shipping
-                    </p>
-                    <p className="text-slate-500">Orders over $150</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <BadgeCheck className="text-slate-400" size={20} />
-                  <div className="text-[10px]">
-                    <p className="text-white font-bold uppercase">Authentic</p>
-                    <p className="text-slate-500">DOP Protected</p>
-                  </div>
-                </div>
-              </div>
+
             </div>
           </div>
         </section>
@@ -180,7 +143,7 @@ export default async function ProductDetail({ params }: Props) {
           <div className="flex flex-col md:flex-row justify-between items-end gap-8 mb-16">
             <div>
               <h2 className="text-4xl font-black text-white mb-4 tracking-tighter">
-                Customer Reviews
+                Reseñas de nuestros clientes
               </h2>
               <div className="flex items-center gap-6">
                 <div className="text-center">
@@ -197,10 +160,7 @@ export default async function ProductDetail({ params }: Props) {
                 </div>
               </div>
             </div>
-            <button className="bg-surface-dark border border-border-dark text-white font-bold py-3 px-8 rounded-lg hover:border-primary transition-all flex items-center gap-2">
-              <PenSquare size={18} />
-              Write a Review
-            </button>
+            <ReviewButton />
           </div>
 
           {/* Bento Reviews Grid */}

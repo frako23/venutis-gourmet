@@ -6,6 +6,7 @@ import {
   MessageCircleMore,
   ShoppingCart,
 } from "lucide-react";
+import Image from "next/image";
 
 interface ChoiceCardProps {
   icon: LucideIcon;
@@ -32,23 +33,7 @@ export default function StorefrontEntry() {
         {/* Navegación */}
         <header className="relative z-10 w-full px-6 lg:px-20 py-8 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="size-8 text-gold">
-              <svg
-                fill="none"
-                viewBox="0 0 48 48"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  clipRule="evenodd"
-                  d="M24 0.757355L47.2426 24L24 47.2426L0.757355 24L24 0.757355ZM21 35.7574V12.2426L9.24264 24L21 35.7574Z"
-                  fill="currentColor"
-                  fillRule="evenodd"
-                ></path>
-              </svg>
-            </div>
-            <h1 className="text-white text-xl font-century-gothic font-bold tracking-widest uppercase">
-              Venuti's
-            </h1>
+            <Image src="/logo_Venutis.png" alt="Logo Venutis" width={100} height={100} />
           </div>
           <div className="flex gap-8 items-center">
             <a

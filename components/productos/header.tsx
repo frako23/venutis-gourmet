@@ -2,6 +2,7 @@ import { Search } from "lucide-react";
 import Link from "next/link";
 import { LoginButton } from "./loginButton";
 import { ShoppingCartButton } from "./shoppingCartButton";
+import Image from "next/image";
 
 const Header = () => {
   return (
@@ -9,24 +10,8 @@ const Header = () => {
       <div className=" mx-auto flex items-center justify-between gap-8">
         <div className="flex items-center gap-12">
           <Link href="/" className="flex items-center gap-3">
-            <div className="text-gold">
-              <svg
-                className="w-8 h-8"
-                fill="none"
-                viewBox="0 0 48 48"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  clipRule="evenodd"
-                  d="M24 0.757355L47.2426 24L24 47.2426L0.757355 24L24 0.757355ZM21 35.7574V12.2426L9.24264 24L21 35.7574Z"
-                  fill="currentColor"
-                  fillRule="evenodd"
-                ></path>
-              </svg>
-            </div>
-            <h1 className="text-2xl font-black tracking-tight text-gold uppercase">
-              Venuti's
-            </h1>
+                        <Image src="/logo_Venutis.png" alt="Logo Venutis" width={70} height={70} />
+
           </Link>
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium uppercase tracking-widest">
             <a className="hover:text-gold transition-colors" href="/about-us">
