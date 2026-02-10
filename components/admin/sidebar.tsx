@@ -6,9 +6,9 @@ import {
   LucideIcon,
   Settings,
   ShoppingCart,
-  Utensils,
   Warehouse,
 } from "lucide-react";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 interface SidebarProps {
@@ -24,12 +24,16 @@ const Sidebar = () => {
   return (
     <div className="flex h-screen overflow-hidden bg-background-dark selection:bg-primary/20">
       {/* Sidebar Navigation */}
-      <aside className="w-64 flex flex-col border-r border-[#3a3e44] bg-[#1a1c20] z-20">
+      <aside className=" flex flex-col border-r border-[#3a3e44] bg-[#1a1c20] z-20">
         <div className="p-6">
           <div className="flex items-center gap-3">
-            <div className="bg-primary flex items-center justify-center rounded-lg size-10 text-white shadow-lg shadow-primary/20">
-              <Utensils size={20} />
-            </div>
+            <Image
+              src="/logo_Venutis.png"
+              alt="Logo Venutis"
+              width={50}
+              height={50}
+            />
+
             <div className="flex flex-col">
               <h1 className="text-white text-base font-bold leading-tight">
                 Venuti's

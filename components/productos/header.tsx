@@ -1,8 +1,8 @@
 import { Search } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { LoginButton } from "./loginButton";
 import { ShoppingCartButton } from "./shoppingCartButton";
-import Image from "next/image";
 
 const Header = () => {
   return (
@@ -10,8 +10,12 @@ const Header = () => {
       <div className=" mx-auto flex items-center justify-between gap-8">
         <div className="flex items-center gap-12">
           <Link href="/" className="flex items-center gap-3">
-                        <Image src="/logo_Venutis.png" alt="Logo Venutis" width={70} height={70} />
-
+            <Image
+              src="/logo_Venutis.png"
+              alt="Logo Venutis"
+              width={70}
+              height={70}
+            />
           </Link>
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium uppercase tracking-widest">
             <a className="hover:text-gold transition-colors" href="/about-us">

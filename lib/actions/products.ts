@@ -1,17 +1,27 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { prisma } from "../prisma";
 
+interface ProductActionState {
+  message: string;
+  status: string;
+  errors?: Record<string, string[]>; // El '?' significa que es opcional
+}
+
 const ProductSchema = z.object({
-  nombre: z.string(),
-  precioDetal: z.number(), // Changed from 'precio'
-  precioMayorista: z.number(), // Added new field
-  categoria: z.string(),
-  inventario: z.number().int(),
+  nombre: z.string().min(1, "El nombre es obligatorio"),
+  precioDetal: z.coerce.number().positive("El precio debe ser mayor a 0"),
+  precioMayorista: z.coerce.number().positive("El precio debe ser mayor a 0"),
+  categoria: z.string().min(1, "Selecciona una categoría"),
+  inventario: z.coerce
+    .number()
+    .int()
+    .positive("El inventario debe ser mayor a 0"),
   ubicacion: z.string().min(1, "La ubicación es requerida"),
-  imagenes: z.string(),
-  descripcion: z.string(),
+  descripcion: z.string().optional().or(z.literal("")),
 });
 
 export async function deleteProduct(formData: FormData) {
@@ -27,18 +37,20 @@ export async function deleteProduct(formData: FormData) {
         id: Number(id),
       },
     });
+    revalidatePath("/admin/inventory");
   } catch (error) {
     console.error("Error al eliminar el producto:", error);
     return { message: "Error al eliminar el producto", status: "error" };
   }
-  return { message: "Producto eliminado exitosamente", status: "success" };
+  redirect("/admin/inventory");
 }
 
 export async function addProduct(
-  prevState: { message: string; status: string },
+  prevState: ProductActionState, // 2. Actualizamos el tipo del estado previo
   formData: FormData,
-): Promise<{ message: string; status: string }> {
-  // 1. Extraemos el JSON de imágenes del input oculto
+): Promise<ProductActionState> {
+  // 3. Actualizamos el tipo de la Promesa
+
   const imagenesRaw = formData.get("imagenes")?.toString();
   const imagenesData = imagenesRaw ? JSON.parse(imagenesRaw) : [];
 
@@ -53,14 +65,17 @@ export async function addProduct(
   });
 
   if (!parsed.success) {
-    return { message: "Datos inválidos", status: "error" };
+    return {
+      status: "error",
+      message: "Revisa los campos marcados",
+      errors: parsed.error.flatten().fieldErrors,
+    };
   }
 
   try {
     await prisma.producto.create({
       data: {
         ...parsed.data,
-        // 2. Creamos múltiples entradas en la tabla Imagen
         imagenes: {
           create: imagenesData.map((img: { url: string }) => ({
             url: img.url,
@@ -68,20 +83,29 @@ export async function addProduct(
         },
       },
     });
-
-    return { message: "¡Producto y galería guardados!", status: "success" };
+    revalidatePath("/admin/inventory");
   } catch (error) {
     console.error(error);
-    return { message: "Error en la base de datos", status: "error" };
+    return {
+      message: "Error en la base de datos",
+      status: "error",
+      errors: {}, // 4. Mantenemos la consistencia devolviendo un objeto de error vacío
+    };
   }
+
+  redirect("/admin/inventory");
 }
 
 export async function editProduct(
-  prevState: { message: string; status: string },
-  formData: FormData,
   productoId: number,
-) {
+  prevState: ProductActionState, // Usa la interfaz que definimos antes
+  formData: FormData,
+): Promise<ProductActionState> {
   const imagenesRaw = formData.get("imagenes")?.toString();
+
+  // LOG DE SEGURIDAD: Verifica en tu consola qué está llegando realmente
+  console.log("Imagenes recibidas:", imagenesRaw);
+
   const imagenesData = imagenesRaw ? JSON.parse(imagenesRaw) : [];
 
   const parsed = ProductSchema.safeParse({
@@ -95,26 +119,43 @@ export async function editProduct(
   });
 
   if (!parsed.success) {
-    return { message: "Datos inválidos, revisa los campos.", status: "error" };
+    return {
+      status: "error",
+      message: "Revisa los campos marcados",
+      errors: parsed.error.flatten().fieldErrors,
+    };
   }
 
   try {
-    await prisma.producto.update({
-      where: { id: productoId },
-      data: {
-        ...parsed.data,
-        imagenes: {
-          deleteMany: {},
-          create: imagenesData.map((img: { url: string }) => ({
-            url: img.url,
-          })),
+    // Usamos una transacción para asegurar que si algo falla, no se borren las fotos viejas
+    await prisma.$transaction(async (tx) => {
+      // 1. Borramos las relaciones de imágenes actuales
+      await tx.imagen.deleteMany({
+        where: { productoId: productoId },
+      });
+
+      // 2. Actualizamos el producto y creamos las nuevas imágenes
+      await tx.producto.update({
+        where: { id: productoId },
+        data: {
+          ...parsed.data,
+          imagenes: {
+            create: imagenesData.map((img: { url: string }) => ({
+              url: img.url,
+            })),
+          },
         },
-      },
+      });
     });
 
-    return { message: "Producto actualizado con éxito", status: "success" };
+    revalidatePath("/admin/inventory");
   } catch (error) {
     console.error("Error al editar producto:", error);
-    return { message: "No se pudo actualizar el producto", status: "error" };
+    return {
+      message: "No se pudo actualizar el producto",
+      status: "error",
+      errors: {},
+    };
   }
+  redirect("/admin/inventory");
 }

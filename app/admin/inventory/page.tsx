@@ -1,6 +1,7 @@
+import { ActionButton } from "@/components/admin/UI/action-button";
 import { InventoryHeader } from "@/components/admin/UI/inventory-header";
 import { PrismaClient } from "@prisma/client";
-import { Download, Filter, MoreHorizontal } from "lucide-react";
+import { Download, Filter } from "lucide-react";
 import Image from "next/image";
 
 export default async function InventoryManager() {
@@ -64,9 +65,9 @@ export default async function InventoryManager() {
                   <th className="px-6 py-4">Categoría</th>
                   <th className="px-6 py-4">SKU</th>
                   <th className="px-6 py-4">Inventario</th>
-                  <th className="px-6 py-4">Precio al detal</th>
-                  <th className="px-6 py-4">Precio al mayor</th>
-                  <th className="px-6 py-4">Estatus</th>
+                  <th className="px-6 py-4">Precio detal</th>
+                  <th className="px-6 py-4">Precio mayor</th>
+                  <th className="px-6 py-4">Estado</th>
                   <th className="px-6 py-4 text-right">Acciones</th>
                 </tr>
               </thead>
@@ -74,13 +75,14 @@ export default async function InventoryManager() {
                 {products.map((product) => (
                   <TableRow
                     key={product.id}
-                    img={product.imagenes[0]}
+                    img={product.imagenes[0]?.url || "/food-avatar.png"}
                     name={product.nombre}
                     cat={product.categoria}
                     sku={product.id}
-                    stock="4"
+                    stock={product.inventario}
                     total="100"
-                    price={product.precioDetal}
+                    precioDetal={product.precioDetal}
+                    precioMayorista={product.precioMayorista}
                     status="Suficiente"
                   />
                 ))}
@@ -159,34 +161,24 @@ function TableRow({
   sku,
   stock,
   total,
-  price,
+  precioDetal,
+  precioMayorista,
   status,
   urgent = false,
 }: any) {
-  const isOutOfStock = stock === 0;
   return (
     <tr
-      className={` hover:bg-white/5 transition-colors ${urgent ? " bg-red-900/5" : ""} ${isOutOfStock ? "grayscale opacity-60" : ""}`}
+      className={` hover:bg-white/5 transition-colors ${urgent ? " bg-red-900/5" : ""}`}
     >
       <td className="px-6 py-4">
         <div className="flex items-center gap-4">
-          {img ? (
-            <Image
-              className="size-12 rounded-lg object-cover border  border-gray-700"
-              src={img}
-              alt={name}
-              width={48}
-              height={48}
-            />
-          ) : (
-            <Image
-              className="size-12 rounded-lg object-cover border  border-gray-700"
-              src="/food-avatar.png"
-              alt={name}
-              width={48}
-              height={48}
-            />
-          )}
+          <Image
+            className="size-12 rounded-lg object-cover border  border-gray-700"
+            src={img}
+            alt={name}
+            width={48}
+            height={48}
+          />
 
           <div>
             <p className="font-bold text-sm text-white">{name}</p>
@@ -211,7 +203,12 @@ function TableRow({
           </div>
         </div>
       </td>
-      <td className="px-6 py-4 text-sm font-black text-white">${price}</td>
+      <td className="px-6 py-4 text-sm font-black text-white">
+        ${precioDetal}
+      </td>
+      <td className="px-6 py-4 text-sm font-black text-white">
+        ${precioMayorista}
+      </td>
       <td className="px-6 py-4">
         <span
           className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest 
@@ -224,9 +221,7 @@ function TableRow({
         </span>
       </td>
       <td className="px-6 py-4 text-right">
-        <button className="text-gray-400 hover:text-primary transition-colors p-1">
-          <MoreHorizontal size={20} />
-        </button>
+        <ActionButton productId={sku} />
       </td>
     </tr>
   );

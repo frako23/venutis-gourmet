@@ -1,17 +1,22 @@
 "use client";
 
-import { initialState } from "@/components/admin/edit-product/edit-product-form";
 import { Header } from "@/components/admin/UI/header";
 import { Input } from "@/components/admin/UI/input";
 import { Label } from "@/components/admin/UI/label";
-import { addProduct } from "@/lib/actions/products";
+import { editProduct } from "@/lib/actions/products";
+import { ProductoConImagenes } from "@/prisma/types";
 import { CloudUpload, Utensils, X } from "lucide-react";
 import { CldUploadButton } from "next-cloudinary";
 import { useActionState, useEffect, useState } from "react";
-import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 
-// Componente para el mensaje de error debajo de los campos
+export const initialState = {
+  message: "",
+  status: "",
+  errors: {} as Record<string, string[]>, // Para guardar los errores de Zod
+};
+
+// Componente para mostrar el error debajo de cada input
 const FieldError = ({ error }: { error?: string[] }) => {
   if (!error) return null;
   return (
@@ -21,20 +26,25 @@ const FieldError = ({ error }: { error?: string[] }) => {
   );
 };
 
+export const EditProductForm = ({
+  producto,
+}: {
+  producto: ProductoConImagenes;
+}) => {
+  const editProductWithId = editProduct.bind(null, producto.id);
+  const [state, formAction] = useActionState(editProductWithId, initialState);
 
-
-export default function AddProductPage() {
-  const [images, setImages] = useState<any[]>([]);
-  const [state, formAction] = useActionState(addProduct, initialState);
+  // Mantenemos las imágenes iniciales convirtiéndolas al formato de Cloudinary si es necesario
+  const [images, setImages] = useState<any[]>(
+    producto.imagenes?.map((img) => ({ url: img.url, publicId: img.id })) || [],
+  );
 
   useEffect(() => {
     if (state.status === "error") {
       toast.error(state.message || "Ocurrió un error inesperado");
     }
-
     if (state.status === "success") {
-      toast.success(state.message || "¡Producto guardado!");
-      setImages([]); // Limpiar imágenes tras éxito
+      toast.success(state.message || "¡Producto actualizado!");
     }
   }, [state]);
 
@@ -44,34 +54,25 @@ export default function AddProductPage() {
       className="min-h-screen bg-background-dark text-white"
     >
       <main className="max-w-[1100px] mx-auto px-6 py-8">
-        <Header disabledState={false} headerText="Agregar producto" />
+        <Header disabledState={false} headerText="Editar producto" />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Columna Izquierda: Datos del Formulario */}
+          {/* Columna Izquierda: Datos */}
           <div className="lg:col-span-2 space-y-6">
-            <section className="bg-charcoal p-8 rounded-[2rem] border border-border-soft shadow-sm relative overflow-hidden">
+            <section className="bg-charcoal p-8 rounded-[2rem] border border-border-soft relative overflow-hidden">
               <div className="absolute top-0 right-0 p-4 opacity-5">
                 <Utensils size={120} />
-              </div>
-
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-3 bg-gold/10 rounded-2xl">
-                  <Utensils className="text-gold" size={20} />
-                </div>
-                <h3 className="text-xl font-black text-cream uppercase">
-                  Detalles del producto
-                </h3>
               </div>
 
               <div className="space-y-8 max-w-4xl mx-auto">
                 {/* Nombre */}
                 <div className="flex flex-col gap-2">
                   <Label className="text-gold font-bold tracking-widest uppercase text-xs px-1">
-                    Nombre
+                    Nombre del Producto
                   </Label>
                   <Input
-                    placeholder="Ej. Pappardelle al Huevo"
                     name="nombre"
+                    defaultValue={producto.nombre}
                     className={`h-14 rounded-2xl bg-slate-50 text-black font-bold focus:ring-4 focus:ring-gold/10 ${state.errors?.nombre ? "border-red-500 border-2" : "border-slate-100 border-2"}`}
                   />
                   <FieldError error={state.errors?.nombre} />
@@ -85,9 +86,9 @@ export default function AddProductPage() {
                     </Label>
                     <Input
                       type="number"
-                      placeholder="20"
                       name="inventario"
-                      className={`h-14 rounded-2xl bg-slate-50 text-black font-bold ${state.errors?.inventario ? "border-red-500 border-2" : "border-slate-100 border-2"}`}
+                      defaultValue={producto.inventario}
+                      className={`h-14 rounded-2xl bg-slate-50 text-black font-bold ${state.errors?.inventario ? "border-red-500 border-2" : "border-slate-100"}`}
                     />
                     <FieldError error={state.errors?.inventario} />
                   </div>
@@ -104,9 +105,9 @@ export default function AddProductPage() {
                       <Input
                         type="number"
                         step="0.01"
-                        placeholder="0.00"
                         name="precioDetal"
-                        className={`h-14 pl-10 rounded-2xl bg-slate-50 text-black font-bold ${state.errors?.precioDetal ? "border-red-500 border-2" : "border-slate-100 border-2"}`}
+                        defaultValue={producto.precioDetal}
+                        className={`h-14 pl-10 rounded-2xl bg-slate-50 text-black font-bold ${state.errors?.precioDetal ? "border-red-500 border-2" : "border-slate-100"}`}
                       />
                     </div>
                     <FieldError error={state.errors?.precioDetal} />
@@ -124,9 +125,9 @@ export default function AddProductPage() {
                       <Input
                         type="number"
                         step="0.01"
-                        placeholder="0.00"
                         name="precioMayorista"
-                        className={`h-14 pl-10 rounded-2xl bg-slate-50 text-black font-bold ${state.errors?.precioMayorista ? "border-red-500 border-2" : "border-slate-100 border-2"}`}
+                        defaultValue={producto.precioMayorista}
+                        className={`h-14 pl-10 rounded-2xl bg-slate-50 text-black font-bold ${state.errors?.precioMayorista ? "border-red-500 border-2" : "border-slate-100"}`}
                       />
                     </div>
                     <FieldError error={state.errors?.precioMayorista} />
@@ -141,12 +142,9 @@ export default function AddProductPage() {
                     </Label>
                     <select
                       name="categoria"
+                      defaultValue={producto.categoria}
                       className="h-14 w-full rounded-2xl border-2 border-slate-100 bg-slate-50 px-5 font-bold text-slate-700 outline-none focus:border-gold"
-                      defaultValue=""
                     >
-                      <option value="" disabled>
-                        Selecciona categoría
-                      </option>
                       <option value="PASTAS">Pastas</option>
                       <option value="SALSAS">Salsas</option>
                       <option value="PAN_DE_JAMON">Pan de Jamón</option>
@@ -162,6 +160,7 @@ export default function AddProductPage() {
                     </Label>
                     <select
                       name="ubicacion"
+                      defaultValue={producto.ubicacion || ""}
                       className="h-14 w-full rounded-2xl border-2 border-slate-100 bg-slate-50 px-5 font-bold text-slate-700 outline-none focus:border-gold"
                     >
                       <option value="NEVERA 1">Nevera 1</option>
@@ -171,25 +170,11 @@ export default function AddProductPage() {
                     <FieldError error={state.errors?.ubicacion} />
                   </div>
                 </div>
-
-                {/* Descripción */}
-                <div className="flex flex-col gap-2">
-                  <Label className="text-gold font-bold tracking-widest uppercase text-xs px-1">
-                    Descripción
-                  </Label>
-                  <textarea
-                    rows={4}
-                    name="descripcion"
-                    className="w-full rounded-2xl border-2 border-slate-100 bg-slate-50 p-5 font-medium text-slate-700 outline-none focus:border-gold"
-                    placeholder="Detalles del producto..."
-                  />
-                  <FieldError error={state.errors?.descripcion} />
-                </div>
               </div>
             </section>
           </div>
 
-          {/* Columna Derecha: Imágenes y Guardar */}
+          {/* Columna Derecha: Imágenes y Botón */}
           <div className="space-y-6">
             <section className="bg-charcoal p-6 rounded-[2rem] border border-border-soft shadow-sm">
               <h3 className="text-sm font-black text-cream mb-6 uppercase tracking-widest text-center">
@@ -207,10 +192,10 @@ export default function AddProductPage() {
                     },
                   ]);
                 }}
-                className="group w-full border-2 border-dashed border-slate-200 rounded-[1.5rem] p-8 flex flex-col items-center justify-center hover:border-gold hover:bg-gold/5 transition-all bg-slate-50/50 "
+                className="group w-full cursor-pointer border-2 border-dashed border-slate-200 rounded-[1.5rem] p-8 flex flex-col items-center justify-center hover:border-gold hover:bg-gold/5 transition-all bg-slate-50/50"
               >
                 <CloudUpload className="text-gold mb-2" size={24} />
-                <p className="text-[10px] font-black text-slate-700 uppercase group-hover:text-white ">
+                <p className="text-[10px] font-black text-slate-700 uppercase group-hover:text-white">
                   Subir Foto
                 </p>
               </CldUploadButton>
@@ -219,7 +204,7 @@ export default function AddProductPage() {
                 {images.map((img, index) => (
                   <div
                     key={img.publicId}
-                    className="relative aspect-square rounded-2xl overflow-hidden border-2 border-slate-800 group"
+                    className="relative aspect-square rounded-2xl overflow-hidden border-2 border-gold group cursor-pointer"
                   >
                     <div
                       className="w-full h-full bg-cover bg-center"
@@ -230,7 +215,7 @@ export default function AddProductPage() {
                       onClick={() =>
                         setImages(images.filter((_, i) => i !== index))
                       }
-                      className="absolute top-2 right-2 bg-white/90 p-1.5 rounded-full text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute cursor-pointer top-2 right-2 bg-white/90 p-1.5 rounded-full text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <X size={14} />
                     </button>
@@ -244,10 +229,9 @@ export default function AddProductPage() {
                 value={JSON.stringify(images)}
               />
             </section>
-
           </div>
         </div>
       </main>
     </form>
   );
-}
+};

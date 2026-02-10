@@ -1,17 +1,11 @@
 import AddToCartBlock from "@/components/producto/add-to-cart";
 import { ReviewButton } from "@/components/producto/review-button";
 import { prisma } from "@/lib/prisma";
-import {
-  BadgeCheck,
-  MessageSquare,
-  PenSquare,
-  Star,
-  ThumbsUp,
-} from "lucide-react";
+import { BadgeCheck, MessageSquare, Star, ThumbsUp } from "lucide-react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 
-interface Props {
+export interface Props {
   params: Promise<{ id: number }>;
 }
 
@@ -40,9 +34,6 @@ export default async function ProductDetail({ params }: Props) {
     notFound();
   }
 
-  console.log("Producto encontrado:", producto);
-
-  // const [quantity, setQuantity] = useState(1);
 
   return (
     <div className="bg-background-dark text-slate-100 min-h-screen font-century-gothic">
@@ -99,7 +90,7 @@ export default async function ProductDetail({ params }: Props) {
           {/* Right: Product Info */}
           <div className="lg:col-span-5 flex flex-col">
             <div className="sticky top-24">
-              <h1 className="text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-4 font-serif">
+              <h1 className="text-4xl lg:text-5xl text-white leading-tight mb-4 font-good-brush">
                 {producto.nombre}
               </h1>
 
@@ -127,13 +118,10 @@ export default async function ProductDetail({ params }: Props) {
 
               <div className="space-y-6 pb-8 border-b border-border-dark mb-8 text-slate-300 leading-relaxed">
                 <p>{producto.descripcion}</p>
-
               </div>
 
               {/* Add to Cart Block */}
               <AddToCartBlock producto={producto} />
-
-
             </div>
           </div>
         </section>
