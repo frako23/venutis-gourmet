@@ -56,10 +56,12 @@ export default async function InventoryManager() {
         </div>
 
         {/* Product Table */}
-        <div className="bg-[#1a1c20] border border-[#3a3e44] rounded-xl overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead className="bg-[#2c3036] text-gray-400 uppercase text-[10px] font-black tracking-widest">
+        <div className="bg-[#1a1c20] border border-[#3a3e44] rounded-xl overflow-hidden shadow-sm ">
+          <div
+            className={`overflow-x-auto max-h-[60vh] ${products.length < 3 && "pb-24"}`}
+          >
+            <table className="w-full text-left border-collapse ">
+              <thead className="bg-[#2c3036] text-gray-400 uppercase text-[10px] font-black tracking-widest sticky top-0 z-30 shadow-sm">
                 <tr>
                   <th className="px-6 py-4">Información del producto</th>
                   <th className="px-6 py-4">Categoría</th>

@@ -66,9 +66,6 @@ const AddToCartBlock = ({ producto }: { producto: ProductoConImagenes }) => {
           Añadir al Carrito
         </button>
       </div>
-      <button className="w-full py-3 px-8 border border-border-dark text-white font-semibold rounded-lg hover:bg-white/5 transition-colors">
-        Subscribe & Save 15%
-      </button>
     </div>
   );
 };

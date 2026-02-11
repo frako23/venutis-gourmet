@@ -4,11 +4,11 @@ import { initialState } from "@/components/admin/edit-product/edit-product-form"
 import { Header } from "@/components/admin/UI/header";
 import { Input } from "@/components/admin/UI/input";
 import { Label } from "@/components/admin/UI/label";
+import { RichTextEditor } from "@/components/producto/rich-text-editor";
 import { addProduct } from "@/lib/actions/products";
-import { CloudUpload, Utensils, X } from "lucide-react";
+import { CloudUpload, Save, Utensils, X } from "lucide-react";
 import { CldUploadButton } from "next-cloudinary";
 import { useActionState, useEffect, useState } from "react";
-import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 
 // Componente para el mensaje de error debajo de los campos
@@ -21,11 +21,10 @@ const FieldError = ({ error }: { error?: string[] }) => {
   );
 };
 
-
-
 export default function AddProductPage() {
   const [images, setImages] = useState<any[]>([]);
   const [state, formAction] = useActionState(addProduct, initialState);
+  const [descripcionHtml, setDescripcionHtml] = useState(""); // Initialize with empty string for new product
 
   useEffect(() => {
     if (state.status === "error") {
@@ -44,7 +43,7 @@ export default function AddProductPage() {
       className="min-h-screen bg-background-dark text-white"
     >
       <main className="max-w-[1100px] mx-auto px-6 py-8">
-        <Header disabledState={false} headerText="Agregar producto" />
+        <Header headerText="Agregar producto" />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Columna Izquierda: Datos del Formulario */}
@@ -149,9 +148,10 @@ export default function AddProductPage() {
                       </option>
                       <option value="PASTAS">Pastas</option>
                       <option value="SALSAS">Salsas</option>
-                      <option value="PAN_DE_JAMON">Pan de Jamón</option>
-                      <option value="ENCURTIDOS">Encurtidos</option>
+                      <option value="PASTICHOS">Pastichos</option>
                       <option value="POSTRES">Postres</option>
+                      <option value="PANES">Pan</option>
+                      <option value="ENCURTIDOS">Encurtidos</option>
                     </select>
                     <FieldError error={state.errors?.categoria} />
                   </div>
@@ -173,15 +173,22 @@ export default function AddProductPage() {
                 </div>
 
                 {/* Descripción */}
-                <div className="flex flex-col gap-2">
+
+                <div className="flex flex-col gap-3">
                   <Label className="text-gold font-bold tracking-widest uppercase text-xs px-1">
                     Descripción
                   </Label>
-                  <textarea
-                    rows={4}
+
+                  <RichTextEditor
+                    value={descripcionHtml}
+                    onChange={setDescripcionHtml}
+                  />
+
+                  {/* Este input oculto es el que lee el Server Action */}
+                  <input
+                    type="hidden"
                     name="descripcion"
-                    className="w-full rounded-2xl border-2 border-slate-100 bg-slate-50 p-5 font-medium text-slate-700 outline-none focus:border-gold"
-                    placeholder="Detalles del producto..."
+                    value={descripcionHtml}
                   />
                   <FieldError error={state.errors?.descripcion} />
                 </div>
@@ -237,14 +244,27 @@ export default function AddProductPage() {
                   </div>
                 ))}
               </div>
-
+              <div className="flex gap-3">
+                <a
+                  href="/admin/inventory"
+                  className="px-6 py-3 rounded-2xl border-2 border-slate-200 text-slate-400 font-bold hover:bg-slate-50 hover:border-slate-300 transition-all text-sm active:scale-95"
+                >
+                  Descartar
+                </a>
+                <button
+                  type="submit"
+                  className="cursor-pointer flex items-center gap-2 px-8 py-3 rounded-2xl bg-gold text-primary font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:bg-slate-200 transition-all text-xs active:scale-95"
+                >
+                  <Save size={16} />
+                  Guardar
+                </button>
+              </div>
               <input
                 type="hidden"
                 name="imagenes"
                 value={JSON.stringify(images)}
               />
             </section>
-
           </div>
         </div>
       </main>

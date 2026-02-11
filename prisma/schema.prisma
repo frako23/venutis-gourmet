@@ -52,7 +52,6 @@ model Producto {
   precioMayorista Float           @default(0.0)
   categoria       String
   descripcion     String?
-  tipoCliente     TipoCliente     @default(detal)
   inventario      Int             @default(0)
   ubicacion       String?
   imagenes        Imagen[]

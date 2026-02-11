@@ -34,7 +34,6 @@ export default async function ProductDetail({ params }: Props) {
     notFound();
   }
 
-
   return (
     <div className="bg-background-dark text-slate-100 min-h-screen font-century-gothic">
       {/* Top Navigation Bar */}
@@ -57,7 +56,7 @@ export default async function ProductDetail({ params }: Props) {
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-24">
           {/* Left: Image Gallery */}
           <div className="lg:col-span-7 space-y-4">
-            <div className="aspect-[4/5] rounded-xl overflow-hidden bg-surface-dark group relative cursor-zoom-in">
+            <div className="aspect-[1/1] rounded-xl overflow-hidden bg-surface-dark group relative cursor-zoom-in">
               <Image
                 width={800}
                 height={1000}
@@ -65,26 +64,28 @@ export default async function ProductDetail({ params }: Props) {
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 src={producto.imagenes[0]?.url || "/food-avatar.png"}
               />
-              <div className="absolute top-4 left-4 px-3 py-1 bg-primary/90 text-white text-[10px] font-bold uppercase tracking-widest rounded">
+              {/* <div className="absolute top-4 left-4 px-3 py-1 bg-primary/90 text-white text-[10px] font-bold uppercase tracking-widest rounded">
                 Best Seller
+              </div> */}
+            </div>
+            {producto.imagenes.length > 1 && (
+              <div className="grid grid-cols-4 gap-4">
+                {[12, 13, 14, 15].map((img, i) => (
+                  <div
+                    key={img}
+                    className={`aspect-square rounded-lg overflow-hidden cursor-pointer transition-all ${i === 0 ? "border-2 border-primary" : "hover:opacity-80"}`}
+                  >
+                    <Image
+                      width={200}
+                      height={200}
+                      className="w-full h-full object-cover"
+                      src={producto.imagenes[0]?.url || "/food-avatar.png"}
+                      alt="Gallery thumbnail"
+                    />
+                  </div>
+                ))}
               </div>
-            </div>
-            <div className="grid grid-cols-4 gap-4">
-              {[12, 13, 14, 15].map((img, i) => (
-                <div
-                  key={img}
-                  className={`aspect-square rounded-lg overflow-hidden cursor-pointer transition-all ${i === 0 ? "border-2 border-primary" : "hover:opacity-80"}`}
-                >
-                  <Image
-                    width={200}
-                    height={200}
-                    className="w-full h-full object-cover"
-                    src={producto.imagenes[0]?.url || "/food-avatar.png"}
-                    alt="Gallery thumbnail"
-                  />
-                </div>
-              ))}
-            </div>
+            )}
           </div>
 
           {/* Right: Product Info */}
@@ -104,9 +105,9 @@ export default async function ProductDetail({ params }: Props) {
                   4.9 (128 Reviews)
                 </span>
                 <span className="h-4 w-[1px] bg-border-dark"></span>
-                <span className="text-primary text-sm font-semibold uppercase tracking-tighter">
+                {/* <span className="text-primary text-sm font-semibold uppercase tracking-tighter">
                   In Stock
-                </span>
+                </span> */}
               </div>
 
               <p className="text-3xl font-bold text-white mb-8">
@@ -116,9 +117,12 @@ export default async function ProductDetail({ params }: Props) {
                 </span> */}
               </p>
 
-              <div className="space-y-6 pb-8 border-b border-border-dark mb-8 text-slate-300 leading-relaxed">
-                <p>{producto.descripcion}</p>
-              </div>
+              <div
+                className="text-slate-200 text-xl leading-relaxed mb-4 space-y-2 
+             [&>p]:min-h-[1rem] 
+             [&>strong]:text-gold [&>strong]:font-bold"
+                dangerouslySetInnerHTML={{ __html: producto.descripcion || "" }}
+              />
 
               {/* Add to Cart Block */}
               <AddToCartBlock producto={producto} />
@@ -127,78 +131,79 @@ export default async function ProductDetail({ params }: Props) {
         </section>
 
         {/* Customer Reviews Section */}
-        <section className="py-24 border-t border-border-dark">
-          <div className="flex flex-col md:flex-row justify-between items-end gap-8 mb-16">
-            <div>
-              <h2 className="text-4xl font-black text-white mb-4 tracking-tighter">
-                Reseñas de nuestros clientes
-              </h2>
-              <div className="flex items-center gap-6">
-                <div className="text-center">
-                  <p className="text-5xl font-black text-white">4.9</p>
-                  <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">
-                    Average
-                  </p>
-                </div>
-                <div className="h-12 w-[1px] bg-border-dark"></div>
-                <div className="flex-1 min-w-[240px] space-y-2">
-                  <RatingProgress bar="5" percent={92} />
-                  <RatingProgress bar="4" percent={6} />
-                  <RatingProgress bar="3" percent={2} />
+        {false && (
+          <section className="py-24 border-t border-border-dark">
+            <div className="flex flex-col md:flex-row justify-between items-end gap-8 mb-16">
+              <div>
+                <h2 className="text-4xl font-black text-white mb-4 tracking-tighter">
+                  Reseñas de nuestros clientes
+                </h2>
+                <div className="flex items-center gap-6">
+                  <div className="text-center">
+                    <p className="text-5xl font-black text-white">4.9</p>
+                    <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">
+                      Average
+                    </p>
+                  </div>
+                  <div className="h-12 w-[1px] bg-border-dark"></div>
+                  <div className="flex-1 min-w-[240px] space-y-2">
+                    <RatingProgress bar="5" percent={92} />
+                    <RatingProgress bar="4" percent={6} />
+                    <RatingProgress bar="3" percent={2} />
+                  </div>
                 </div>
               </div>
+              <ReviewButton />
             </div>
-            <ReviewButton />
-          </div>
 
-          {/* Bento Reviews Grid */}
-          <div className="">
-            {/* Highlighted Review */}
-            <div className="lg:col-span-2 p-8 rounded-2xl bg-surface-dark border border-border-dark flex flex-col justify-between hover:border-primary/40 transition-colors">
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-4">
-                    <div className="size-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
-                      MD
-                    </div>
-                    <div>
-                      <p className="text-white font-bold text-sm">
-                        Marco Donatelli
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <BadgeCheck size={12} className="text-primary" />
-                        <span className="text-[10px] uppercase font-bold text-slate-500 tracking-tighter">
-                          Verified Gourmet Member
-                        </span>
+            {/* Bento Reviews Grid */}
+            <div className="">
+              {/* Highlighted Review */}
+              <div className="lg:col-span-2 p-8 rounded-2xl bg-surface-dark border border-border-dark flex flex-col justify-between hover:border-primary/40 transition-colors">
+                <div>
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                      <div className="size-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
+                        MD
+                      </div>
+                      <div>
+                        <p className="text-white font-bold text-sm">
+                          Marco Donatelli
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <BadgeCheck size={12} className="text-primary" />
+                          <span className="text-[10px] uppercase font-bold text-slate-500 tracking-tighter">
+                            Verified Gourmet Member
+                          </span>
+                        </div>
                       </div>
                     </div>
+                    <span className="text-xs text-slate-500 font-medium">
+                      3 days ago
+                    </span>
                   </div>
-                  <span className="text-xs text-slate-500 font-medium">
-                    3 days ago
-                  </span>
+                  <div className="flex gap-0.5 mb-4 text-accent">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} size={14} fill="currentColor" />
+                    ))}
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-4">
+                    "Liquid Gold. The complexity is unmatched."
+                  </h3>
+                  <p className="text-slate-400 leading-relaxed mb-6">
+                    I've tried many traditional balsamics, but the Venuti Gold
+                    Reserve is in a class of its own. I used it on a 36-month
+                    aged Parmigiano Reggiano and it was a spiritual experience.
+                  </p>
                 </div>
-                <div className="flex gap-0.5 mb-4 text-accent">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={14} fill="currentColor" />
-                  ))}
+                <div className="flex items-center gap-4 border-t border-border-dark pt-6">
+                  <ReviewAction icon={ThumbsUp} label="Helpful (24)" />
+                  <ReviewAction icon={MessageSquare} label="Reply" />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-4">
-                  "Liquid Gold. The complexity is unmatched."
-                </h3>
-                <p className="text-slate-400 leading-relaxed mb-6">
-                  I've tried many traditional balsamics, but the Venuti Gold
-                  Reserve is in a class of its own. I used it on a 36-month aged
-                  Parmigiano Reggiano and it was a spiritual experience.
-                </p>
               </div>
-              <div className="flex items-center gap-4 border-t border-border-dark pt-6">
-                <ReviewAction icon={ThumbsUp} label="Helpful (24)" />
-                <ReviewAction icon={MessageSquare} label="Reply" />
-              </div>
-            </div>
 
-            {/* Photo Review */}
-            {/* <div className="p-6 rounded-2xl bg-surface-dark/40 border border-border-dark flex flex-col hover:border-primary/40 transition-colors">
+              {/* Photo Review */}
+              {/* <div className="p-6 rounded-2xl bg-surface-dark/40 border border-border-dark flex flex-col hover:border-primary/40 transition-colors">
               <div className="aspect-video w-full rounded-lg overflow-hidden mb-4">
                 <Image
                   width={600}
@@ -216,8 +221,9 @@ export default async function ProductDetail({ params }: Props) {
                 Look at that shine! Perfection on seasonal fruit.
               </p>
             </div> */}
-          </div>
-        </section>
+            </div>
+          </section>
+        )}
       </main>
     </div>
   );

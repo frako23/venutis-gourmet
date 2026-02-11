@@ -3,9 +3,10 @@
 import { Header } from "@/components/admin/UI/header";
 import { Input } from "@/components/admin/UI/input";
 import { Label } from "@/components/admin/UI/label";
+import { RichTextEditor } from "@/components/producto/rich-text-editor";
 import { editProduct } from "@/lib/actions/products";
 import { ProductoConImagenes } from "@/prisma/types";
-import { CloudUpload, Utensils, X } from "lucide-react";
+import { CloudUpload, Save, Utensils, X } from "lucide-react";
 import { CldUploadButton } from "next-cloudinary";
 import { useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -33,6 +34,9 @@ export const EditProductForm = ({
 }) => {
   const editProductWithId = editProduct.bind(null, producto.id);
   const [state, formAction] = useActionState(editProductWithId, initialState);
+  const [descripcionHtml, setDescripcionHtml] = useState(
+    producto.descripcion || "",
+  ); // Initialize with empty string for new product
 
   // Mantenemos las imágenes iniciales convirtiéndolas al formato de Cloudinary si es necesario
   const [images, setImages] = useState<any[]>(
@@ -54,7 +58,7 @@ export const EditProductForm = ({
       className="min-h-screen bg-background-dark text-white"
     >
       <main className="max-w-[1100px] mx-auto px-6 py-8">
-        <Header disabledState={false} headerText="Editar producto" />
+        <Header headerText="Editar producto" />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Columna Izquierda: Datos */}
@@ -147,9 +151,10 @@ export const EditProductForm = ({
                     >
                       <option value="PASTAS">Pastas</option>
                       <option value="SALSAS">Salsas</option>
-                      <option value="PAN_DE_JAMON">Pan de Jamón</option>
-                      <option value="ENCURTIDOS">Encurtidos</option>
+                      <option value="PASTICHOS">Pastichos</option>
                       <option value="POSTRES">Postres</option>
+                      <option value="PANES">Pan</option>
+                      <option value="ENCURTIDOS">Encurtidos</option>
                     </select>
                     <FieldError error={state.errors?.categoria} />
                   </div>
@@ -169,6 +174,24 @@ export const EditProductForm = ({
                     </select>
                     <FieldError error={state.errors?.ubicacion} />
                   </div>
+                </div>
+                <div className="flex flex-col gap-3">
+                  <Label className="text-gold font-bold tracking-widest uppercase text-xs px-1">
+                    Descripción
+                  </Label>
+
+                  <RichTextEditor
+                    value={descripcionHtml}
+                    onChange={setDescripcionHtml}
+                  />
+
+                  {/* Este input oculto es el que lee el Server Action */}
+                  <input
+                    type="hidden"
+                    name="descripcion"
+                    value={descripcionHtml}
+                  />
+                  <FieldError error={state.errors?.descripcion} />
                 </div>
               </div>
             </section>
@@ -222,7 +245,21 @@ export const EditProductForm = ({
                   </div>
                 ))}
               </div>
-
+              <div className="flex gap-3">
+                <a
+                  href="/admin/inventory"
+                  className="px-6 py-3 rounded-2xl border-2 border-slate-200 text-slate-400 font-bold hover:bg-slate-50 hover:border-slate-300 transition-all text-sm active:scale-95"
+                >
+                  Descartar
+                </a>
+                <button
+                  type="submit"
+                  className="cursor-pointer flex items-center gap-2 px-8 py-3 rounded-2xl bg-gold text-primary font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:bg-slate-200 transition-all text-xs active:scale-95"
+                >
+                  <Save size={16} />
+                  Guardar
+                </button>
+              </div>
               <input
                 type="hidden"
                 name="imagenes"
