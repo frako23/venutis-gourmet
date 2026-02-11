@@ -85,7 +85,13 @@ export default async function InventoryManager() {
                     total="100"
                     precioDetal={product.precioDetal}
                     precioMayorista={product.precioMayorista}
-                    status="Suficiente"
+                    status={
+                      product.inventario > 10
+                        ? "Suficiente"
+                        : product.inventario > 1 && product.inventario < 10
+                          ? "Bajo Inventario"
+                          : "Agotado"
+                    }
                   />
                 ))}
               </tbody>
@@ -214,11 +220,23 @@ function TableRow({
       <td className="px-6 py-4">
         <span
           className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest 
-          ${urgent ? " bg-red-900/30 text-red-400" : " bg-emerald-900/30 text-emerald-400"}`}
+          ${
+            status === "Agotado"
+              ? " bg-red-900/30 text-red-400"
+              : status === "Bajo Inventario"
+                ? "bg-yellow-900/30 text-yellow-400"
+                : " bg-emerald-900/30 text-emerald-400"
+          }`}
         >
-          <span
-            className={`size-1.5 rounded-full ${urgent ? "bg-red-500 animate-pulse" : "bg-emerald-500"}`}
-          />
+          {status === "Agotado" && (
+            <span className="size-1.5 rounded-full bg-red-500 animate-pulse" />
+          )}
+          {status === "Bajo Inventario" && (
+            <span className="size-1.5 rounded-full bg-yellow-500 animate-pulse" />
+          )}
+          {status === "Suficiente" && (
+            <span className="size-1.5 rounded-full bg-emerald-500" />
+          )}
           {status}
         </span>
       </td>

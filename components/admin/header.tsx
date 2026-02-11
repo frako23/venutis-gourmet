@@ -41,13 +41,6 @@ const Header = () => {
 
       <div className="flex items-center gap-4">
         <a
-          href="/admin/add-transaction"
-          className="flex items-center gap-2 bg-gold hover:bg-gold/90 text-charcoal px-5 py-2.5 rounded-lg text-sm font-bold shadow-md shadow-primary/10 transition-all active:scale-95"
-        >
-          <Plus size={16} />
-          <span>Agregar venta</span>
-        </a>
-        <a
           href="/admin/add-product"
           className="flex items-center gap-2 bg-gold hover:bg-gold/90 text-charcoal px-5 py-2.5 rounded-lg text-sm font-bold shadow-md shadow-primary/10 transition-all active:scale-95"
         >
