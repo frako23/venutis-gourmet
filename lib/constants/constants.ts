@@ -1,5 +1,7 @@
 // 1. Definimos la unión de tipos para los métodos
 
+import { CakeSlice, CookingPot, LayoutGrid, Soup, SquareStack, Wheat } from "lucide-react";
+
 interface PaymentMethodDetails {
   [key: string]: any;
   instructions: string;
@@ -142,4 +144,52 @@ export const DELIVERY_ZONES = [
   { name: "Caricuao", price: 6 },
   { name: "El Encantado", price: 6 },
   { name: "Oripoto", price: 6 },
+];
+
+export const PRODUCT_ORDER: Record<string, number> = {
+  // PASTAS
+  "RAVIOLI DE CARNE": 1, // Nota: Si el nombre cambia, ajústalo aquí
+  "RAVIOLI DE RICOTTA Y ESPINACA": 2,
+  "RAVIOLI DE RICOTTA Y AJOPORRO": 3,
+  "RAVIOLI DE RICOTTA Y CHAMPIÑONES": 4,
+  "RAVIOLI DE RICOTTA Y TOCINETA AHUMADA": 5,
+  "TORTELLONI DE RICOTTA Y ESPINACA": 6,
+  "TORTELLINI DE CARNE": 7,
+  "GNOCCHI DE PAPAS": 8,
+  "GNOCCHI DE AUYAMA": 9,
+  "MEZZALUNA DE CAMARONES": 10,
+  FUSILLI: 11,
+  CAVATELLI: 12,
+  TAGLIATELLE: 13,
+  "TAGLIATELLE DI SEPPIA": 14,
+
+  // PASTICHOS
+  "PASTICHO TRADICIONAL": 15,
+  "PASTICHO FAMILIAR": 16,
+  "LASAGNA MINI ALBONDIGAS": 17,
+  "BERENJENA A LA PARMESSANA": 18,
+
+  // SALSAS
+  "SALSA NAPOLI": 19,
+  "SALSA BOLOGNA": 20,
+  "SALSA ATÚN": 21,
+  "SALSA CREMA DE CHAMPIÑÓN": 22,
+  "SALSA CUATRO QUESOS": 23,
+  "SALSA PESTO DE ALBAHACA": 24,
+
+  // POSTRES
+  "TRUFAS DE CHOCOLATE": 25,
+  "PANQUÉ DE LIMÓN": 26,
+
+  // BAKERY
+  "PAN DE JAMÓN": 27,
+};
+
+export const CATEGORIAS = [
+  { id: "TODOS", label: "Todos", icon: LayoutGrid },
+  { id: "PASTAS", label: "Pastas", icon: CookingPot },
+  { id: "SALSAS", label: "Salsas", icon: Soup },
+  { id: "PASTICHOS", label: "Pastichos", icon: SquareStack },
+  { id: "POSTRES", label: "Postres", icon: CakeSlice },
+  { id: "BAKERY", label: "Bakery", icon: Wheat },
 ];

@@ -1,10 +1,17 @@
 import { ProductCard } from "@/components/productos/productCard";
+import { PRODUCT_ORDER } from "@/lib/constants/constants";
 import { PrismaClient } from "@prisma/client";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-export default async function Productos() {
+export default async function Productos({
+  searchParams,
+}: {
+  searchParams: Promise<{ categoria?: string }>; // En Next 15, searchParams es una Promise
+}) {
   // await new Promise((resolve) => setTimeout(resolve, 5000));
   const prisma = new PrismaClient();
+  const params = await searchParams;
+  const categoriaSeleccionada = params.categoria || "TODOS";
   const [products] = await Promise.all([
     prisma.producto.findMany({
       orderBy: { createdAt: "desc" },
@@ -15,7 +22,20 @@ export default async function Productos() {
       },
     }),
   ]);
+  console.log(products);
 
+  // Ordenamos los productos usando nuestro mapa de prioridades
+  const sortedProducts = [...products].sort((a, b) => {
+    const orderA = PRODUCT_ORDER[a.nombre.toUpperCase()] || 999;
+    const orderB = PRODUCT_ORDER[b.nombre.toUpperCase()] || 999;
+    return orderA - orderB;
+  });
+  console.log(categoriaSeleccionada);
+  // 2. Luego filtramos por la categoría si existe en la URL
+  const filteredProducts =
+    categoriaSeleccionada !== "TODOS"
+      ? sortedProducts.filter((p) => p.categoria === categoriaSeleccionada)
+      : sortedProducts;
   return (
     <main className="flex-1 p-6 lg:p-12 overflow-x-hidden">
       {/* Hero Section */}
@@ -55,7 +75,7 @@ export default async function Productos() {
         <h2 className="text-2xl">
           Nuestro Menú{" "}
           <span className="text-gold text-base ml-2 not-italic">
-            ({products.length} productos)
+            ({filteredProducts.length} productos)
           </span>
         </h2>
         {/* <div className="flex gap-3 flex-wrap">
@@ -66,12 +86,13 @@ export default async function Productos() {
 
       {/* Product Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-        {products.map((product) => (
+        {filteredProducts.map((product) => (
           <ProductCard
             key={product.id}
             image={product.imagenes}
             id={product.id}
             title={product.nombre}
+            categoria={product.categoria}
             price={product.precioDetal}
             desc={product.descripcion || ""}
             inventario={product.inventario}

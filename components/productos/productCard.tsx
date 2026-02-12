@@ -12,6 +12,7 @@ interface ProductCardProps {
   title: string;
   price: number;
   badge?: string;
+  categoria?: string;
   badgeColor?: string;
   rating?: number;
   inventario: number;
@@ -23,6 +24,7 @@ export function ProductCard({
   image,
   title,
   price,
+  categoria,
   badge,
   inventario,
   badgeColor = "bg-accent-gold",
@@ -80,7 +82,10 @@ export function ProductCard({
       <div className="p-6 flex flex-col flex-1">
         {/* Calificación */}
         <div className="mb-2">{renderStars(rating)}</div>
-
+        {/* Etiqueta de Categoría Distintiva */}
+        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gold/60 border-b border-gold/20 pb-0.5">
+          {categoria}
+        </span>
         <div className="flex justify-between items-start mb-2 font-good-brush">
           <a
             href={`/productos/consumidores/${id}`}
@@ -123,11 +128,11 @@ export function ProductCard({
         <div className="mb-6">
           <div className="flex justify-between items-center mb-1.5 font-century-gothic">
             <span
-              className={`text-[20px] uppercase font-bold tracking-tighter ${inventario < 5 ? "text-red-500" : "text-gold"}`}
+              className={`text-[20px] uppercase font-bold tracking-tighter ${inventario <= 5 ? "text-red-500" : "text-gold"}`}
             >
               {inventario === 0
                 ? "Agotado"
-                : inventario < 5
+                : inventario <= 5
                   ? `Solo quedan ${inventario} unidades`
                   : "Disponible"}
             </span>
@@ -139,7 +144,7 @@ export function ProductCard({
           </div>
           <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
             <div
-              className={`h-full transition-all duration-1000 ${inventario < 5 ? "bg-red-500" : "bg-gold"}`}
+              className={`h-full transition-all duration-1000 ${inventario <= 5 ? "bg-red-500" : "bg-gold"}`}
               style={{ width: `${Math.min((inventario / 20) * 100, 100)}%` }} // Asumiendo 20 como inventario "lleno"
             />
           </div>

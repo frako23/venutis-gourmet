@@ -8,8 +8,7 @@ import { RichTextEditor } from "@/components/producto/richTextEditor";
 import { addProduct } from "@/lib/actions/products";
 import { CloudUpload, Save, Utensils, X } from "lucide-react";
 import { CldUploadButton } from "next-cloudinary";
-import { useActionState, useEffect, useState } from "react";
-import { toast } from "sonner";
+import { useActionState, useState } from "react";
 
 // Componente para el mensaje de error debajo de los campos
 const FieldError = ({ error }: { error?: string[] }) => {
@@ -25,7 +24,6 @@ export default function AddProductPage() {
   const [images, setImages] = useState<any[]>([]);
   const [state, formAction] = useActionState(addProduct, initialState);
   const [descripcionHtml, setDescripcionHtml] = useState(""); // Initialize with empty string for new product
-
 
   return (
     <form
@@ -140,7 +138,7 @@ export default function AddProductPage() {
                       <option value="SALSAS">Salsas</option>
                       <option value="PASTICHOS">Pastichos</option>
                       <option value="POSTRES">Postres</option>
-                      <option value="PANES">Pan</option>
+                      <option value="BAKERY">Bakery</option>
                       <option value="ENCURTIDOS">Encurtidos</option>
                     </select>
                     <FieldError error={state.errors?.categoria} />

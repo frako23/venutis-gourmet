@@ -185,7 +185,7 @@ export const EditProductForm = ({
                       <option value="SALSAS">Salsas</option>
                       <option value="PASTICHOS">Pastichos</option>
                       <option value="POSTRES">Postres</option>
-                      <option value="PANES">Pan</option>
+                      <option value="BAKERY">Bakery</option>
                       <option value="ENCURTIDOS">Encurtidos</option>
                     </select>
                     <FieldError error={state.errors?.categoria} />
