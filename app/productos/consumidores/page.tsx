@@ -42,7 +42,7 @@ export default async function Productos({
         <div
           className="relative aspect-[2.06/1] w-full bg-center bg-cover transition-transform duration-1000 group-hover:scale-105"
           style={{
-            backgroundImage: `url(${categoriaSeleccionada === "BAKERY" ? "/pan1.avif" : categoriaSeleccionada === "PASTAS" ? "/pasta1.avif" : categoriaSeleccionada === "SALSAS" ? "/salsa1.avif" : categoriaSeleccionada === "POSTRES" ? "/postre1.avif" : categoriaSeleccionada === "PASTICHOS" ? "/pasticho1.avif" : "https://lh3.googleusercontent.com/aida-public/AB6AXuD3ptxr431Bb03rx6Bfnn-KP6jUnJBndcQILf74kTCuNQB8yLpPTx5Vtn1a_bxFSiWGuMGbgcM-NFD94AosXBknfdXLnPX9XuXetyDX9RXUEUCFjy5ljIETM8WtZU96QI_BsYVfz7OgK4rJ5VRTVMszwBqDPijvZ2i2SnubtSRv5ZuV6LL9lO0rBhkdIvyh6st2GTUXs5oGSI0w3b6s233q9zP6mbmXFWF0bZ6KSqJj8KciuSO8Qj5UaLFxRjalIgCfZVvfrgCn2bU"})`,
+            backgroundImage: `url(${categoriaSeleccionada === "BAKERY" ? "/pan1.avif" : categoriaSeleccionada === "PASTAS" ? "/pasta1.avif" : categoriaSeleccionada === "SALSAS" ? "/salsa1.avif" : categoriaSeleccionada === "POSTRES" ? "/trufas1.avif" : categoriaSeleccionada === "PASTICHOS" ? "/pasticho1.avif" : "https://lh3.googleusercontent.com/aida-public/AB6AXuD3ptxr431Bb03rx6Bfnn-KP6jUnJBndcQILf74kTCuNQB8yLpPTx5Vtn1a_bxFSiWGuMGbgcM-NFD94AosXBknfdXLnPX9XuXetyDX9RXUEUCFjy5ljIETM8WtZU96QI_BsYVfz7OgK4rJ5VRTVMszwBqDPijvZ2i2SnubtSRv5ZuV6LL9lO0rBhkdIvyh6st2GTUXs5oGSI0w3b6s233q9zP6mbmXFWF0bZ6KSqJj8KciuSO8Qj5UaLFxRjalIgCfZVvfrgCn2bU"})`,
           }}
         />
       </section>
