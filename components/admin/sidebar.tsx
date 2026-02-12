@@ -27,7 +27,7 @@ const Sidebar = () => {
         <div className="p-6">
           <div className="flex items-center gap-3">
             <Image
-              src="/logo_Venutis.png"
+              src="/logo-venutis.avif"
               alt="Logo Venutis"
               width={50}
               height={50}

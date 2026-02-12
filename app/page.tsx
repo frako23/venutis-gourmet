@@ -33,7 +33,12 @@ export default function StorefrontEntry() {
         {/* Navegación */}
         <header className="relative z-10 w-full px-6 lg:px-20 py-8 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <Image src="/logo_Venutis.png" alt="Logo Venutis" width={100} height={100} />
+            <Image
+              src="/logo-venutis.avif"
+              alt="Logo Venutis"
+              width={100}
+              height={100}
+            />
           </div>
           <div className="flex gap-8 items-center">
             <a

@@ -11,7 +11,7 @@ const Header = () => {
         <div className="flex items-center gap-12">
           <Link href="/" className="flex items-center gap-3">
             <Image
-              src="/logo_Venutis.png"
+              src="/logo-venutis.avif"
               alt="Logo Venutis"
               width={70}
               height={70}

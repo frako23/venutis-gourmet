@@ -26,6 +26,18 @@ const centuryGothic = localFont({
 
 export const metadata: Metadata = {
   title: "Venuti's Gourmet | Tienda de Pastas y Productos Artesanales",
+  icons: {
+    icon: [
+      {
+        url: "/icon.avif",
+        type: "image/avif", // Es vital declarar el MIME type
+      },
+      {
+        url: "/icon.png", // Respaldo para navegadores que no lean AVIF
+        type: "image/png",
+      },
+    ],
+  },
   description:
     "Tu destino para adquirir pastas frescas, salsas de autor y productos gourmet. Calidad artesanal garantizada con entrega a domicilio. ¡Vive la experiencia Venuti!",
 };

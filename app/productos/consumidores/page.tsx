@@ -22,7 +22,6 @@ export default async function Productos({
       },
     }),
   ]);
-  console.log(products);
 
   // Ordenamos los productos usando nuestro mapa de prioridades
   const sortedProducts = [...products].sort((a, b) => {
@@ -30,7 +29,6 @@ export default async function Productos({
     const orderB = PRODUCT_ORDER[b.nombre.toUpperCase()] || 999;
     return orderA - orderB;
   });
-  console.log(categoriaSeleccionada);
   // 2. Luego filtramos por la categoría si existe en la URL
   const filteredProducts =
     categoriaSeleccionada !== "TODOS"
@@ -40,34 +38,13 @@ export default async function Productos({
     <main className="flex-1 p-6 lg:p-12 overflow-x-hidden">
       {/* Hero Section */}
       <section className="relative overflow-hidden rounded-2xl mb-16 group">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/90 to-transparent z-10"></div>
+        <div className="absolute inset-0   to-transparent z-10"></div>
         <div
-          className="relative aspect-[21/9] w-full bg-center bg-cover transition-transform duration-1000 group-hover:scale-105"
+          className="relative aspect-[2.06/1] w-full bg-center bg-cover transition-transform duration-1000 group-hover:scale-105"
           style={{
-            backgroundImage: `url('https://lh3.googleusercontent.com/aida-public/AB6AXuD3ptxr431Bb03rx6Bfnn-KP6jUnJBndcQILf74kTCuNQB8yLpPTx5Vtn1a_bxFSiWGuMGbgcM-NFD94AosXBknfdXLnPX9XuXetyDX9RXUEUCFjy5ljIETM8WtZU96QI_BsYVfz7OgK4rJ5VRTVMszwBqDPijvZ2i2SnubtSRv5ZuV6LL9lO0rBhkdIvyh6st2GTUXs5oGSI0w3b6s233q9zP6mbmXFWF0bZ6KSqJj8KciuSO8Qj5UaLFxRjalIgCfZVvfrgCn2bU')`,
+            backgroundImage: `url(${categoriaSeleccionada === "BAKERY" ? "/pan1.avif" : categoriaSeleccionada === "PASTAS" ? "/pasta1.avif" : categoriaSeleccionada === "SALSAS" ? "/salsa1.avif" : categoriaSeleccionada === "POSTRES" ? "/postre1.avif" : categoriaSeleccionada === "PASTICHOS" ? "/pasticho1.avif" : "https://lh3.googleusercontent.com/aida-public/AB6AXuD3ptxr431Bb03rx6Bfnn-KP6jUnJBndcQILf74kTCuNQB8yLpPTx5Vtn1a_bxFSiWGuMGbgcM-NFD94AosXBknfdXLnPX9XuXetyDX9RXUEUCFjy5ljIETM8WtZU96QI_BsYVfz7OgK4rJ5VRTVMszwBqDPijvZ2i2SnubtSRv5ZuV6LL9lO0rBhkdIvyh6st2GTUXs5oGSI0w3b6s233q9zP6mbmXFWF0bZ6KSqJj8KciuSO8Qj5UaLFxRjalIgCfZVvfrgCn2bU"})`,
           }}
         />
-        <div className="absolute inset-0 z-20 flex flex-col justify-center px-12 max-w-2xl">
-          <span className="text-accent-gold font-bold tracking-[0.3em] uppercase text-xs mb-4">
-            Limited Release
-          </span>
-          <h2 className="text-white text-4xl lg:text-6xl font-serif mb-6 leading-tight">
-            The Autumn Harvest Collection
-          </h2>
-          <p className="text-white/80 text-lg mb-8 font-light">
-            Experience the rich, earthy flavors of our seasonal curation.
-            Featuring limited edition aged balsamic and reserve Chianti
-            Classico.
-          </p>
-          <div className="flex gap-4">
-            <button className="bg-primary text-white px-8 py-4 rounded-lg font-bold uppercase tracking-widest text-xs hover:bg-primary/85 transition-all">
-              Shop Collection
-            </button>
-            <button className="bg-white/10 backdrop-blur-md text-white border border-white/20 px-8 py-4 rounded-lg font-bold uppercase tracking-widest text-xs hover:bg-white/20 transition-all">
-              Learn More
-            </button>
-          </div>
-        </div>
       </section>
 
       {/* Product Toolbar */}
