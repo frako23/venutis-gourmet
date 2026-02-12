@@ -1,4 +1,4 @@
-import { useCheckout } from "@/context/checkout-context";
+import { useCheckout } from "@/context/checkoutContext";
 import { ArrowRight } from "lucide-react";
 
 export const CheckoutButton = ({

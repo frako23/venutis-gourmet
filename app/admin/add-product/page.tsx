@@ -1,10 +1,10 @@
 "use client";
 
-import { initialState } from "@/components/admin/edit-product/edit-product-form";
+import { initialState } from "@/components/admin/edit-product/editProductForm";
 import { Header } from "@/components/admin/UI/header";
 import { Input } from "@/components/admin/UI/input";
 import { Label } from "@/components/admin/UI/label";
-import { RichTextEditor } from "@/components/producto/rich-text-editor";
+import { RichTextEditor } from "@/components/producto/richTextEditor";
 import { addProduct } from "@/lib/actions/products";
 import { CloudUpload, Save, Utensils, X } from "lucide-react";
 import { CldUploadButton } from "next-cloudinary";

@@ -3,7 +3,7 @@
 import { Header } from "@/components/admin/UI/header";
 import { Input } from "@/components/admin/UI/input";
 import { Label } from "@/components/admin/UI/label";
-import { CheckoutForm } from "@/components/finalizar-compra/checkout-form";
+import { CheckoutForm } from "@/components/finalizar-compra/checkoutForm";
 import { addProduct } from "@/lib/actions/products";
 import { CheckCircle2, Clock, Hash, Phone } from "lucide-react";
 import { useActionState, useState } from "react";

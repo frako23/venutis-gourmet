@@ -1,5 +1,5 @@
 "use client";
-import { OrderSuccessProps } from "@/components/finalizar-compra/order-success";
+import { OrderSuccessProps } from "@/components/finalizar-compra/orderSuccess";
 import { createContext, useContext, useState } from "react";
 
 const CheckoutContext = createContext<any>(null);

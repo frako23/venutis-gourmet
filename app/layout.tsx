@@ -1,4 +1,4 @@
-import { WhatsAppButton } from "@/components/global/whatssapp-button";
+import { WhatsAppButton } from "@/components/global/whatssappButton";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Toaster } from "sonner";

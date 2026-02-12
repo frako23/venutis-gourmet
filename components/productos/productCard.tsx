@@ -131,9 +131,11 @@ export function ProductCard({
                   ? `Solo quedan ${inventario} unidades`
                   : "Disponible"}
             </span>
-            <span className="text-[20px] opacity-70">
-              {inventario} unidades
-            </span>
+            {inventario > 5 && (
+              <span className="text-[15px] opacity-70">
+                {inventario} unidades
+              </span>
+            )}
           </div>
           <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
             <div

@@ -1,11 +1,11 @@
-import { useCheckout } from "@/context/checkout-context";
+import { useCheckout } from "@/context/checkoutContext";
 import { addClient, getClientByPhone } from "@/lib/actions/clients";
 import { initialState } from "@/lib/constants/constants";
 import { useAppStore } from "@/store/appStore";
 import { UserCircle } from "lucide-react";
 import { useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { CheckoutButton } from "../global/checkout-button";
+import { CheckoutButton } from "../global/checkoutButton";
 import { InputField } from "../global/input";
 
 export const PersonalInformation = () => {

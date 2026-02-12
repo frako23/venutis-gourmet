@@ -1,8 +1,8 @@
-import { useCheckout } from "@/context/checkout-context";
+import { useCheckout } from "@/context/checkoutContext";
 import { useAppStore } from "@/store/appStore";
 import { Truck } from "lucide-react";
-import { CheckoutButton } from "../global/checkout-button";
-import { AddressManager } from "./address-manager";
+import { CheckoutButton } from "../global/checkoutButton";
+import { AddressManager } from "./addressManager";
 
 export const DeliveryInformation = () => {
   const deliveryMethod = useAppStore((s) => s.deliveryMethod);

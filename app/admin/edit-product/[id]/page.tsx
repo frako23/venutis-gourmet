@@ -1,4 +1,4 @@
-import { EditProductForm } from "@/components/admin/edit-product/edit-product-form";
+import { EditProductForm } from "@/components/admin/edit-product/editProductForm";
 import { prisma } from "@/lib/prisma";
 
 // app/admin/edit-product/[id]/page.tsx

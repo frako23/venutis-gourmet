@@ -1,5 +1,5 @@
 "use client";
-import { useCheckout } from "@/context/checkout-context";
+import { useCheckout } from "@/context/checkoutContext";
 import { useDolar } from "@/hooks/useDolar";
 import {
   addAddress,
@@ -11,7 +11,7 @@ import { useAppStore } from "@/store/appStore";
 import { MapPin, MessageCircle, Plus, Trash2 } from "lucide-react";
 import { useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ZoneSelector } from "./zone-selector";
+import { ZoneSelector } from "./zoneSelector";
 
 interface Address {
   id: number;

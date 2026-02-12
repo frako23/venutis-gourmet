@@ -1,8 +1,9 @@
-import AddToCartBlock from "@/components/producto/add-to-cart";
-import { ReviewButton } from "@/components/producto/review-button";
+import AddToCartBlock from "@/components/producto/addToCart";
+import { ImageGalery } from "@/components/producto/imageGalery";
+import { ReviewButton } from "@/components/producto/reviewButton";
+import { SinglePagePricetag } from "@/components/producto/singlePagePricetag";
 import { prisma } from "@/lib/prisma";
 import { BadgeCheck, MessageSquare, Star, ThumbsUp } from "lucide-react";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 
 export interface Props {
@@ -11,7 +12,6 @@ export interface Props {
 
 export default async function ProductDetail({ params }: Props) {
   const { id } = await params;
-
   // Convertimos el string a número entero
   const productId = Number(id);
 
@@ -55,38 +55,7 @@ export default async function ProductDetail({ params }: Props) {
         {/* Product Hero Section */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-24">
           {/* Left: Image Gallery */}
-          <div className="lg:col-span-7 space-y-4">
-            <div className="aspect-[1/1] rounded-xl overflow-hidden bg-surface-dark group relative cursor-zoom-in">
-              <Image
-                width={800}
-                height={1000}
-                alt="Aged Balsamic Vinegar"
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                src={producto.imagenes[0]?.url || "/food-avatar.png"}
-              />
-              {/* <div className="absolute top-4 left-4 px-3 py-1 bg-primary/90 text-white text-[10px] font-bold uppercase tracking-widest rounded">
-                Best Seller
-              </div> */}
-            </div>
-            {producto.imagenes.length > 1 && (
-              <div className="grid grid-cols-4 gap-4">
-                {[12, 13, 14, 15].map((img, i) => (
-                  <div
-                    key={img}
-                    className={`aspect-square rounded-lg overflow-hidden cursor-pointer transition-all ${i === 0 ? "border-2 border-primary" : "hover:opacity-80"}`}
-                  >
-                    <Image
-                      width={200}
-                      height={200}
-                      className="w-full h-full object-cover"
-                      src={producto.imagenes[0]?.url || "/food-avatar.png"}
-                      alt="Gallery thumbnail"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <ImageGalery images={producto.imagenes} />
 
           {/* Right: Product Info */}
           <div className="lg:col-span-5 flex flex-col">
@@ -110,12 +79,7 @@ export default async function ProductDetail({ params }: Props) {
                 </span> */}
               </div>
 
-              <p className="text-3xl font-bold text-white mb-8">
-                ${producto.precioDetal.toFixed(2)}
-                {/* <span className="text-lg font-normal text-slate-500 line-through ml-2">
-                  $145.00
-                </span> */}
-              </p>
+              <SinglePagePricetag precio={producto.precioDetal} />
 
               <div
                 className="text-slate-200 text-xl leading-relaxed mb-4 space-y-2 

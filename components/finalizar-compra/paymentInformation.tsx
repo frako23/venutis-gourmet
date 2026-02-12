@@ -1,4 +1,4 @@
-import { useCheckout } from "@/context/checkout-context";
+import { useCheckout } from "@/context/checkoutContext";
 import { useDolar } from "@/hooks/useDolar";
 import { CheckoutData, procesarCompra } from "@/lib/actions/checkout";
 import { initialState, PAYMENT_DETAILS } from "@/lib/constants/constants";
@@ -6,9 +6,9 @@ import { useAppStore } from "@/store/appStore";
 import { MetodoPago } from "@prisma/client";
 import { Banknote, CreditCard, Landmark, Smartphone } from "lucide-react";
 import { useState } from "react";
-import { CheckoutButton } from "../global/checkout-button";
+import { CheckoutButton } from "../global/checkoutButton";
 import { InputField } from "../global/input";
-import { CopyButton } from "../productos/copy-to-clipboard";
+import { CopyButton } from "../productos/copyToClipboard";
 
 interface PaymentDetails {
   fechaPago: Date;

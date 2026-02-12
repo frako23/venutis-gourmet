@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckoutForm } from "@/components/finalizar-compra/checkout-form";
+import { CheckoutForm } from "@/components/finalizar-compra/checkoutForm";
 import Header from "@/components/productos/header";
 import { useDolar } from "@/hooks/useDolar";
 import { useAppStore } from "@/store/appStore";

@@ -1,14 +1,14 @@
-import { CheckoutProvider, useCheckout } from "@/context/checkout-context";
+import { CheckoutProvider, useCheckout } from "@/context/checkoutContext";
 import { addClient } from "@/lib/actions/clients";
 import { initialState } from "@/lib/constants/constants";
 import { useAppStore } from "@/store/appStore";
 import { useActionState, useEffect } from "react";
 import { toast } from "sonner";
-import { CheckoutLoader } from "./checkout-loader";
-import { DeliveryInformation } from "./delivery-information";
-import { OrderSuccess } from "./order-success";
-import { PaymentInformation } from "./payment-information";
-import { PersonalInformation } from "./personal-information";
+import { CheckoutLoader } from "./checkoutLoader";
+import { DeliveryInformation } from "./deliveryInformation";
+import { OrderSuccess } from "./orderSuccess";
+import { PaymentInformation } from "./paymentInformation";
+import { PersonalInformation } from "./personalInformation";
 
 export const CheckoutForm = ({ metodoDePago }: { metodoDePago: boolean }) => {
   const [state] = useActionState(addClient, initialState);

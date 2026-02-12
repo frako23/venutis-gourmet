@@ -3,7 +3,7 @@
 import { Header } from "@/components/admin/UI/header";
 import { Input } from "@/components/admin/UI/input";
 import { Label } from "@/components/admin/UI/label";
-import { RichTextEditor } from "@/components/producto/rich-text-editor";
+import { RichTextEditor } from "@/components/producto/richTextEditor";
 import { editProduct } from "@/lib/actions/products";
 import { ProductoConImagenes } from "@/prisma/types";
 import { CloudUpload, Save, Utensils, X } from "lucide-react";
