@@ -26,16 +26,6 @@ export default function AddProductPage() {
   const [state, formAction] = useActionState(addProduct, initialState);
   const [descripcionHtml, setDescripcionHtml] = useState(""); // Initialize with empty string for new product
 
-  useEffect(() => {
-    if (state.status === "error") {
-      toast.error(state.message || "Ocurrió un error inesperado");
-    }
-
-    if (state.status === "success") {
-      toast.success(state.message || "¡Producto guardado!");
-      setImages([]); // Limpiar imágenes tras éxito
-    }
-  }, [state]);
 
   return (
     <form

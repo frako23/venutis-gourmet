@@ -4,17 +4,32 @@ import { Header } from "@/components/admin/UI/header";
 import { Input } from "@/components/admin/UI/input";
 import { Label } from "@/components/admin/UI/label";
 import { RichTextEditor } from "@/components/producto/richTextEditor";
+import { SortableImage } from "@/components/producto/sortableImage";
 import { editProduct } from "@/lib/actions/products";
 import { ProductoConImagenes } from "@/prisma/types";
-import { CloudUpload, Save, Utensils, X } from "lucide-react";
+import {
+  closestCenter,
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  rectSortingStrategy,
+  SortableContext,
+  sortableKeyboardCoordinates,
+} from "@dnd-kit/sortable";
+import { CloudUpload, Save, Utensils } from "lucide-react";
 import { CldUploadButton } from "next-cloudinary";
-import { useActionState, useEffect, useState } from "react";
-import { toast } from "sonner";
+import { useActionState, useState } from "react";
 
 export const initialState = {
   message: "",
   status: "",
   errors: {} as Record<string, string[]>, // Para guardar los errores de Zod
+  timestamp: undefined,
 };
 
 // Componente para mostrar el error debajo de cada input
@@ -33,7 +48,10 @@ export const EditProductForm = ({
   producto: ProductoConImagenes;
 }) => {
   const editProductWithId = editProduct.bind(null, producto.id);
-  const [state, formAction] = useActionState(editProductWithId, initialState);
+  const [state, formAction, timestamp] = useActionState(
+    editProductWithId,
+    initialState,
+  );
   const [descripcionHtml, setDescripcionHtml] = useState(
     producto.descripcion || "",
   ); // Initialize with empty string for new product
@@ -43,14 +61,28 @@ export const EditProductForm = ({
     producto.imagenes?.map((img) => ({ url: img.url, publicId: img.id })) || [],
   );
 
-  useEffect(() => {
-    if (state.status === "error") {
-      toast.error(state.message || "Ocurrió un error inesperado");
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // Previene que un click accidental inicie el arrastre
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  const handleDragEnd = (event: any) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      setImages((items) => {
+        const oldIndex = items.findIndex((item) => item.publicId === active.id);
+        const newIndex = items.findIndex((item) => item.publicId === over.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
     }
-    if (state.status === "success") {
-      toast.success(state.message || "¡Producto actualizado!");
-    }
-  }, [state]);
+  };
 
   return (
     <form
@@ -223,28 +255,29 @@ export const EditProductForm = ({
                 </p>
               </CldUploadButton>
 
-              <div className="grid grid-cols-2 gap-3 mt-6">
-                {images.map((img, index) => (
-                  <div
-                    key={img.publicId}
-                    className={`relative aspect-square rounded-2xl overflow-hidden border-2 group cursor-pointer ${index === 0 && "border-gold"}`}
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <div className="grid grid-cols-2 gap-3 mt-6">
+                  <SortableContext
+                    items={images.map((i) => i.publicId)}
+                    strategy={rectSortingStrategy}
                   >
-                    <div
-                      className="w-full h-full bg-cover bg-center"
-                      style={{ backgroundImage: `url('${img.url}')` }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setImages(images.filter((_, i) => i !== index))
-                      }
-                      className="absolute cursor-pointer top-2 right-2 bg-white/90 p-1.5 rounded-full text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                ))}
-              </div>
+                    {images.map((img, index) => (
+                      <SortableImage
+                        key={img.publicId}
+                        img={img}
+                        index={index}
+                        onRemove={(idx: number) =>
+                          setImages(images.filter((_, i) => i !== idx))
+                        }
+                      />
+                    ))}
+                  </SortableContext>
+                </div>
+              </DndContext>
               <div className="flex gap-3 mt-4">
                 <a
                   href="/admin/inventory"

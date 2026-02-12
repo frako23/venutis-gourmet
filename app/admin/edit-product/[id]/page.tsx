@@ -23,7 +23,6 @@ export default async function EditProductPage({
     include: { imagenes: true },
   });
 
-  console.log("producto:", producto);
 
   if (!producto) return <div>Producto no encontrado</div>;
 

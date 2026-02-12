@@ -9,6 +9,7 @@ interface ProductActionState {
   message: string;
   status: string;
   errors?: Record<string, string[]>; // El '?' significa que es opcional
+  timestamp?: number;
 }
 
 const ProductSchema = z.object({
@@ -40,9 +41,11 @@ export async function deleteProduct(formData: FormData) {
     revalidatePath("/admin/inventory");
   } catch (error) {
     console.error("Error al eliminar el producto:", error);
+    redirect("/admin/inventory?status=error");
+
     return { message: "Error al eliminar el producto", status: "error" };
   }
-  redirect("/admin/inventory");
+  redirect("/admin/inventory?status=deleted");
 }
 
 export async function addProduct(
@@ -69,6 +72,7 @@ export async function addProduct(
       status: "error",
       message: "Revisa los campos marcados",
       errors: parsed.error.flatten().fieldErrors,
+      timestamp: Date.now(),
     };
   }
 
@@ -86,14 +90,10 @@ export async function addProduct(
     revalidatePath("/admin/inventory");
   } catch (error) {
     console.error(error);
-    return {
-      message: "Error en la base de datos",
-      status: "error",
-      errors: {}, // 4. Mantenemos la consistencia devolviendo un objeto de error vacío
-    };
+    redirect("/admin/inventory?status=error");
   }
 
-  redirect("/admin/inventory");
+  redirect("/admin/inventory?status=added");
 }
 
 export async function editProduct(
@@ -102,10 +102,6 @@ export async function editProduct(
   formData: FormData,
 ): Promise<ProductActionState> {
   const imagenesRaw = formData.get("imagenes")?.toString();
-
-  // LOG DE SEGURIDAD: Verifica en tu consola qué está llegando realmente
-  console.log("Imagenes recibidas:", imagenesRaw);
-
   const imagenesData = imagenesRaw ? JSON.parse(imagenesRaw) : [];
 
   const parsed = ProductSchema.safeParse({
@@ -123,6 +119,7 @@ export async function editProduct(
       status: "error",
       message: "Revisa los campos marcados",
       errors: parsed.error.flatten().fieldErrors,
+      timestamp: Date.now(),
     };
   }
 
@@ -151,11 +148,7 @@ export async function editProduct(
     revalidatePath("/admin/inventory");
   } catch (error) {
     console.error("Error al editar producto:", error);
-    return {
-      message: "No se pudo actualizar el producto",
-      status: "error",
-      errors: {},
-    };
+    redirect("/admin/inventory?status=error");
   }
-  redirect("/admin/inventory");
+  redirect("/admin/inventory?status=updated");
 }
