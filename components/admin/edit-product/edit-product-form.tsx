@@ -227,7 +227,7 @@ export const EditProductForm = ({
                 {images.map((img, index) => (
                   <div
                     key={img.publicId}
-                    className="relative aspect-square rounded-2xl overflow-hidden border-2 border-gold group cursor-pointer"
+                    className={`relative aspect-square rounded-2xl overflow-hidden border-2 group cursor-pointer ${index === 0 && "border-gold"}`}
                   >
                     <div
                       className="w-full h-full bg-cover bg-center"
@@ -245,7 +245,7 @@ export const EditProductForm = ({
                   </div>
                 ))}
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-3 mt-4">
                 <a
                   href="/admin/inventory"
                   className="px-6 py-3 rounded-2xl border-2 border-slate-200 text-slate-400 font-bold hover:bg-slate-50 hover:border-slate-300 transition-all text-sm active:scale-95"

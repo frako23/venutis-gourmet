@@ -57,9 +57,7 @@ export default async function InventoryManager() {
 
         {/* Product Table */}
         <div className="bg-[#1a1c20] border border-[#3a3e44] rounded-xl overflow-hidden shadow-sm ">
-          <div
-            className={`overflow-x-auto max-h-[60vh] ${products.length < 3 && "pb-24"}`}
-          >
+          <div className="overflow-x-auto max-h-[60vh] pb-24">
             <table className="w-full text-left border-collapse ">
               <thead className="bg-[#2c3036] text-gray-400 uppercase text-[10px] font-black tracking-widest sticky top-0 z-30 shadow-sm">
                 <tr>

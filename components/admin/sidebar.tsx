@@ -2,7 +2,6 @@
 
 import {
   BarChart3,
-  LayoutDashboard,
   LucideIcon,
   Settings,
   ShoppingCart,
@@ -46,23 +45,23 @@ const Sidebar = () => {
         </div>
 
         <nav className="flex-1 px-3 space-y-1">
-          <SidebarLink
+          {/* <SidebarLink
             icon={LayoutDashboard}
             label="Dashboard"
             active={pathname === "/admin/dashboard"}
             link="/admin/dashboard"
+          /> */}
+          <SidebarLink
+            icon={ShoppingCart}
+            label="Transacciones"
+            active={pathname === "/admin/transactions"}
+            link="/admin/transactions"
           />
           <SidebarLink
             icon={Warehouse}
             label="Inventario"
             active={pathname === "/admin/inventory"}
             link="/admin/inventory"
-          />
-          <SidebarLink
-            icon={ShoppingCart}
-            label="Transacciones"
-            active={pathname === "/admin/transactions"}
-            link="/admin/transactions"
           />
 
           <SidebarLink

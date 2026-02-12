@@ -91,9 +91,14 @@ export function ProductCard({
           </a>
           <div className="flex flex-col items-baseline  leading-tight font-century-gothic">
             {/* Precio en Dólares: Destacado a la izquierda */}
-            <span className="text-4xl font-bold text-gold tracking-tighter">
-              ${price}
-            </span>
+            <div className="flex gap-2">
+              <span className="text-xl font-bold text-gold tracking-tighter">
+                ${" "}
+              </span>
+              <span className="text-4xl font-bold text-gold tracking-tighter">
+                {price}
+              </span>
+            </div>
 
             {/* Precio en Bs: Elegante y a la derecha */}
             {tasa > 0 ? (
