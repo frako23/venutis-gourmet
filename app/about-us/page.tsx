@@ -69,7 +69,7 @@ export default function AboutUs() {
                 height={500}
                 alt="Vintage recipe book"
                 className="w-full h-[500px] object-cover sepia-filter rounded shadow-2xl"
-                src="/Nuestra historia A1.avif"
+                src="/Nuestra historia2.avif"
               />
             </div>
           </div>
@@ -90,8 +90,8 @@ export default function AboutUs() {
                 width={800}
                 height={500}
                 alt="Artisanal ingredients"
-                className="w-full h-[500px] object-cover grayscale brightness-75 rounded shadow-2xl"
-                src="/Nuestra historia A2.avif"
+                className="w-full h-[500px] object-cover brightness-75 rounded shadow-2xl"
+                src="/Nuestra historia A1.avif"
               />
             </div>
             <div>
@@ -107,11 +107,11 @@ export default function AboutUs() {
           <p className="text-white text-2xl leading-relaxed mb-6 drop-cap font-century-gothic pt-12">
             Elegimos <span className="font-bold">sémola de calidad</span>,
             rellenos honestos y sabores equilibrados para que cada bocado se
-            sienta auténtico, reconfortable y mmemorable
+            sienta auténtico, reconfortable y inmemorable.
           </p>
           <p className="text-white text-2xl leading-relaxed mb-6 drop-cap font-century-gothic pt-12">
             Hoy, Venuti's llega tanto a hogares que buscan algo especial, como a
-            restaurantes y negocios gastronómicos que valoran la contrancia, la
+            restaurantes y negocios gastronómicos que valoran la constancia, la
             calidad y el detalle. Es tradición, es pasión y es amor por lo bien
             hecho.
           </p>
@@ -132,11 +132,12 @@ export default function AboutUs() {
         <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-12">
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center gap-3 mb-6">
-              <div className="size-6 text-gold">
-                <svg fill="currentColor" viewBox="0 0 48 48">
-                  <path d="M24 0.757355L47.2426 24L24 47.2426L0.757355 24L24 0.757355ZM21 35.7574V12.2426L9.24264 24L21 35.7574Z" />
-                </svg>
-              </div>
+              <Image
+                src="/logo-venutis.avif"
+                alt="Logo Venutis"
+                width={50}
+                height={50}
+              />
               <h1 className="text-white text-lg font-bold tracking-widest uppercase">
                 Venuti's Gourmet
               </h1>
