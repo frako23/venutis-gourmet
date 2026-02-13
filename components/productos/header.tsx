@@ -1,4 +1,3 @@
-import { Search } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { LoginButton } from "./loginButton";
@@ -32,7 +31,7 @@ const Header = () => {
             </a>
           </nav>
         </div>
-
+        {/* 
         <div className="flex flex-1 max-w-md items-center relative">
           <Search className="absolute left-3 text-gold/50" size={18} />
           <input
@@ -40,7 +39,7 @@ const Header = () => {
             placeholder="Buscar tus productos favoritos..."
             type="text"
           />
-        </div>
+        </div> */}
 
         <div className="flex items-center gap-6">
           <LoginButton />
