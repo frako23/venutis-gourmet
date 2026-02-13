@@ -20,7 +20,6 @@ export default function CheckoutPage() {
     // o simplemente marcamos como montado inmediatamente.
     setMounted(true);
   }, []);
-  console.log(selectedProducts);
   // Hasta que el cliente no esté listo, mostramos tu componente de carga
   if (!mounted) {
     return <Loading />;

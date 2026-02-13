@@ -1,5 +1,6 @@
 "use server";
 
+import { Cliente } from "@prisma/client";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { prisma } from "../prisma";
@@ -34,12 +35,12 @@ export async function deleteClient(formData: FormData) {
 }
 
 export async function addClient(
-  prevState: { message: string; status: string; clientId: number | null },
+  prevState: { message: string; status: string; client: Cliente | null },
   formData: FormData,
-): Promise<{ message: string; status: string; clientId: number | null }> {
+): Promise<{ message: string; status: string; client: Cliente | null }> {
   const parsed = ClientSchema.safeParse({
-    nombre: String(formData.get("name")),
-    apellido: String(formData.get("lastname")),
+    nombre: String(formData.get("nombre")),
+    apellido: String(formData.get("apellido")),
     celular: String(formData.get("celular")),
     email: String(formData.get("email")),
     tipoCliente: String(formData.get("tipoCliente")),
@@ -50,10 +51,9 @@ export async function addClient(
     return {
       message: "Datos inválidos, revisa el formulario",
       status: "error",
-      clientId: null,
+      client: null,
     };
   }
-  console.log(parsed.data);
   try {
     const existingClient = await prisma.cliente.findUnique({
       where: { celular: parsed.data.celular },
@@ -63,7 +63,7 @@ export async function addClient(
       return {
         message: "El cliente ya se encuentra registrado",
         status: "error",
-        clientId: existingClient.id,
+        client: existingClient,
       };
     }
 
@@ -75,14 +75,14 @@ export async function addClient(
     return {
       message: "Cliente registrado exitosamente",
       status: "success",
-      clientId: newClient.id,
+      client: newClient,
     };
   } catch (error) {
     console.error("Error al agregar cliente:", error);
     return {
       message: "Error al registrar cliente",
       status: "error",
-      clientId: null,
+      client: null,
     };
   }
 }

@@ -28,6 +28,8 @@ export const LoginButton = () => {
       setIsLoginOpen(false);
     }
   };
+
+  console.log(client);
   return (
     <div className="relative">
       {client ? (

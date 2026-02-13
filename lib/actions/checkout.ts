@@ -1,3 +1,5 @@
+"use server";
+
 import { MetodoPago, TipoRetiro } from "@prisma/client";
 import { prisma } from "../prisma";
 
@@ -27,6 +29,7 @@ export async function procesarCompra(
   prevState: { message: string; status: string; clientId: number | null },
   datos: CheckoutData,
 ) {
+  console.log(datos);
   return await prisma
     .$transaction(async (tx) => {
       try {

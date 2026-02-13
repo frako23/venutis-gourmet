@@ -1,7 +1,6 @@
 import { ProductCard } from "@/components/productos/productCard";
 import { PRODUCT_ORDER } from "@/lib/constants/constants";
 import { PrismaClient } from "@prisma/client";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default async function Productos({
   searchParams,
@@ -75,29 +74,6 @@ export default async function Productos({
             inventario={product.inventario}
           />
         ))}
-      </div>
-
-      {/* Pagination */}
-      <div className="mt-20 flex justify-center items-center gap-4">
-        <button className="w-10 h-10 flex items-center justify-center rounded-full bg-parchment  transition-colors">
-          <ChevronLeft size={20} className="text-primary" />
-        </button>
-        <button className="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-white font-bold">
-          1
-        </button>
-        <button className="w-10 h-10 flex items-center justify-center rounded-full  transition-colors text-primary/60">
-          2
-        </button>
-        <button className="w-10 h-10 flex items-center justify-center rounded-full  transition-colors text-primary/60">
-          3
-        </button>
-        <span className="px-2 text-primary/40">...</span>
-        <button className="w-10 h-10 flex items-center justify-center rounded-full  transition-colors text-primary/60">
-          8
-        </button>
-        <button className="w-10 h-10 flex items-center justify-center rounded-full bg-parchment  transition-colors">
-          <ChevronRight size={20} className="text-primary" />
-        </button>
       </div>
     </main>
   );

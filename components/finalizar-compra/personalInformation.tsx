@@ -1,6 +1,6 @@
 import { useCheckout } from "@/context/checkoutContext";
 import { addClient, getClientByPhone } from "@/lib/actions/clients";
-import { initialState } from "@/lib/constants/constants";
+import { initialStateClient } from "@/lib/constants/constants";
 import { useAppStore } from "@/store/appStore";
 import { UserCircle } from "lucide-react";
 import { useActionState, useEffect, useState } from "react";
@@ -33,16 +33,17 @@ export const PersonalInformation = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [state, formAction, isPending] = useActionState(
     addClient,
-    initialState,
+    initialStateClient,
   );
 
   // Efecto para manejar la respuesta exitosa de la creación de un cliente nuevo
   useEffect(() => {
-    if (state.status === "success" && state.clientId) {
-      setClientId(state.clientId);
+    if (state.status === "success" && state.client) {
+      toast.success("¡Bienvenido!");
+      setClient(state.client);
       nextStep();
     }
-  }, [state, nextStep, setClientId]);
+  }, [state, nextStep]);
 
   // Verificamos si el teléfono tiene al menos una longitud mínima para habilitar el resto
   const isPhoneEmpty = userData.celular.trim().length < 10;

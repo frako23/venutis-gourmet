@@ -6,6 +6,7 @@ import { AddressManager } from "./addressManager";
 
 export const DeliveryInformation = () => {
   const deliveryMethod = useAppStore((s) => s.deliveryMethod);
+  const deliveryPrice = useAppStore((s) => s.deliveryPrice);
   // const setDeliveryMethod = useAppStore((s) => s.setDeliveryMethod);
 
   const { nextStep, canContinue } = useCheckout();
@@ -41,7 +42,7 @@ export const DeliveryInformation = () => {
 
       {deliveryMethod === "envio" ? <AddressManager /> : null}
       <CheckoutButton
-        isPending={canContinue}
+        isPending={canContinue && deliveryPrice}
         type={deliveryMethod === "envio" ? "submit" : "button"}
         onClick={() => nextStep()}
       />

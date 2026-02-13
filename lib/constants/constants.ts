@@ -1,6 +1,14 @@
 // 1. Definimos la unión de tipos para los métodos
 
-import { CakeSlice, CookingPot, LayoutGrid, Soup, SquareStack, Wheat } from "lucide-react";
+import { Cliente } from "@prisma/client";
+import {
+  CakeSlice,
+  CookingPot,
+  LayoutGrid,
+  Soup,
+  SquareStack,
+  Wheat,
+} from "lucide-react";
 
 interface PaymentMethodDetails {
   [key: string]: any;
@@ -44,6 +52,12 @@ export const initialState = {
   message: "",
   status: "",
   clientId: null as number | null,
+};
+
+export const initialStateClient = {
+  message: "",
+  status: "",
+  client: null as Cliente | null,
 };
 
 export const DELIVERY_ZONES = [

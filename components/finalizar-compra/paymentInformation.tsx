@@ -25,13 +25,9 @@ export const PaymentInformation = () => {
   const selectedProducts = useAppStore((s) => s.selectedProducts);
   const { tasa } = useDolar();
   const totalUSD = useAppStore((s) => s.totalUSD);
-  const {
-    setCanContinue,
-    clientId,
-    setIsSubmitting,
-    isSubmitting,
-    setOrderFinished,
-  } = useCheckout();
+  const client = useAppStore((s) => s.client);
+  const { setCanContinue, setIsSubmitting, isSubmitting, setOrderFinished } =
+    useCheckout();
 
   const [paymentRecord, setPaymentRecord] = useState<PaymentDetails | null>(
     null,
@@ -46,7 +42,7 @@ export const PaymentInformation = () => {
     setPaymentRecord((prev) => {
       // 1. Definimos los valores por defecto para un registro nuevo
       const initialValues: PaymentDetails = {
-        metodoPago: "PAGO_MOVIL" as MetodoPago,
+        metodoPago: "PagoMovil" as MetodoPago,
         fechaPago: new Date(),
         montoUsd: 0,
         montoBs: 0,
@@ -88,7 +84,7 @@ export const PaymentInformation = () => {
 
   const handleSubmit = async () => {
     // 1. Validaciones previas
-    if (!clientId || !paymentRecord) return;
+    if (!client?.id || !paymentRecord) return;
 
     // 2. Encender el loader
     setIsSubmitting(true);
@@ -103,7 +99,7 @@ export const PaymentInformation = () => {
       }));
 
       const datos: CheckoutData = {
-        clientId,
+        clientId: client?.id!,
         montoTotal: totalPago,
         tipodeRetiro: deliveryMethod,
         total: itemsParaOrden.length,
