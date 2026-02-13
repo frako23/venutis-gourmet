@@ -1,244 +1,183 @@
-import { PrismaClient } from "@prisma/client";
 import {
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  Eye,
-  ShoppingCart,
-  Star,
-  StarHalf,
+  Globe,
+  Headset,
+  Mail,
+  MapPin,
+  MessageCircle,
+  Phone,
+  Share2,
+  ShieldCheck,
+  Truck,
 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
-export default async function Productos({
-  searchParams,
-}: {
-  searchParams: Promise<{ q?: string; page?: string }>;
-}) {
-  const params = await searchParams;
-  const q = (params.q ?? "").trim();
-  const pageSize = 12;
-  const page = Math.max(1, Number(params.page ?? "1"));
-
-  const where: any = {
-    ...(q
-      ? {
-          OR: [{ nombre: { contains: q, mode: "insensitive" } }],
-        }
-      : {}),
-  };
-  const prisma = new PrismaClient();
-  const [totalCount, products] = await Promise.all([
-    prisma.producto.count({ where }),
-    prisma.producto.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-    }),
-  ]);
-
-  const total = totalCount;
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  console.log("Products:", products);
+export default function MayoristaPage() {
   return (
-    <main className="flex-1 p-6 lg:p-12 overflow-x-hidden">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden rounded-2xl mb-16 group">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/90 to-transparent z-10"></div>
-        <div
-          className="relative aspect-[21/9] w-full bg-center bg-cover transition-transform duration-1000 group-hover:scale-105"
-          style={{
-            backgroundImage: `url('https://lh3.googleusercontent.com/aida-public/AB6AXuD3ptxr431Bb03rx6Bfnn-KP6jUnJBndcQILf74kTCuNQB8yLpPTx5Vtn1a_bxFSiWGuMGbgcM-NFD94AosXBknfdXLnPX9XuXetyDX9RXUEUCFjy5ljIETM8WtZU96QI_BsYVfz7OgK4rJ5VRTVMszwBqDPijvZ2i2SnubtSRv5ZuV6LL9lO0rBhkdIvyh6st2GTUXs5oGSI0w3b6s233q9zP6mbmXFWF0bZ6KSqJj8KciuSO8Qj5UaLFxRjalIgCfZVvfrgCn2bU')`,
-          }}
-        />
-        <div className="absolute inset-0 z-20 flex flex-col justify-center px-12 max-w-2xl">
-          <span className="text-accent-gold font-bold tracking-[0.3em] uppercase text-xs mb-4">
-            Limited Release
-          </span>
-          <h2 className="text-white text-4xl lg:text-6xl font-serif mb-6 leading-tight">
-            The Autumn Harvest Collection
-          </h2>
-          <p className="text-white/80 text-lg mb-8 font-light">
-            Experience the rich, earthy flavors of our seasonal curation.
-            Featuring limited edition aged balsamic and reserve Chianti
-            Classico.
-          </p>
-          <div className="flex gap-4">
-            <button className="bg-primary text-white px-8 py-4 rounded-lg font-bold uppercase tracking-widest text-xs hover:bg-primary/85 transition-all">
-              Shop Collection
-            </button>
-            <button className="bg-white/10 backdrop-blur-md text-white border border-white/20 px-8 py-4 rounded-lg font-bold uppercase tracking-widest text-xs hover:bg-white/20 transition-all">
-              Learn More
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Product Toolbar */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 border-b border-primary/5 pb-6">
-        <h2 className="text-2xl font-serif">
-          Curated Wines{" "}
-          <span className="text-primary/30 text-base font-sans ml-2 not-italic">
-            (42 items)
-          </span>
-        </h2>
-        <div className="flex gap-3 flex-wrap">
-          <ToolbarButton label="Sort: Featured" />
-          <ToolbarButton label="Price: Low-High" />
-        </div>
-      </div>
-
-      {/* Product Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-        {products.map((product) => (
-          <ProductCard
-            key={product.id}
-            image={"/food-avatar.png"}
-            title={product.nombre}
-            price={product.precioMayorista}
-            desc={product.descripcion}
+    <div className="bg-background-dark text-white min-h-screen flex flex-col selection:bg-accent-gold/30 font-sans">
+      {/* Hero / Main Section */}
+      <main className="relative flex-1 flex flex-col items-center justify-center p-6 overflow-hidden">
+        {/* Background Overlay Replacement */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="https://images.unsplash.com/photo-1516594798947-e65505dbb29d?q=80&w=2070"
+            alt="Fondo Gourmet"
+            fill
+            className="object-cover opacity-20"
+            priority
           />
-        ))}
-      </div>
+          <div className="absolute inset-0 bg-gradient-to-b from-background-dark/80 via-background-dark/90 to-background-dark" />
+        </div>
 
-      {/* Pagination */}
-      <div className="mt-20 flex justify-center items-center gap-4">
-        <button className="w-10 h-10 flex items-center justify-center rounded-full  bg-parchment  transition-colors">
-          <ChevronLeft size={20} className="text-primary " />
-        </button>
-        <button className="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-white font-bold">
-          1
-        </button>
-        <button className="w-10 h-10 flex items-center justify-center rounded-full  transition-colors text-primary/60">
-          2
-        </button>
-        <button className="w-10 h-10 flex items-center justify-center rounded-full  transition-colors text-primary/60">
-          3
-        </button>
-        <span className="px-2 text-primary/40">...</span>
-        <button className="w-10 h-10 flex items-center justify-center rounded-full  transition-colors text-primary/60">
-          8
-        </button>
-        <button className="w-10 h-10 flex items-center justify-center rounded-full  bg-parchment  transition-colors">
-          <ChevronRight size={20} className="text-primary " />
-        </button>
-      </div>
-    </main>
-  );
-}
+        {/* Navigation Header */}
 
-function ToolbarButton({ label }: { label: string }) {
-  return (
-    <button className="flex items-center gap-2 px-4 py-2  bg-primary/10 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-primary/5 transition-colors">
-      <span>{label}</span>
-      <ChevronDown size={14} />
-    </button>
-  );
-}
+        {/* Central Card Container */}
+        <div className="w-full max-w-3xl z-10 animate-in fade-in duration-1000">
+          <div className="bg-charcoal-brown border border-accent-gold rounded-xl p-8 md:p-16 shadow-[0_20px_50px_rgba(0,0,0,0.5)] text-center relative overflow-hidden">
+            {/* Decorative element */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-1 bg-accent-gold"></div>
 
-function ProductCard({
-  image,
-  title,
-  price,
-  desc,
-  badge,
-  badgeColor = "bg-accent-gold",
-  rating = 5, // Nueva prop para estrellas
-  reviews = 3, // Nueva prop para número de reseñas
-  stock = 5, // Nueva prop para inventario
-}: any) {
-  // Lógica para renderizar estrellas (ej. 4.5)
-  const renderStars = (rating: number) => {
-    return (
-      <div className="flex items-center gap-0.5 text-accent-gold">
-        {[...Array(5)].map((_, i) => {
-          const starValue = i + 1;
-          if (starValue <= rating)
-            return <Star key={i} size={12} fill="currentColor" />;
-          if (starValue - 0.5 <= rating)
-            return <StarHalf key={i} size={12} fill="currentColor" />;
-          return <Star key={i} size={12} className="text-gray-600" />;
-        })}
-        <span className="text-[10px] text-gold/40 ml-1">({reviews})</span>
-      </div>
-    );
-  };
+            <header className="mb-10">
+              <h1 className="font-good-brush text-4xl md:text-6xl font-bold leading-tight mb-6 text-white tracking-tight">
+                Portal Mayorista <br />
+                <span className="italic text-accent-gold">en Construcción</span>
+              </h1>
+              <div className="w-16 h-[1px] bg-accent-gold/40 mx-auto mb-8"></div>
+              <p className="text-lg text-white/80 leading-relaxed max-w-xl mx-auto font-light">
+                Estamos diseñando una nueva experiencia digital exclusiva para
+                nuestros socios comerciales. Muy pronto podrá gestionar sus
+                pedidos con la excelencia de siempre.
+              </p>
+            </header>
 
-  return (
-    <div className="group bg-primary/5 rounded-xl overflow-hidden hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 border border-transparent hover:border-primary/10 flex flex-col">
-      <div className="relative aspect-[4/5] overflow-hidden">
-        {badge && (
-          <div className="absolute top-4 left-4 z-10">
-            <span
-              className={`${badgeColor} text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full`}
+            <div className="flex flex-col items-center gap-6">
+              <Link
+                href="https://wa.me/123456789"
+                className="group flex items-center justify-center gap-3 bg-primary hover:bg-primary/90 text-white px-8 py-5 rounded-lg font-bold tracking-wider uppercase text-sm transition-all transform hover:-translate-y-1 w-full md:w-auto"
+              >
+                <MessageCircle className="text-accent-gold w-5 h-5" />
+                Finalizar pedido por WhatsApp
+              </Link>
+              <p className="text-white/50 text-xs tracking-widest uppercase font-medium">
+                Atención Personalizada de Lunes a Viernes
+              </p>
+            </div>
+
+            {/* Feature badges */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-16 pt-8 border-t border-white/5">
+              <div className="flex flex-col items-center gap-2">
+                <ShieldCheck className="text-accent-gold w-6 h-6" />
+                <span className="text-[10px] uppercase tracking-widest text-white/60 text-center">
+                  Garantía de Calidad
+                </span>
+              </div>
+              <div className="flex flex-col items-center gap-2">
+                <Truck className="text-accent-gold w-6 h-6" />
+                <span className="text-[10px] uppercase tracking-widest text-white/60 text-center">
+                  Logística Premium
+                </span>
+              </div>
+              <div className="flex flex-col items-center gap-2">
+                <Headset className="text-accent-gold w-6 h-6" />
+                <span className="text-[10px] uppercase tracking-widest text-white/60 text-center">
+                  Soporte Dedicado
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Scroll indicator */}
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-40">
+          <div className="w-[1px] h-12 bg-accent-gold"></div>
+        </div>
+      </main>
+
+      {/* Refined Footer */}
+      <footer className="bg-background-dark border-t border-white/5 py-12 px-6">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-start gap-10">
+          <div className="space-y-4">
+            <h3 className="font-serif text-lg font-bold text-accent-gold">
+              Venuti's Gourmet
+            </h3>
+            <p className="text-white/50 text-sm max-w-xs leading-relaxed">
+              Proveedores de excelencia para la industria gastronómica y retail
+              de lujo desde 1998.
+            </p>
+            <div className="flex gap-4 pt-2">
+              <Link
+                href="#"
+                className="text-white/60 hover:text-accent-gold transition-colors"
+              >
+                <Globe size={20} />
+              </Link>
+              <Link
+                href="#"
+                className="text-white/60 hover:text-accent-gold transition-colors"
+              >
+                <Share2 size={20} />
+              </Link>
+              <Link
+                href="#"
+                className="text-white/60 hover:text-accent-gold transition-colors"
+              >
+                <Mail size={20} />
+              </Link>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-12">
+            <div className="space-y-4">
+              <h4 className="uppercase tracking-widest text-xs font-bold text-white">
+                Contacto Directo
+              </h4>
+              <ul className="text-sm space-y-3 text-white/60">
+                <li className="flex items-center gap-2">
+                  <Phone size={14} className="text-accent-gold" /> +54 11
+                  1234-5678
+                </li>
+                <li className="flex items-center gap-2">
+                  <Mail size={14} className="text-accent-gold" />{" "}
+                  mayoristas@venutisgourmet.com
+                </li>
+              </ul>
+            </div>
+            <div className="space-y-4">
+              <h4 className="uppercase tracking-widest text-xs font-bold text-white">
+                Oficinas
+              </h4>
+              <ul className="text-sm space-y-3 text-white/60">
+                <li className="flex items-start gap-2">
+                  <MapPin size={14} className="text-accent-gold mt-1" />
+                  Distrito Gourmet, Calle 15
+                  <br />
+                  Buenos Aires, Argentina
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-6xl mx-auto mt-16 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-white/30">
+            © 2024 Venuti's Gourmet. Todos los derechos reservados.
+          </p>
+          <div className="flex gap-6">
+            <Link
+              href="#"
+              className="text-[10px] uppercase tracking-[0.2em] text-white/30 hover:text-white transition-colors"
             >
-              {badge}
-            </span>
-          </div>
-        )}
-        <Image
-          alt={title}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-          src={image}
-        />
-        <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
-          <button className="bg-white text-primary p-3 rounded-full hover:bg-gold hover:text-white transition-all shadow-xl">
-            <Eye size={20} />
-          </button>
-        </div>
-      </div>
-
-      <div className="p-6 flex flex-col flex-1">
-        {/* Calificación */}
-        <div className="mb-2">{renderStars(rating)}</div>
-
-        <div className="flex justify-between items-start mb-2">
-          <h3 className="text-xl font-serif group-hover:text-gold transition-colors">
-            {title}
-          </h3>
-          <span className="text-xl font-bold  text-gold">${price}</span>
-        </div>
-
-        <p className="text-sm  text-gold/70 mb-4 line-clamp-2">{desc}</p>
-
-        {/* Sección de Inventario / Stock */}
-        <div className="mb-6">
-          <div className="flex justify-between items-center mb-1.5">
-            <span
-              className={`text-[10px] uppercase font-bold tracking-tighter ${stock < 5 ? "text-red-500" : " text-gold/40"}`}
+              Privacidad
+            </Link>
+            <Link
+              href="#"
+              className="text-[10px] uppercase tracking-[0.2em] text-white/30 hover:text-white transition-colors"
             >
-              {stock === 0
-                ? "Out of Stock"
-                : stock < 5
-                  ? `Only ${stock} left in stock`
-                  : "In Stock"}
-            </span>
-            <span className="text-[10px] font-mono opacity-40">
-              {stock} units
-            </span>
-          </div>
-          <div className="h-1 w-full  bg-white/5 rounded-full overflow-hidden">
-            <div
-              className={`h-full transition-all duration-1000 ${stock < 5 ? "bg-red-500" : " bg-gold"}`}
-              style={{ width: `${Math.min((stock / 20) * 100, 100)}%` }} // Asumiendo 20 como stock "lleno"
-            />
+              Términos
+            </Link>
           </div>
         </div>
-
-        <button
-          disabled={stock === 0}
-          className={`mt-auto w-full py-3 rounded-lg font-bold uppercase tracking-widest text-[11px] flex items-center justify-center gap-2 transition-all shadow-lg 
-            ${
-              stock === 0
-                ? "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
-                : "bg-primary text-white hover:bg-primary/90 shadow-primary/10"
-            }`}
-        >
-          <ShoppingCart size={14} />
-          {stock === 0 ? "Sold Out" : "Add to Cart"}
-        </button>
-      </div>
+      </footer>
     </div>
   );
 }

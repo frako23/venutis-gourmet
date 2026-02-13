@@ -24,6 +24,12 @@ const nextConfig: NextConfig = {
         hostname: "googleusercontent.com",
         pathname: "/profile/picture/**",
       },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
 };

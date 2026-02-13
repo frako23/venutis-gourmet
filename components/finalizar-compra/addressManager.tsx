@@ -22,7 +22,7 @@ interface Address {
 
 export function AddressManager() {
   const [addresses, setAddresses] = useState<Address[] | null>([]);
-  const { setCanContinue, clientId } = useCheckout();
+  const { setCanContinue } = useCheckout();
   const [selectedAddress, setSelectedAddress] = useState<number | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const setDeliveyPrice = useAppStore((s) => s.setDeliveryPrice);
@@ -49,8 +49,8 @@ export function AddressManager() {
   );
 
   async function loadAddresses() {
-    if (clientId || client?.id) {
-      const data = await getAddressesByClient(clientId || client?.id);
+    if (client?.id) {
+      const data = await getAddressesByClient(client?.id);
       // Mapeamos los campos si los nombres en DB son diferentes a tu interfaz
       setAddresses(data as Address[]);
       console.log("paso por aqui");
@@ -63,7 +63,7 @@ export function AddressManager() {
   console.log("cliente", client);
   useEffect(() => {
     loadAddresses();
-  }, [clientId, client?.id]);
+  }, [client?.id]);
 
   useEffect(() => {
     // Asumiendo que tu Server Action devuelve algo como { success: true }
@@ -175,7 +175,7 @@ Quedo atento para coordinar la entrega.`;
       {isAdding && (
         <div className="p-6 bg-white/[0.02] border border-dashed border-white/20 rounded-2xl animate-in fade-in slide-in-from-top-4 duration-500">
           <div className="grid md:grid-cols-2 gap-4">
-            <input type="hidden" name="clienteId" value={clientId} />
+            <input type="hidden" name="clienteId" value={client?.id} />
 
             <div className=" space-y-1.5">
               <label className="text-[10px] uppercase tracking-widest opacity-50 px-1">

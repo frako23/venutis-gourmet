@@ -20,7 +20,7 @@ export default function CheckoutPage() {
     // o simplemente marcamos como montado inmediatamente.
     setMounted(true);
   }, []);
-
+  console.log(selectedProducts);
   // Hasta que el cliente no esté listo, mostramos tu componente de carga
   if (!mounted) {
     return <Loading />;
@@ -60,7 +60,7 @@ export default function CheckoutPage() {
                     nombre={product.nombre}
                     desc={product.descripcion}
                     precio={product.precio}
-                    imagenes={product.imagenes}
+                    imagenes={product.imagen}
                     cantidad={product.cantidad}
                     id={product.id}
                     key={product.id}
@@ -190,7 +190,7 @@ function CartItem({ nombre, desc, precio, imagenes, cantidad, id }: any) {
       <div className="relative w-24 h-24 shrink-0 overflow-hidden rounded-lg bg-input-dark">
         <Image
           alt={nombre || "Producto Venuti's Gourmet"}
-          src={imagenes[0]}
+          src={imagenes}
           width={600}
           height={600}
           className="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-500"
