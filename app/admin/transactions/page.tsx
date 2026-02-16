@@ -1,25 +1,31 @@
-"use client";
-
+import { ActionButton } from "@/components/admin/UI/actionButton";
+import { PrismaClient } from "@prisma/client";
 import {
-  ReceiptText,
-  TrendingUp,
-  ShoppingBag,
   CalendarDays,
   Filter,
-  MoreVertical,
-  ChevronLeft,
-  ChevronRight,
+  ReceiptText,
+  ShoppingBag,
+  TrendingUp,
 } from "lucide-react";
-import { useState } from "react";
 
-export default function TransactionsDashboard() {
-  const [activeFilter, setActiveFilter] = useState("All Orders");
+export default async function TransactionsDashboard() {
+  // const [activeFilter, setActiveFilter] = useState("All Orders");
+  const prisma = new PrismaClient();
+
+  const transacciones = await prisma.transaccion.findMany({
+    include: {
+      cliente: { include: { direcciones: true } },
+      detalles: { include: { producto: true } },
+      pagos: true,
+    },
+  });
+
+  console.log(transacciones);
 
   return (
-    <>
-      <div className="p-8 flex flex-col gap-8 max-w-[1400px] mx-auto w-full">
-        {/* Top KPI Cards */}
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="p-8 flex flex-col gap-8 max-w-[1400px] mx-auto w-full bg-background-dark">
+      {/* Top KPI Cards */}
+      {/* <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <KPIColCard
             label="Total Revenue"
             value="$42,850.12"
@@ -33,23 +39,20 @@ export default function TransactionsDashboard() {
             sub="78% of daily target"
           />
           <KPICustomersCard label="Avg. Order Value" value="$271.20" />
-        </section>
+        </section> */}
 
-        {/* Transactions Table Section */}
-        <section className="flex flex-col bg-white rounded-2xl border border-border-light overflow-hidden shadow-sm shadow-slate-200/50">
-          {/* Table Header / Filters */}
-          <div className="p-6 flex flex-wrap items-center justify-between gap-4 border-b border-border-light">
-            <div>
-              <h3 className="text-lg font-extrabold text-slate-800 tracking-tight">
-                Recent Transactions
-              </h3>
-              <p className="text-xs text-slate-400 font-medium">
-                Manage and monitor latest store orders
-              </p>
-            </div>
+      {/* Transactions Table Section */}
+      <section className="flex flex-col rounded-2xl border border-border-light  shadow-sm shadow-slate-200/50 bg-[#1a1c20]">
+        {/* Table Header / Filters */}
+        <div className="p-6 flex flex-wrap items-center justify-between gap-4 border-b border-border-light">
+          <div>
+            <h3 className="text-lg font-extrabold text-white tracking-tight">
+              Transacciones
+            </h3>
+          </div>
 
-            <div className="flex items-center gap-3">
-              <div className="flex bg-slate-50 rounded-xl p-1 border border-border-light">
+          <div className="flex items-center gap-3">
+            {/* <div className="flex bg-slate-50 rounded-xl p-1 border border-border-light">
                 {["All Orders", "Pending", "Shipped"].map((filter) => (
                   <button
                     key={filter}
@@ -59,74 +62,85 @@ export default function TransactionsDashboard() {
                     {filter}
                   </button>
                 ))}
-              </div>
-              <button className="flex items-center gap-2 px-4 py-2 bg-white border border-border-light rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all">
-                <CalendarDays size={14} />
-                Oct 1 - Oct 31
-              </button>
-              <button className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:shadow-lg hover:shadow-primary/20 transition-all">
-                <Filter size={14} />
-                Filters
-              </button>
-            </div>
+              </div> */}
+            <button className="flex items-center gap-2 px-4 py-2 bg-white border border-border-light rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all">
+              <CalendarDays size={14} />
+              Oct 1 - Oct 31
+            </button>
+            <button className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:shadow-lg hover:shadow-primary/20 transition-all">
+              <Filter size={14} />
+              Filters
+            </button>
           </div>
+        </div>
 
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="bg-slate-50 text-[10px] uppercase tracking-widest font-black text-slate-400 border-b border-border-light">
-                  <th className="px-6 py-4">Order ID</th>
-                  <th className="px-6 py-4">Customer</th>
-                  <th className="px-6 py-4">Date</th>
-                  <th className="px-6 py-4">Amount</th>
-                  <th className="px-6 py-4 text-center">Status</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border-light">
+        {/* Table */}
+        <div className="overflow-x-auto pb-24">
+          <table className="w-full text-left">
+            <thead>
+              <tr className=" text-[10px] uppercase tracking-widest font-black text-slate-300 border-b border-border-light">
+                <th className="px-6 py-4"># Orden</th>
+                <th className="px-6 py-4">Cliente</th>
+                <th className="px-6 py-4">Fecha</th>
+                <th className="px-6 py-4">Celular</th>
+                <th className="px-6 py-4">Monto $</th>
+                <th className="px-6 py-4">Monto Bs</th>
+                <th className="px-6 py-4 text-center">Estado</th>
+                <th className="px-6 py-4 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border-light">
+              {transacciones.map((transaccion, index) => (
                 <TransactionRow
-                  id="#VG-8829"
-                  name="Alessandro Venuti"
-                  initials="AV"
-                  date="Oct 24, 2023"
-                  amount="142.50"
-                  status="Delivered"
+                  key={transaccion.id || transaccion.numeroOrden || index}
+                  id={transaccion.id}
+                  name={
+                    transaccion.cliente.nombre +
+                    " " +
+                    transaccion.cliente.apellido
+                  }
+                  date={transaccion.fechaCompra.toLocaleDateString()}
+                  phone={transaccion.cliente.celular}
+                  amount$={transaccion.pagos[0].montoUsd}
+                  amountBs={transaccion.pagos[0].montoBs}
+                  status={transaccion.estado}
                 />
-                <TransactionRow
-                  id="#VG-8830"
-                  name="Sophia Martinez"
-                  initials="SM"
-                  date="Oct 24, 2023"
-                  amount="89.10"
-                  status="Shipped"
-                />
-                <TransactionRow
-                  id="#VG-8831"
-                  name="Julian Rossi"
-                  initials="JR"
-                  date="Oct 24, 2023"
-                  amount="315.00"
-                  status="Pending"
-                />
-                <TransactionRow
-                  id="#VG-8832"
-                  name="Luca Bianchi"
-                  initials="LB"
-                  date="Oct 23, 2023"
-                  amount="210.45"
-                  status="Delivered"
-                />
-              </tbody>
-            </table>
-          </div>
+              ))}
 
-          {/* Pagination */}
-          <div className="px-6 py-4 flex items-center justify-between bg-slate-50/50">
-            <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">
-              Showing 5 of 1,248 transactions
-            </span>
-            <div className="flex items-center gap-2">
+              <TransactionRow
+                id="#VG-8830"
+                name="Sophia Martinez"
+                initials="SM"
+                date="Oct 24, 2023"
+                amount="89.10"
+                status="Shipped"
+              />
+              <TransactionRow
+                id="#VG-8831"
+                name="Julian Rossi"
+                initials="JR"
+                date="Oct 24, 2023"
+                amount="315.00"
+                status="Pending"
+              />
+              <TransactionRow
+                id="#VG-8832"
+                name="Luca Bianchi"
+                initials="LB"
+                date="Oct 23, 2023"
+                amount="210.45"
+                status="Delivered"
+              />
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="px-6 py-4 flex items-center justify-between">
+          <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">
+            Showing 5 of 1,248 transactions
+          </span>
+          {/* <div className="flex items-center gap-2">
               <PaginationArrow icon={ChevronLeft} />
               <button className="size-8 flex items-center justify-center rounded-lg bg-primary text-white text-xs font-black shadow-md shadow-primary/20">
                 1
@@ -135,11 +149,10 @@ export default function TransactionsDashboard() {
                 2
               </button>
               <PaginationArrow icon={ChevronRight} />
-            </div>
-          </div>
-        </section>
-      </div>
-    </>
+            </div> */}
+        </div>
+      </section>
+    </div>
   );
 }
 
@@ -230,26 +243,45 @@ function KPICustomersCard({ label, value }: any) {
   );
 }
 
-function TransactionRow({ id, name, initials, date, amount, status }: any) {
+function TransactionRow({
+  id,
+  name,
+  date,
+  amount$,
+  amountBs,
+  status,
+  phone,
+}: any) {
   const statusStyles: any = {
     Delivered: "bg-emerald-50 text-emerald-600 border-emerald-100",
     Shipped: "bg-blue-50 text-blue-600 border-blue-100",
-    Pending: "bg-amber-50 text-amber-600 border-amber-100",
+    pagado: "bg-amber-50 text-amber-600 border-amber-100",
   };
 
   return (
     <tr className="hover:bg-slate-50/80 transition-all group cursor-pointer">
-      <td className="px-6 py-4 text-sm font-bold text-primary">{id}</td>
+      <td className="px-6 py-4 text-sm font-bold text-gold group-hover:text-primary">
+        {id}
+      </td>
       <td className="px-6 py-4">
         <div className="flex items-center gap-3">
-          <div className="size-8 rounded-lg bg-amber-50 flex items-center justify-center font-black text-[10px] text-accent-gold border border-accent-gold/10">
-            {initials}
-          </div>
-          <span className="text-sm font-bold text-slate-700">{name}</span>
+          <span className="text-sm font-bold text-slate-200 group-hover:text-primary">
+            {name}
+          </span>
         </div>
       </td>
-      <td className="px-6 py-4 text-sm text-slate-500 font-medium">{date}</td>
-      <td className="px-6 py-4 text-sm font-black text-slate-800">${amount}</td>
+      <td className="px-6 py-4 text-sm text-slate-200 font-medium group-hover:text-primary">
+        {date}
+      </td>
+      <td className="px-6 py-4 text-sm text-slate-200 font-medium group-hover:text-primary">
+        {phone}
+      </td>
+      <td className="px-6 py-4 text-sm font-black text-slate-200 group-hover:text-primary">
+        ${amount$}
+      </td>
+      <td className="px-6 py-4 text-sm font-black text-slate-200 group-hover:text-primary">
+        Bs{amountBs}
+      </td>
       <td className="px-6 py-4">
         <div className="flex justify-center">
           <span
@@ -260,9 +292,7 @@ function TransactionRow({ id, name, initials, date, amount, status }: any) {
         </div>
       </td>
       <td className="px-6 py-4 text-right">
-        <button className="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-slate-400 hover:text-primary">
-          <MoreVertical size={16} />
-        </button>
+        <ActionButton operacion="transaccion" transaccionId={id} />
       </td>
     </tr>
   );

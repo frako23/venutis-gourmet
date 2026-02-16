@@ -1,9 +1,5 @@
 import { InventoryTable } from "@/components/admin/inventario/inventoryTable";
-import { ActionButton } from "@/components/admin/UI/action-button";
-import { InventoryHeader } from "@/components/admin/UI/inventory-header";
 import { PrismaClient } from "@prisma/client";
-import { Download, Filter } from "lucide-react";
-import Image from "next/image";
 
 export default async function InventoryManager() {
   const prisma = new PrismaClient();
@@ -18,9 +14,5 @@ export default async function InventoryManager() {
     }),
   ]);
 
-  return (
-    <InventoryTable products={products} />
-  );
+  return <InventoryTable products={products} />;
 }
-
-

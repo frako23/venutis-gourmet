@@ -49,7 +49,7 @@ export default function StorefrontEntry() {
             </a>
             <a
               href="/admin-login"
-              className="bg-gold px-6 py-2 rounded-lg text-lg font-century-gothic tracking-widest uppercase hover:bg-opacity-80 transition-all border border-gold/30 text-primary"
+              className="bg-gold/70 px-6 py-2 rounded-lg text-lg font-century-gothic tracking-widest uppercase hover:bg-gold transition-all border border-gold/30 text-primary hover:font-bold"
             >
               Admin Login
             </a>

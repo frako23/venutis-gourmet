@@ -6,8 +6,8 @@ import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation"; // Agregados aquí
 import { useEffect } from "react";
 import { toast } from "sonner";
-import { ActionButton } from "../UI/action-button";
-import { InventoryHeader } from "../UI/inventory-header";
+import { ActionButton } from "../UI/actionButton";
+import { InventoryHeader } from "../UI/inventoryHeader";
 
 export const InventoryTable = ({
   products,
@@ -111,7 +111,7 @@ export const InventoryTable = ({
                     cat={product.categoria}
                     sku={product.id}
                     stock={product.inventario}
-                    total="100"
+                    total="30"
                     precioDetal={product.precioDetal}
                     precioMayorista={product.precioMayorista}
                     status={
@@ -201,11 +201,11 @@ function TableRow({
   precioDetal,
   precioMayorista,
   status,
-  urgent = false,
+  urgent = stock < 5,
 }: any) {
   return (
     <tr
-      className={` hover:bg-white/5 transition-colors ${urgent ? " bg-red-900/5" : ""}`}
+      className={` hover:bg-white/5 transition-colors ${urgent ? " bg-red-700/20" : ""}`}
     >
       <td className="px-6 py-4">
         <div className="flex items-center gap-4">
@@ -234,7 +234,7 @@ function TableRow({
           </span>
           <div className="w-24 h-1  bg-gray-800 rounded-full overflow-hidden">
             <div
-              className={`h-full transition-all duration-1000 ${urgent ? "bg-red-500" : "bg-primary"}`}
+              className={`h-full transition-all duration-1000 ${urgent ? "bg-red-500" : "bg-gold"}`}
               style={{ width: `${(stock / total) * 100}%` }}
             />
           </div>
