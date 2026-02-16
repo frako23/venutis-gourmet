@@ -47,7 +47,7 @@ export default async function ConfirmacionPage({
     .join("\n");
 
   // 2. Construcción del mensaje profesional
-  const mensaje = `*NUEVO PEDIDO - VENUTI'S GOURMET* 🍝
+  const mensaje = `*ID de Orden:* ${orden.numeroOrden} 
 
 *CLIENTE:* ${nombreCompleto}
 *DIRECCIÓN:* ${direccionTexto}
@@ -63,10 +63,7 @@ ${detallesPedido}
 
 *TOTAL A PAGAR:*
 - *USD:* $${orden.montoTotal.toFixed(2)}
-- *Bs:* ${infoPago?.montoBs?.toLocaleString("es-VE")} Bs.
-
-
-*ID de Orden:* ${orden.numeroOrden}`;
+- *Bs:* ${infoPago?.montoBs?.toLocaleString("es-VE")} Bs.`;
 
   // 3. Generar el enlace de WhatsApp (opcional pero recomendado)
   const encodedMessage = encodeURIComponent(mensaje);
