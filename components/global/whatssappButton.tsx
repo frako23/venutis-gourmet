@@ -1,13 +1,13 @@
 "use client";
 
+import { WHATSAPP_PHONE_NUMBER } from "@/lib/constants/constants";
 import { MessageCircleMore } from "lucide-react"; // Usamos Lucide para el icono
 import { usePathname } from "next/navigation";
 
 export const WhatsAppButton = () => {
-  const phoneNumber = "+584141713932"; // Sustituye por tu número real (con código de país sin el +)
   const message =
     "Hola Venuti's! Me gustaría obtener más información sobre sus productos.";
-  const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+  const whatsappUrl = `https://wa.me/${WHATSAPP_PHONE_NUMBER}?text=${encodeURIComponent(message)}`;
   const pathname = usePathname();
   // Si la ruta comienza con /admin o /admin-login, no mostramos nada
   const isAdminPage = pathname.startsWith("/admin");

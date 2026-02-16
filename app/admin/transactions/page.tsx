@@ -23,7 +23,7 @@ export default async function TransactionsDashboard() {
   console.log(transacciones);
 
   return (
-    <div className="p-8 flex flex-col gap-8 max-w-[1400px] mx-auto w-full bg-background-dark">
+    <div className="p-8 flex flex-col gap-8 mx-auto w-full bg-background-dark min-h-screen">
       {/* Top KPI Cards */}
       {/* <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <KPIColCard
@@ -106,31 +106,6 @@ export default async function TransactionsDashboard() {
                   status={transaccion.estado}
                 />
               ))}
-
-              <TransactionRow
-                id="#VG-8830"
-                name="Sophia Martinez"
-                initials="SM"
-                date="Oct 24, 2023"
-                amount="89.10"
-                status="Shipped"
-              />
-              <TransactionRow
-                id="#VG-8831"
-                name="Julian Rossi"
-                initials="JR"
-                date="Oct 24, 2023"
-                amount="315.00"
-                status="Pending"
-              />
-              <TransactionRow
-                id="#VG-8832"
-                name="Luca Bianchi"
-                initials="LB"
-                date="Oct 23, 2023"
-                amount="210.45"
-                status="Delivered"
-              />
             </tbody>
           </table>
         </div>

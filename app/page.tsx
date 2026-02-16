@@ -1,3 +1,4 @@
+import { VENUTIS_EMAIL, WHATSAPP_PHONE_NUMBER } from "@/lib/constants/constants";
 import {
   BriefcaseBusiness,
   Instagram,
@@ -108,9 +109,9 @@ export default function StorefrontEntry() {
               />
               <SocialIcon
                 icon={MessageCircleMore}
-                link="https://wa.me/584123456789"
+                link={`https://wa.me/${WHATSAPP_PHONE_NUMBER}`}
               />
-              <SocialIcon icon={Mail} link="mailto:info@venutisgourmet.com" />
+              <SocialIcon icon={Mail} link={`mailto:${VENUTIS_EMAIL}`} />
             </div>
 
             <p className="text-xs tracking-widest uppercase text-gray-500">

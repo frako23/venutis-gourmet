@@ -5,6 +5,7 @@ import { initialState, PAYMENT_DETAILS } from "@/lib/constants/constants";
 import { useAppStore } from "@/store/appStore";
 import { MetodoPago } from "@prisma/client";
 import { Banknote, CreditCard, Landmark, Smartphone } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { CheckoutButton } from "../global/checkoutButton";
 import { InputField } from "../global/input";
@@ -24,6 +25,7 @@ type CheckoutResponse =
   | { success: false; message: string; status: string };
 
 export const PaymentInformation = () => {
+  const router = useRouter();
   const [paymentMethod, setPaymentMethod] = useState("PagoMovil");
   const deliveryMethod = useAppStore((s) => s.deliveryMethod);
   const selectedProducts = useAppStore((s) => s.selectedProducts);
@@ -117,21 +119,28 @@ export const PaymentInformation = () => {
 
       // 2. Uso de "in" o validación de tipo para que TS no se queje de 'success'
       if ("success" in response && response.success === true) {
-        // Importante: En el servidor devolvemos 'id', no 'orderId'
+        // 1. LIMPIEZA TOTAL DEL STORE (Fuerza la persistencia a vaciarse)
+        useAppStore.setState({
+          selectedProducts: [],
+          totalUSD: 0,
+          clientId: null,
+          canContinue: false,
+        });
+
+        // 2. Notificar al sistema que la orden terminó
         setOrderFinished({
           orderId: response.id,
           message: "¡Compra realizada con éxito!",
-          data: datos, // Pasamos los datos locales como resumen
+          data: datos,
         });
 
-        // Limpiar estados
-        setCanContinue(false);
+        // 3. Limpiar estado local del componente de pago
         setPaymentRecord(null);
-        setPaymentMethod("PagoMovil");
 
-        // La redirección ahora ocurre dentro de la acción,
-        // pero si fallara el redirect de Next, podrías hacerlo aquí:
-        // router.push(`/confirmacion?id=${response.id}`);
+        console.log("LocalStorage debería estar limpio ahora");
+
+        // 3. SI necesitas redirigir, hazlo manualmente aquí
+        router.push(`/confirmacion?id=${response.id}`);
       } else {
         // Manejo de errores devueltos por la acción
         console.error("Error devuelto:", (response as any).message);

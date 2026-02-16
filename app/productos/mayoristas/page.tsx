@@ -1,3 +1,4 @@
+import { WHATSAPP_PHONE_NUMBER } from "@/lib/constants/constants";
 import {
   Globe,
   Headset,
@@ -52,7 +53,7 @@ export default function MayoristaPage() {
 
             <div className="flex flex-col items-center gap-6">
               <Link
-                href="https://wa.me/123456789"
+                href={`https://wa.me/${WHATSAPP_PHONE_NUMBER}`}
                 className="group flex items-center justify-center gap-3 bg-primary hover:bg-primary/90 text-white px-8 py-5 rounded-lg font-bold tracking-wider uppercase text-sm transition-all transform hover:-translate-y-1 w-full md:w-auto"
               >
                 <MessageCircle className="text-accent-gold w-5 h-5" />

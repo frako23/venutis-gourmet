@@ -1,7 +1,6 @@
 "use server";
 
 import { MetodoPago, TipoRetiro } from "@prisma/client";
-import { redirect } from "next/navigation";
 import { prisma } from "../prisma";
 
 export interface CheckoutData {
@@ -30,7 +29,7 @@ export async function procesarCompra(
   prevState: { message: string; status: string; clientId: number | null },
   datos: CheckoutData,
 ) {
-  // 1. Guardamos el resultado de la transacción en una constante
+  // 1. Ejecutamos la transacción
   const resultadoTransaccion = await prisma
     .$transaction(async (tx) => {
       try {
@@ -99,34 +98,43 @@ export async function procesarCompra(
           });
         }
 
-        // Retornamos el éxito y el ID
-        return { success: true as const, id: transaccion.id };
+        // IMPORTANTE: Este objeto se guarda en 'resultadoTransaccion'
+        return {
+          success: true as const,
+          id: transaccion.id,
+          message: "Éxito",
+          status: "success",
+        };
       } catch (error: any) {
         console.error("Error en checkout:", error.message);
-        // No hacemos redirect aquí, lanzamos el error para que el catch externo lo maneje
-        throw error;
+        throw error; // Lanza para que el .catch de abajo lo tome
       }
     })
     .catch((err) => {
-      // Captura cualquier error de la transacción
       return {
         success: false as const,
         message: err.message || "Error al procesar la compra",
+        status: "error",
+        id: null,
       };
     });
 
-  // 2. Usar un "Type Guard" (el if) para que TS sepa que aquí SÍ existe el ID
-  if (resultadoTransaccion.success === true) {
-    // Aquí dentro, TS ya sabe que resultadoTransaccion tiene la forma { success: true, id: number }
-    redirect(`/confirmacion?id=${resultadoTransaccion.id}`);
+  // --- EL CAMBIO CLAVE AQUÍ ---
+
+  // Si la transacción fue exitosa, retornamos ese resultado al cliente
+  if (resultadoTransaccion.success) {
+    return {
+      ...resultadoTransaccion,
+      clientId: datos.clientId, // Mantenemos la estructura de tu estado
+    };
   }
 
-  // 3. Manejo del error si llegamos aquí
+  // Si falló, retornamos el error estructurado
   return {
-    success: false as const, // <-- AGREGA ESTO
-    message:
-      (resultadoTransaccion as any).message || "Error al procesar la compra",
+    success: false,
+    message: resultadoTransaccion.message,
     status: "error",
     clientId: datos.clientId,
+    id: null,
   };
 }

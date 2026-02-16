@@ -207,3 +207,7 @@ export const CATEGORIAS = [
   { id: "POSTRES", label: "Postres", icon: CakeSlice },
   { id: "BAKERY", label: "Bakery", icon: Wheat },
 ];
+
+export const WHATSAPP_PHONE_NUMBER = "+584141713932";
+
+export const VENUTIS_EMAIL = "venutiss@gmail.com";

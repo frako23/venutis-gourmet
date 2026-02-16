@@ -6,7 +6,11 @@ import {
   deleteAddress,
   getAddressesByClient,
 } from "@/lib/actions/address";
-import { DELIVERY_ZONES, initialState } from "@/lib/constants/constants";
+import {
+  DELIVERY_ZONES,
+  initialState,
+  WHATSAPP_PHONE_NUMBER,
+} from "@/lib/constants/constants";
 import { useAppStore } from "@/store/appStore";
 import { MapPin, MessageCircle, Plus, Trash2 } from "lucide-react";
 import { useActionState, useEffect, useState } from "react";
@@ -78,8 +82,6 @@ export function AddressManager() {
   console.log("selectedProduct", selectedProducts);
 
   const handleWhatsAppCheckout = () => {
-    const phone = "584123456789"; // Tu número de Venuti's
-
     // 1. Formateamos la lista de productos con su cantidad
     const listaProductos = selectedProducts
       .map(
@@ -107,7 +109,7 @@ ${listaProductos}
 Quedo atento para coordinar la entrega.`;
 
     // 4. Generamos y abrimos la URL
-    const url = `https://wa.me/${phone}?text=${encodeURIComponent(mensaje)}`;
+    const url = `https://wa.me/${WHATSAPP_PHONE_NUMBER}?text=${encodeURIComponent(mensaje)}`;
     window.open(url, "_blank");
   };
 

@@ -1,3 +1,7 @@
+import {
+  VENUTIS_EMAIL,
+  WHATSAPP_PHONE_NUMBER,
+} from "@/lib/constants/constants";
 import { Instagram, LucideIcon, Mail, MessageCircleMore } from "lucide-react";
 
 const Footer = () => {
@@ -20,9 +24,9 @@ const Footer = () => {
           <div className="flex gap-4">
             <FooterSocial
               icon={MessageCircleMore}
-              link="https://wa.me/584123456789"
+              link={`https://wa.me/${WHATSAPP_PHONE_NUMBER}`}
             />
-            <FooterSocial icon={Mail} link="mailto:info@venutisgourmet.com" />
+            <FooterSocial icon={Mail} link={`mailto:${VENUTIS_EMAIL}`} />
             <FooterSocial
               icon={Instagram}
               link="https://instagram.com/venutisgourmet"

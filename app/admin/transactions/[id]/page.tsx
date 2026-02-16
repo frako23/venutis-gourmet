@@ -11,7 +11,6 @@ export default async function DetalleTransaccion({
   const { id: rawId } = await params; // Esperamos a que resuelva
 
   const id = Number(rawId);
-  console.log(id);
   if (!id) return notFound();
   const transaccion = await prisma.transaccion.findUnique({
     where: { id },

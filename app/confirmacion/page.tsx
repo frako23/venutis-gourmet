@@ -1,8 +1,9 @@
+import { WHATSAPP_PHONE_NUMBER } from "@/lib/constants/constants";
 import { prisma } from "@/lib/prisma"; // Ajusta la ruta a tu cliente de prisma
 import {
   CreditCard,
   MapPin,
-  MessageCircle,
+  MessageCircleMore,
   ShoppingBag,
   X,
 } from "lucide-react";
@@ -35,9 +36,41 @@ export default async function ConfirmacionPage({
   // Datos de la dirección (tomamos la primera disponible)
   const infoDireccion = orden.cliente.direcciones[0];
 
-  const whatsappNumber = "584121234567";
-  const mensaje = `Hola Venuti's! Soy ${orden.cliente.nombre}. Pedido #${orden.numeroOrden}. Total: $${orden.montoTotal}.`;
-  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(mensaje)}`;
+  // 1. Preparamos los datos con valores por defecto por seguridad
+  const nombreCompleto = `${orden.cliente.nombre} ${orden.cliente.apellido}`;
+  const direccionTexto = infoDireccion
+    ? `${infoDireccion.urbanizacion}, ${infoDireccion.direccion}`
+    : "Retiro en tienda";
+
+  const detallesPedido = orden.detalles
+    .map((d: any) => `- ${d.cantidad}x ${d.producto.nombre}`)
+    .join("\n");
+
+  // 2. Construcción del mensaje profesional
+  const mensaje = `*NUEVO PEDIDO - VENUTI'S GOURMET* 🍝
+
+*CLIENTE:* ${nombreCompleto}
+*DIRECCIÓN:* ${direccionTexto}
+*TELÉFONO:* ${orden.cliente.celular}
+
+*PEDIDO:*
+${detallesPedido}
+
+*DETALLES DEL PAGO:*
+- *Método:* ${infoPago?.metodoPago || "No especificado"}
+- *Referencia:* ${infoPago?.referencia || "Pendiente"}
+- *Tasa:* ${infoPago?.tasaCambio || 0} Bs/$
+
+*TOTAL A PAGAR:*
+- *USD:* $${orden.montoTotal.toFixed(2)}
+- *Bs:* ${infoPago?.montoBs?.toLocaleString("es-VE")} Bs.
+
+
+*ID de Orden:* ${orden.numeroOrden}`;
+
+  // 3. Generar el enlace de WhatsApp (opcional pero recomendado)
+  const encodedMessage = encodeURIComponent(mensaje);
+  const whatsappUrl = `https://wa.me/${WHATSAPP_PHONE_NUMBER}?text=${encodedMessage}`;
 
   return (
     <div className="bg-background-dark text-text-offwhite min-h-screen flex flex-col relative overflow-hidden">
@@ -53,18 +86,23 @@ export default async function ConfirmacionPage({
               height={50}
             />
           </Link>
-          <Link className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors" href="/">
+          <Link
+            className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors"
+            href="/"
+          >
             <X />
           </Link>
-          <h1 className="text-3xl  text-center mb-8">
-            ¡Gracias por tu compra,{" "}
-            <span className="text-accent-gold">{orden.cliente.nombre}</span>!
+          <h1 className="text-3xl  text-center mb-4">
+            Resumen de tu compra{" "}
+            {/* <span className="text-gold">{orden.cliente.nombre}</span> */}
           </h1>
-
+          <p className="text-center text-sm text-white/70 mb-8">
+            Importante, para culminar tu pedido debes notificarlo.
+          </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Columna: Productos */}
             <div className="space-y-4">
-              <h3 className="text-accent-gold text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+              <h3 className="text-gold text-xs font-bold uppercase tracking-widest flex items-center gap-2">
                 <ShoppingBag className="w-4 h-4" /> Detalle del pedido #
                 {orden.numeroOrden}
               </h3>
@@ -148,10 +186,10 @@ export default async function ConfirmacionPage({
           <Link
             href={whatsappUrl}
             target="_blank"
-            className="mt-8 flex items-center justify-center gap-3 bg-gold text-black font-bold py-4 rounded-full hover:scale-[1.02] transition-transform"
+            className="mt-8 flex items-center justify-center gap-3 bg-gold font-bold py-4 rounded-full hover:scale-[1.02] transition-transform"
           >
-            <MessageCircle className="w-5 h-5" />
-            NOTIFICAR PAGO AHORA
+            <MessageCircleMore className="w-5 h-5" />
+            NOTIFICAR PEDIDO AHORA
           </Link>
         </div>
       </main>

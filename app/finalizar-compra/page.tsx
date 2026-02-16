@@ -8,6 +8,7 @@ import { Minus, Plus, ShieldCheck } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import Loading from "../loading";
+import { VENUTIS_EMAIL } from "@/lib/constants/constants";
 
 export default function CheckoutPage() {
   const selectedProducts = useAppStore((s) => s.selectedProducts);
@@ -167,7 +168,7 @@ export default function CheckoutPage() {
               </a>
               <a
                 className="hover:text-gold"
-                href="mailto:info@venutisgourmet.com"
+                href={`mailto:${VENUTIS_EMAIL}`}
               >
                 Correo
               </a>

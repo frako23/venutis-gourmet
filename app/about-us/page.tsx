@@ -1,3 +1,4 @@
+import { VENUTIS_EMAIL, WHATSAPP_PHONE_NUMBER } from "@/lib/constants/constants";
 import {
   CheckCircle2,
   Instagram,
@@ -149,13 +150,13 @@ export default function AboutUs() {
             <div className="flex gap-4">
               <SocialLink
                 icon={MessageCircleMore}
-                link="https://wa.me/584123456789"
+                link={`https://wa.me/${WHATSAPP_PHONE_NUMBER}`}
               />
               <SocialLink
                 icon={Instagram}
                 link="https://www.instagram.com/venutis.gourmet"
               />
-              <SocialLink icon={Mail} link="mailto:info@venutisgourmet.com" />
+              <SocialLink icon={Mail} link={`mailto:${VENUTIS_EMAIL}`} />
             </div>
           </div>
           <div>
