@@ -1,6 +1,6 @@
 import { CheckoutProvider, useCheckout } from "@/context/checkoutContext";
 import { addClient } from "@/lib/actions/clients";
-import { initialState } from "@/lib/constants/constants";
+import { initialStateClient } from "@/lib/constants/constants";
 import { useAppStore } from "@/store/appStore";
 import { useActionState, useEffect } from "react";
 import { toast } from "sonner";
@@ -11,7 +11,7 @@ import { PaymentInformation } from "./paymentInformation";
 import { PersonalInformation } from "./personalInformation";
 
 export const CheckoutForm = ({ metodoDePago }: { metodoDePago: boolean }) => {
-  const [state] = useActionState(addClient, initialState);
+  const [state] = useActionState(addClient, initialStateClient);
 
   useEffect(() => {
     if (state.status === "error") {

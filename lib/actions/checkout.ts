@@ -1,6 +1,7 @@
 "use server";
 
 import { MetodoPago, TipoRetiro } from "@prisma/client";
+import { redirect } from "next/navigation";
 import { prisma } from "../prisma";
 
 export interface CheckoutData {
@@ -29,11 +30,11 @@ export async function procesarCompra(
   prevState: { message: string; status: string; clientId: number | null },
   datos: CheckoutData,
 ) {
-  console.log(datos);
-  return await prisma
+  // 1. Guardamos el resultado de la transacción en una constante
+  const resultadoTransaccion = await prisma
     .$transaction(async (tx) => {
       try {
-        // 1. Reducción de Inventario (Validación producto por producto)
+        // --- LÓGICA DE INVENTARIO ---
         for (const item of datos.carrito) {
           const producto = await tx.producto.findUnique({
             where: { id: item.productoId },
@@ -48,26 +49,22 @@ export async function procesarCompra(
 
           await tx.producto.update({
             where: { id: item.productoId },
-            data: {
-              inventario: {
-                decrement: item.cantidad,
-              },
-            },
+            data: { inventario: { decrement: item.cantidad } },
           });
         }
 
-        // 2. Crear la Transacción (Cabecera)
+        // --- CREAR TRANSACCIÓN ---
         const transaccion = await tx.transaccion.create({
           data: {
             numeroOrden: `VEN-${Date.now()}`,
             clienteId: datos.clientId,
             montoTotal: datos.montoTotal,
-            estado: "pagado", // Si ya tenemos los datos de pago, podemos marcarla como pagada
+            estado: "pagado",
             tipodeRetiro: datos.tipodeRetiro,
           },
         });
 
-        // 3. Crear los Detalles de Compra
+        // --- DETALLES Y PAGO ---
         await tx.detalleCompra.createMany({
           data: datos.carrito.map((item) => ({
             transaccionId: transaccion.id,
@@ -77,8 +74,7 @@ export async function procesarCompra(
           })),
         });
 
-        // 4. Crear el Registro de Pago
-        const pagoCreado = await tx.pago.create({
+        await tx.pago.create({
           data: {
             transaccionId: transaccion.id,
             montoBs: datos.pago.montoBs,
@@ -90,10 +86,8 @@ export async function procesarCompra(
           },
         });
 
-        // 5. Puntos de Fidelidad (1 punto por cada $1, redondeado hacia abajo)
-        // Usamos Math.floor para decimales (ej: $15.8 = 15 puntos)
+        // --- PUNTOS ---
         const puntosGanados = Math.floor(datos.montoTotal);
-
         if (puntosGanados > 0) {
           await tx.fidelidad.create({
             data: {
@@ -105,32 +99,34 @@ export async function procesarCompra(
           });
         }
 
-        return {
-          success: true,
-          message: "¡Venta procesada con éxito!",
-          orderId: transaccion.id,
-          resumen: {
-            montoBs: pagoCreado.montoBs,
-            montoUsd: pagoCreado.montoUsd,
-            tasaCambio: pagoCreado.tasaCambio,
-            items: datos.carrito,
-            metodoPago: pagoCreado.metodoPago,
-            tipoRetiro: transaccion.tipodeRetiro,
-            puntosGanados,
-          },
-        };
+        // Retornamos el éxito y el ID
+        return { success: true as const, id: transaccion.id };
       } catch (error: any) {
         console.error("Error en checkout:", error.message);
-        // Al relanzar el error, Prisma hace rollback automático de todo lo anterior
+        // No hacemos redirect aquí, lanzamos el error para que el catch externo lo maneje
         throw error;
       }
     })
     .catch((err) => {
+      // Captura cualquier error de la transacción
       return {
-        success: false,
+        success: false as const,
         message: err.message || "Error al procesar la compra",
-        orderId: null,
-        resumen: null,
       };
     });
+
+  // 2. Usar un "Type Guard" (el if) para que TS sepa que aquí SÍ existe el ID
+  if (resultadoTransaccion.success === true) {
+    // Aquí dentro, TS ya sabe que resultadoTransaccion tiene la forma { success: true, id: number }
+    redirect(`/confirmacion?id=${resultadoTransaccion.id}`);
+  }
+
+  // 3. Manejo del error si llegamos aquí
+  return {
+    success: false as const, // <-- AGREGA ESTO
+    message:
+      (resultadoTransaccion as any).message || "Error al procesar la compra",
+    status: "error",
+    clientId: datos.clientId,
+  };
 }

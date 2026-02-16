@@ -5,7 +5,7 @@ import { initialState, PAYMENT_DETAILS } from "@/lib/constants/constants";
 import { useAppStore } from "@/store/appStore";
 import { MetodoPago } from "@prisma/client";
 import { Banknote, CreditCard, Landmark, Smartphone } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CheckoutButton } from "../global/checkoutButton";
 import { InputField } from "../global/input";
 import { CopyButton } from "../productos/copyToClipboard";
@@ -18,6 +18,10 @@ interface PaymentDetails {
   metodoPago: MetodoPago;
   tasaCambio: number;
 }
+
+type CheckoutResponse =
+  | { success: true; id: number; message?: string }
+  | { success: false; message: string; status: string };
 
 export const PaymentInformation = () => {
   const [paymentMethod, setPaymentMethod] = useState("PagoMovil");
@@ -83,10 +87,8 @@ export const PaymentInformation = () => {
   };
 
   const handleSubmit = async () => {
-    // 1. Validaciones previas
     if (!client?.id || !paymentRecord) return;
 
-    // 2. Encender el loader
     setIsSubmitting(true);
 
     try {
@@ -99,7 +101,7 @@ export const PaymentInformation = () => {
       }));
 
       const datos: CheckoutData = {
-        clientId: client?.id!,
+        clientId: client.id,
         montoTotal: totalPago,
         tipodeRetiro: deliveryMethod,
         total: itemsParaOrden.length,
@@ -107,32 +109,60 @@ export const PaymentInformation = () => {
         pago: paymentRecord,
       };
 
-      // 3. Ejecutar la acción del servidor
-      const response = await procesarCompra(initialState, datos);
-      if (response.success) {
+      // 1. Llamada a la acción
+      const response = (await procesarCompra(
+        initialState,
+        datos,
+      )) as CheckoutResponse;
+
+      // 2. Uso de "in" o validación de tipo para que TS no se queje de 'success'
+      if ("success" in response && response.success === true) {
+        // Importante: En el servidor devolvemos 'id', no 'orderId'
         setOrderFinished({
-          orderId: response.orderId,
-          message: response.message,
-          data: response.resumen,
+          orderId: response.id,
+          message: "¡Compra realizada con éxito!",
+          data: datos, // Pasamos los datos locales como resumen
         });
+
+        // Limpiar estados
+        setCanContinue(false);
+        setPaymentRecord(null);
+        setPaymentMethod("PagoMovil");
+
+        // La redirección ahora ocurre dentro de la acción,
+        // pero si fallara el redirect de Next, podrías hacerlo aquí:
+        // router.push(`/confirmacion?id=${response.id}`);
+      } else {
+        // Manejo de errores devueltos por la acción
+        console.error("Error devuelto:", (response as any).message);
+        alert((response as any).message || "Error al procesar la compra");
       }
-
-      // 4. Limpiar estados si la compra fue exitosa
-      setCanContinue(false);
-      setPaymentRecord(null);
-      setPaymentMethod("PagoMovil");
-
-      // Aquí podrías redirigir al usuario a una página de "Gracias"
-      // router.push('/gracias');
     } catch (error) {
-      console.error("Error al procesar la compra:", error);
-      // Aquí podrías mostrar una notificación de error al usuario
+      console.error("Error crítico en checkout:", error);
     } finally {
-      // 5. Apagar el loader (esto ocurre siempre, falle o no)
       setIsSubmitting(false);
-      setCanContinue(false);
     }
   };
+
+  useEffect(() => {
+    const finalUSD = totalUSD + (deliveryPrice || 0);
+    const finalBS = Number((finalUSD * tasa).toFixed(2));
+
+    setPaymentRecord((prev) => {
+      // Si ya hay valores manuales, no los pises, a menos que sea la primera vez
+      if (prev && prev.montoUsd !== 0) return prev;
+
+      return {
+        ...prev,
+        montoUsd: finalUSD,
+        montoBs: finalBS,
+        tasaCambio: tasa,
+        metodoPago: (prev?.metodoPago || paymentMethod) as MetodoPago,
+        fechaPago: prev?.fechaPago || new Date(),
+        referencia: prev?.referencia || "",
+      };
+    });
+  }, [totalUSD, deliveryPrice, tasa, paymentMethod]);
 
   return (
     <form className="space-y-6" onSubmit={handleSubmit}>
@@ -315,14 +345,9 @@ Monto: $ ${totalUSD.toFixed(2)} `}
             />
             <InputField
               label="Monto en $"
-              name="monto$"
+              name="montoUsd" // Asegúrate que el name coincida con la propiedad del objeto
               type="number"
-              value={
-                paymentRecord?.montoUsd ||
-                (deliveryPrice !== 0 && deliveryPrice !== undefined)
-                  ? (totalUSD + deliveryPrice).toFixed(2)
-                  : totalUSD.toFixed(2)
-              }
+              value={Number(paymentRecord?.montoUsd.toFixed(2)) || 0}
               onChange={handlePaymentRecordChange}
               required
             />
@@ -330,12 +355,7 @@ Monto: $ ${totalUSD.toFixed(2)} `}
               label="Monto en Bs"
               name="montoBs"
               type="number"
-              value={
-                paymentRecord?.montoBs ||
-                (deliveryPrice !== 0 && deliveryPrice !== undefined)
-                  ? ((totalUSD + deliveryPrice) * tasa).toFixed(2)
-                  : (totalUSD * tasa).toFixed(2)
-              }
+              value={paymentRecord?.montoBs || 0}
               onChange={handlePaymentRecordChange}
               required
             />
