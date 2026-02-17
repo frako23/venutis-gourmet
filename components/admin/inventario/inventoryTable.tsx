@@ -1,10 +1,11 @@
 "use client";
 
+import { editInventory } from "@/lib/actions/products";
 import { ProductoConImagenes } from "@/prisma/types";
-import { Download, Filter } from "lucide-react";
+import { Check, Download, Edit2, Filter, X } from "lucide-react";
 import Image from "next/image";
-import { usePathname, useRouter, useSearchParams } from "next/navigation"; // Agregados aquí
-import { useEffect } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ActionButton } from "../UI/actionButton";
 import { InventoryHeader } from "../UI/inventoryHeader";
@@ -17,7 +18,7 @@ export const InventoryTable = ({
   const searchParams = useSearchParams();
   const pathname = usePathname(); // Definido
   const { replace } = useRouter(); // Definido
-
+  const [editingId, setEditingId] = useState<number | null>(null);
   useEffect(() => {
     const status = searchParams.get("status");
     if (!status) return;
@@ -112,6 +113,9 @@ export const InventoryTable = ({
                     sku={product.id}
                     stock={product.inventario}
                     total="30"
+                    isEditing={editingId === product.id}
+                    onEdit={() => setEditingId(product.id)}
+                    onCancel={() => setEditingId(null)}
                     precioDetal={product.precioDetal}
                     precioMayorista={product.precioMayorista}
                     status={
@@ -202,53 +206,120 @@ function TableRow({
   precioMayorista,
   status,
   urgent = stock < 5,
+  isEditing,
+  onEdit,
+  onCancel,
 }: any) {
+  const [tempData, setTempData] = useState({
+    inventario: stock,
+    precioDetal: precioDetal,
+    precioMayorista: precioMayorista,
+  });
+
+  const handleSave = async () => {
+    toast.promise(editInventory(sku, tempData), {
+      loading: "Guardando cambios...",
+      success: () => {
+        onCancel();
+        return "Producto actualizado";
+      },
+      error: "Error al actualizar",
+    });
+  };
   return (
     <tr
-      className={` hover:bg-white/5 transition-colors ${urgent ? " bg-red-700/20" : ""}`}
+      className={`hover:bg-white/5 transition-colors ${stock < 5 ? "bg-red-700/20" : ""}`}
     >
+      {/* ... Info del producto y categoría se mantienen igual ... */}
       <td className="px-6 py-4">
         <div className="flex items-center gap-4">
           <Image
-            className="size-12 rounded-lg object-cover border  border-gray-700"
-            src={img}
+            className="size-12 rounded-lg object-cover"
+            src={img?.url || "/food-avatar.png"}
             alt={name}
             width={48}
             height={48}
           />
-
-          <div>
-            <p className="font-bold text-sm text-white">{name}</p>
-            {/* <p className="text-[11px] text-[#738165] font-medium">{sub}</p> */}
-          </div>
+          <p className="font-bold text-sm text-white">{name}</p>
         </div>
       </td>
+
       <td className="px-6 py-4 text-sm font-bold text-gray-300">{cat}</td>
       <td className="px-6 py-4 text-xs font-mono text-gray-400">{sku}</td>
+
+      {/* COLUMNA INVENTARIO EDITABLE */}
       <td className="px-6 py-4">
-        <div className="flex flex-col gap-1.5">
-          <span
-            className={`text-xs font-black ${urgent ? "text-red-500" : " text-white"}`}
-          >
-            {stock} paquetes
+        {isEditing ? (
+          <input
+            type="number"
+            className="w-20 bg-background-dark border border-gold/50 rounded px-2 py-1 text-xs text-white"
+            value={tempData.inventario}
+            onChange={(e) =>
+              setTempData({ ...tempData, inventario: Number(e.target.value) })
+            }
+          />
+        ) : (
+          <span className="text-xs font-black text-white">
+            <div className="flex flex-col gap-1.5">
+              <span
+                className={`text-xs font-black ${urgent ? "text-red-500" : " text-white"}`}
+              >
+                {stock} paquetes
+              </span>
+
+              <div className="w-24 h-1  bg-gray-800 rounded-full overflow-hidden">
+                <div
+                  className={`h-full transition-all duration-1000 ${urgent ? "bg-red-500" : "bg-gold"}`}
+                  style={{ width: `${(stock / total) * 100}%` }}
+                />
+              </div>
+            </div>
           </span>
-          <div className="w-24 h-1  bg-gray-800 rounded-full overflow-hidden">
-            <div
-              className={`h-full transition-all duration-1000 ${urgent ? "bg-red-500" : "bg-gold"}`}
-              style={{ width: `${(stock / total) * 100}%` }}
-            />
-          </div>
-        </div>
+        )}
       </td>
-      <td className="px-6 py-4 text-sm font-black text-white">
-        ${precioDetal}
+
+      {/* PRECIO DETAL EDITABLE */}
+      <td className="px-6 py-4">
+        {isEditing ? (
+          <input
+            type="number"
+            className="w-20 bg-background-dark border border-gold/50 rounded px-2 py-1 text-xs text-white"
+            value={tempData.precioDetal}
+            onChange={(e) =>
+              setTempData({ ...tempData, precioDetal: Number(e.target.value) })
+            }
+          />
+        ) : (
+          <span className="px-6 py-4 text-sm font-black text-white">
+            ${precioDetal}
+          </span>
+        )}
       </td>
-      <td className="px-6 py-4 text-sm font-black text-white">
-        ${precioMayorista}
+
+      {/* PRECIO MAYORISTA EDITABLE */}
+      <td className="px-6 py-4">
+        {isEditing ? (
+          <input
+            type="number"
+            className="w-20 bg-background-dark border border-gold/50 rounded px-2 py-1 text-xs text-white"
+            value={tempData.precioMayorista}
+            onChange={(e) =>
+              setTempData({
+                ...tempData,
+                precioMayorista: Number(e.target.value),
+              })
+            }
+          />
+        ) : (
+          <span className="px-6 py-4 text-sm font-black text-white">
+            ${precioMayorista}
+          </span>
+        )}
       </td>
       <td className="px-6 py-4">
         <span
-          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest 
+          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest
+
           ${
             status === "Agotado"
               ? " bg-red-900/30 text-red-400"
@@ -260,16 +331,45 @@ function TableRow({
           {status === "Agotado" && (
             <span className="size-1.5 rounded-full bg-red-500 animate-pulse" />
           )}
+
           {status === "Bajo Inventario" && (
             <span className="size-1.5 rounded-full bg-yellow-500 animate-pulse" />
           )}
+
           {status === "Suficiente" && (
             <span className="size-1.5 rounded-full bg-emerald-500" />
           )}
+
           {status}
         </span>
       </td>
-      <td className="px-6 py-4 text-right">
+      {/* BOTONES DE ACCIÓN */}
+      <td className="px-6 py-4 text-right flex gap-4">
+        <div className="flex justify-end gap-2">
+          {isEditing ? (
+            <>
+              <button
+                onClick={handleSave}
+                className="p-2 bg-emerald-500/20 text-emerald-500 rounded-lg hover:bg-emerald-500/30 cursor-pointer"
+              >
+                <Check size={16} />
+              </button>
+              <button
+                onClick={onCancel}
+                className="p-2 bg-red-500/20 text-red-500 rounded-lg hover:bg-red-500/30 cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={onEdit}
+              className="p-2 bg-white/5 text-gray-400 rounded-lg hover:text-gold hover:bg-white/10 transition-all cursor-pointer"
+            >
+              <Edit2 size={16} />
+            </button>
+          )}
+        </div>
         <ActionButton productId={sku} />
       </td>
     </tr>

@@ -152,3 +152,24 @@ export async function editProduct(
   }
   redirect("/admin/inventory?status=updated");
 }
+
+export async function editInventory(
+  id: number,
+  data: { inventario: number; precioDetal: number; precioMayorista: number },
+) {
+  try {
+    await prisma.producto.update({
+      where: { id },
+      data: {
+        inventario: data.inventario,
+        precioDetal: data.precioDetal,
+        precioMayorista: data.precioMayorista,
+      },
+    });
+    revalidatePath("/admin/inventory");
+    return { success: true };
+  } catch (error) {
+    console.error(error);
+    throw new Error("Fallo al actualizar");
+  }
+}
