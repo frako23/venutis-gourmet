@@ -10,10 +10,10 @@ export default function Unauthorized() {
           que esto es un error, contacta al administrador.
         </p>
         <a
-          href="/sign-in"
+          href="/"
           className="inline-block bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors"
         >
-          Volver al inicio de sesión
+          Volver al inicio
         </a>
       </div>
     </div>
