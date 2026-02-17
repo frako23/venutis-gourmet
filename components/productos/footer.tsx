@@ -3,67 +3,114 @@ import {
   WHATSAPP_PHONE_NUMBER,
 } from "@/lib/constants/constants";
 import { Instagram, LucideIcon, Mail, MessageCircleMore } from "lucide-react";
+import Image from "next/image";
 
 const Footer = () => {
   return (
-    <footer className="bg-primary text-white/60 py-12 px-6 lg:px-12 mt-20 font-century-gothic">
-      <div className="max-w-[1440px] mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
-        <div className="col-span-1 md:col-span-2">
-          <div className="flex items-center gap-3 mb-6 text-white">
-            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 48 48">
-              <path d="M24 0.757355L47.2426 24L24 47.2426L0.757355 24L24 0.757355ZM21 35.7574V12.2426L9.24264 24L21 35.7574Z" />
-            </svg>
-            <span className="text-xl font-black uppercase tracking-tighter">
-              Venuti's Gourmet
-            </span>
+    <footer className="bg-primary text-white/60 py-16 px-6 lg:px-12 mt-20 font-century-gothic border-t border-white/5">
+      <div className="mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 lg:gap-16">
+        {/* SECCIÓN LOGO E HISTORIA */}
+        <div className="col-span-1 md:col-span-2 space-y-8">
+          <div className="flex flex-col sm:flex-row items-start gap-6">
+            {/* Contenedor del Logo con borde sutil para que resalte */}
+            <div className="p-2 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm">
+              <Image
+                src="/logo-venutis.avif"
+                alt="Logo Venutis"
+                width={80}
+                height={80}
+                className="w-20 h-auto object-contain"
+              />
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-white font-serif italic text-xl tracking-wide">
+                Tradición familiar en cada mesa
+              </h3>
+              <p className="max-w-md text-sm leading-relaxed font-light">
+                El arte de la pasta hecha a mano, con respeto y dedicación.
+              </p>
+              <div className="flex gap-5 pt-2">
+                <FooterSocial
+                  icon={MessageCircleMore}
+                  link={`https://wa.me/${WHATSAPP_PHONE_NUMBER}`}
+                />
+                <FooterSocial icon={Mail} link={`mailto:${VENUTIS_EMAIL}`} />
+                <FooterSocial
+                  icon={Instagram}
+                  link="https://instagram.com/venutisgourmet"
+                />
+              </div>
+            </div>
           </div>
-          <p className="max-w-md text-sm leading-relaxed mb-6">
-            Sourcing the finest Italian delicacies since 1924. Our commitment to
-            heritage, quality, and artisan producers remains unchanged.
-          </p>
-          <div className="flex gap-4">
-            <FooterSocial
-              icon={MessageCircleMore}
-              link={`https://wa.me/${WHATSAPP_PHONE_NUMBER}`}
-            />
-            <FooterSocial icon={Mail} link={`mailto:${VENUTIS_EMAIL}`} />
-            <FooterSocial
-              icon={Instagram}
-              link="https://instagram.com/venutisgourmet"
-            />
+          {/* Redes Sociales */}
+        </div>
+
+        {/* COLUMNAS DE LINKS (Mantener igual o ajustar títulos) */}
+        <div>
+          <h4 className="text-white font-bold uppercase tracking-[0.2em] text-[11px] mb-8 border-b border-white/10 pb-2 inline-block">
+            Explorar
+          </h4>
+          <div className="flex gap-12">
+            <ul className="space-y-4 text-sm">
+              <FooterLink label="Todos" link="/productos/consumidores" />
+              <FooterLink
+                label="Pastas"
+                link="/productos/consumidores?categoria=PASTAS"
+              />
+              <FooterLink
+                label="Salsas"
+                link="/productos/consumidores?categoria=SALSAS"
+              />
+            </ul>
+            <ul className="space-y-4 text-sm">
+              <FooterLink
+                label="Pastichos"
+                link="/productos/consumidores?categoria=PASTICHOS"
+              />
+              <FooterLink
+                label="Postres"
+                link="/productos/consumidores?categoria=POSTRES"
+              />
+              <FooterLink
+                label="Bakery"
+                link="/productos/consumidores?categoria=BAKERY"
+              />
+            </ul>
           </div>
         </div>
+
         <div>
-          <h4 className="text-white font-bold uppercase tracking-widest text-xs mb-6">
-            Shop
+          <h4 className="text-white font-bold uppercase tracking-[0.2em] text-[11px] mb-8 border-b border-white/10 pb-2 inline-block">
+            Secciones
           </h4>
           <ul className="space-y-4 text-sm">
-            <FooterLink label="New Arrivals" />
-            <FooterLink label="Best Sellers" />
-            <FooterLink label="Gift Cards" />
-            <FooterLink label="Subscriptions" />
-          </ul>
-        </div>
-        <div>
-          <h4 className="text-white font-bold uppercase tracking-widest text-xs mb-6">
-            Support
-          </h4>
-          <ul className="space-y-4 text-sm">
-            <FooterLink label="Track Order" />
-            <FooterLink label="Shipping Policy" />
-            <FooterLink label="FAQ" />
-            <FooterLink label="Contact Us" />
+            <FooterLink label="Nuestra Historia" link="/about-us" />
+            <FooterLink label="Mayoristas" link="/productos/mayoristas" />
           </ul>
         </div>
       </div>
-      <div className="max-w-[1440px] mx-auto border-t border-white/10 mt-12 pt-8 text-[10px] uppercase tracking-[0.2em] flex justify-between">
-        <p>© 2026 Venuti's Gourmet. All Rights Reserved.</p>
-        <div className="flex gap-6">
-          <a href="#" className="hover:text-white transition-colors">
-            Privacy
-          </a>
-          <a href="#" className="hover:text-white transition-colors">
-            Terms
+
+      {/* BARRA INFERIOR CON TU FIRMA */}
+      <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4 mt-8 pt-8">
+        {/* Copyright de la marca */}
+        <p className="text-white/40 text-xs tracking-widest uppercase">
+          © {new Date().getFullYear()} Venuti's Gourmet. Todos los derechos
+          reservados.
+        </p>
+
+        {/* Créditos de Desarrollador */}
+        <div className="group flex items-center gap-2 text-white/40 hover:text-gold transition-colors duration-300">
+          <span className="text-[10px] uppercase tracking-[0.2em] font-medium">
+            Desarrollado por
+          </span>
+          <a
+            href="https://www.frakodev.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-cascadia-code text-sm border-b border-transparent group-hover:border-gold transition-all"
+          >
+            frakoDev
           </a>
         </div>
       </div>
@@ -87,10 +134,10 @@ function FooterSocial({
   );
 }
 
-function FooterLink({ label }: { label: string }) {
+function FooterLink({ label, link }: { label: string; link: string }) {
   return (
     <li>
-      <a className="hover:text-white transition-colors" href="#">
+      <a className="hover:text-white transition-colors" href={link}>
         {label}
       </a>
     </li>

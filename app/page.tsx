@@ -1,4 +1,7 @@
-import { VENUTIS_EMAIL, WHATSAPP_PHONE_NUMBER } from "@/lib/constants/constants";
+import {
+  VENUTIS_EMAIL,
+  WHATSAPP_PHONE_NUMBER,
+} from "@/lib/constants/constants";
 import {
   BriefcaseBusiness,
   Instagram,
@@ -95,7 +98,7 @@ export default function StorefrontEntry() {
 
         {/* Footer */}
         <footer className="relative z-10 w-full px-6 py-10 font-century-gothic">
-          <div className=" mx-auto flex flex-col md:flex-row justify-between items-center gap-6 border-t border-gold/20 pt-10">
+          <div className=" mx-auto flex flex-col  justify-between items-center gap-6 border-t border-gold/20 pt-10">
             <div className="flex gap-8">
               <FooterLink text="Nuestra Historia" link="/about-us" />
               <FooterLink text="Consumidores" link="/productos/consumidores" />
@@ -114,9 +117,28 @@ export default function StorefrontEntry() {
               <SocialIcon icon={Mail} link={`mailto:${VENUTIS_EMAIL}`} />
             </div>
 
-            <p className="text-xs tracking-widest uppercase text-gray-500">
-              © 2024 Venuti's Gourmet. Todos los derechos reservados.
-            </p>
+            <div className="container mx-auto px-4 flex flex-col justify-between items-center gap-4">
+              {/* Copyright de la marca */}
+              <p className="text-white/40 text-xs tracking-widest uppercase">
+                © {new Date().getFullYear()} Venuti's Gourmet. Todos los
+                derechos reservados.
+              </p>
+
+              {/* Créditos de Desarrollador */}
+              <div className="group flex items-center gap-2 text-white/40 hover:text-gold transition-colors duration-300">
+                <span className="text-[10px] uppercase tracking-[0.2em] font-medium">
+                  Desarrollado por
+                </span>
+                <a
+                  href="https://www.frakodev.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-cascadia-code text-sm border-b border-transparent group-hover:border-gold transition-all"
+                >
+                  frakoDev
+                </a>
+              </div>
+            </div>
           </div>
         </footer>
       </div>

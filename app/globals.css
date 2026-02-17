@@ -32,6 +32,7 @@
   --font-good-brush: var(--font-good-brush);
   --font-dk-coal-brush: var(--font-dk-coal-brush);
   --font-century-gothic: var(--font-century-gothic);
+  --font-cascadia-code: var(--font-cascadia-code);
 
   /* --- ANIMACIONES V4 --- */
   /* Registramos la animación para usarla como animate-loading-slide */

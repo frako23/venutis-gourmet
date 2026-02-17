@@ -24,6 +24,11 @@ const centuryGothic = localFont({
   variable: "--font-century-gothic",
 });
 
+const cascadiaCode = localFont({
+  src: "./fonts/cascadia-code-latin-ext-400-normal.ttf",
+  variable: "--font-cascadia-code",
+});
+
 export const metadata: Metadata = {
   title: "Venuti's Gourmet | Tienda de Pastas y Productos Artesanales",
   icons: {
@@ -56,6 +61,7 @@ export default function RootLayout({
         ${goodBrush.variable} 
         ${dkCoalBrushed.variable} 
         ${centuryGothic.variable}
+        ${cascadiaCode.variable}
       `}
     >
       <body

@@ -1,11 +1,13 @@
-import { VENUTIS_EMAIL, WHATSAPP_PHONE_NUMBER } from "@/lib/constants/constants";
+import {
+  VENUTIS_EMAIL,
+  WHATSAPP_PHONE_NUMBER,
+} from "@/lib/constants/constants";
 import {
   CheckCircle2,
   Instagram,
   Mail,
   MapPin,
   MessageCircleMore,
-  Phone,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -144,8 +146,7 @@ export default function AboutUs() {
               </h1>
             </div>
             <p className="max-w-sm mb-6 text-sm leading-relaxed">
-              Preservando el arte de la gastronomía fina desde 1920. Nuestra
-              pasión es la calidad, nuestra guía es la tradición.
+              Tradición familiar y pasión artesanal en cada bocado.
             </p>
             <div className="flex gap-4">
               <SocialLink
@@ -164,10 +165,8 @@ export default function AboutUs() {
               Explorar
             </h4>
             <ul className="space-y-3 text-sm">
-              <FooterItem label="Colecciones" />
-              <FooterItem label="Cestas de Regalo" />
-              <FooterItem label="Suscripciones" />
-              <FooterItem label="Recetas" />
+              <FooterItem label="Consumidores" link="/productos/consumidores" />
+              <FooterItem label="Mayoristas" link="/productos/mayoristas" />
             </ul>
           </div>
           <div>
@@ -176,22 +175,33 @@ export default function AboutUs() {
             </h4>
             <ul className="space-y-3 text-sm">
               <ContactItem icon={MapPin} text="Caracas" />
-              <ContactItem icon={Mail} text="info@venutis.com" />
-              <ContactItem icon={Phone} text="+58 412 345 6789" />
+              <ContactItem icon={Mail} text={VENUTIS_EMAIL} />
+              <ContactItem
+                icon={MessageCircleMore}
+                text={WHATSAPP_PHONE_NUMBER}
+              />
             </ul>
           </div>
         </div>
-        <div className="max-w-7xl mx-auto mt-16 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] tracking-widest uppercase text-center">
-          <p>© 2024 Venuti's Gourmet. Todos los derechos reservados.</p>
-          <div className="flex gap-6">
-            <a href="#" className="hover:text-white transition-colors">
-              Privacidad
-            </a>
-            <a href="#" className="hover:text-white transition-colors">
-              Términos
-            </a>
-            <a href="#" className="hover:text-white transition-colors">
-              Cookies
+        <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4 mt-8 pt-8">
+          {/* Copyright de la marca */}
+          <p className="text-white/40 text-xs tracking-widest uppercase">
+            © {new Date().getFullYear()} Venuti's Gourmet. Todos los derechos
+            reservados.
+          </p>
+
+          {/* Créditos de Desarrollador */}
+          <div className="group flex items-center gap-2 text-white/40 hover:text-gold transition-colors duration-300">
+            <span className="text-[10px] uppercase tracking-[0.2em] font-medium">
+              Desarrollado por
+            </span>
+            <a
+              href="https://www.frakodev.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-cascadia-code text-sm border-b border-transparent group-hover:border-gold transition-all"
+            >
+              frakoDev
             </a>
           </div>
         </div>
@@ -248,9 +258,9 @@ const SocialLink = ({ icon: Icon, link }: { icon: any; link: string }) => (
   </a>
 );
 
-const FooterItem = ({ label }: { label: string }) => (
+const FooterItem = ({ label, link }: { label: string; link: string }) => (
   <li>
-    <a href="#" className="hover:text-gold transition-colors">
+    <a href={link} className="hover:text-gold transition-colors">
       {label}
     </a>
   </li>
