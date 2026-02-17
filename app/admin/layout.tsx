@@ -1,7 +1,9 @@
 import Header from "@/components/admin/header";
 import Sidebar from "@/components/admin/sidebar";
+import { stackServerApp } from "@/stack/server";
 import { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import { redirect } from "next/navigation";
 import { Toaster } from "sonner";
 
 const inter = Inter({
@@ -20,11 +22,26 @@ export const metadata: Metadata = {
     "Gestión centralizada de clientes, inventarios y pedidos de Venuti's Gourmet. Control total para garantizar la excelencia en cada entrega artesanal.",
 };
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const user = await stackServerApp.getUser();
+
+  // Validar correo autorizado
+  const allowedEmails = process.env.ALLOWED_EMAILS?.split(",");
+
+  // 1. Si NO hay usuario, mandarlo al login (Stack suele manejar esto, pero es bueno ser explícito)
+  if (!user) {
+    redirect("/admin-login");
+  }
+
+  // 2. Si está autenticado pero NO autorizado
+  if (allowedEmails && !allowedEmails.includes(user.primaryEmail!)) {
+    redirect("/unauthorized");
+  }
+
   return (
     // Agregamos 'antialiased' para que la fuente Inter se vea nítida
     <div

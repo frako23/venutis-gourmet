@@ -1,4 +1,6 @@
 import { WhatsAppButton } from "@/components/global/whatssappButton";
+import { stackServerApp } from "@/stack/server";
+import { StackProvider, StackTheme } from "@stackframe/stack";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Toaster } from "sonner";
@@ -69,21 +71,26 @@ export default function RootLayout({
         // 2. Aplicamos la fuente base (Century Gothic) para que todo el texto sea legible por defecto
         className="font-century-gothic antialiased bg-background-dark text-cream"
       >
-        {children}
-        <WhatsAppButton />
-        <Toaster
-          position="top-right"
-          expand={false}
-          richColors
-          theme="dark" // Cambiado a dark para combinar con Venuti's
-          toastOptions={{
-            style: {
-              borderRadius: "1.2rem",
-              // Usamos una variable que ya existe en tu @theme
-              fontFamily: "var(--font-century-gothic)",
-            },
-          }}
-        />
+        <StackProvider app={stackServerApp}>
+          <StackTheme>
+            {children}
+
+            <WhatsAppButton />
+            <Toaster
+              position="top-right"
+              expand={false}
+              richColors
+              theme="dark" // Cambiado a dark para combinar con Venuti's
+              toastOptions={{
+                style: {
+                  borderRadius: "1.2rem",
+                  // Usamos una variable que ya existe en tu @theme
+                  fontFamily: "var(--font-century-gothic)",
+                },
+              }}
+            />
+          </StackTheme>
+        </StackProvider>
       </body>
     </html>
   );
