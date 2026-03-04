@@ -72,7 +72,7 @@ export default function AboutUs() {
                 height={500}
                 alt="Vintage recipe book"
                 className="w-full h-[500px] object-cover sepia-filter rounded shadow-2xl"
-                src="/Nuestra historia2.avif"
+                src="/nuestra historia2.avif"
               />
             </div>
           </div>
