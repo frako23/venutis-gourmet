@@ -1,4 +1,4 @@
-import { WhatsAppButton } from "@/components/global/whatssappButton";
+import { WhatsAppButtonWrapper } from "@/components/global/whatsappButtonWrapper";
 import { stackServerApp } from "@/stack/server";
 import { StackProvider, StackTheme } from "@stackframe/stack";
 import type { Metadata } from "next";
@@ -75,7 +75,7 @@ export default function RootLayout({
           <StackTheme>
             {children}
 
-            <WhatsAppButton />
+            <WhatsAppButtonWrapper />
             <Toaster
               position="top-right"
               expand={false}

@@ -17,7 +17,7 @@ import {
   mensajeWhatsapp,
   type LineaCarrito,
 } from "@/lib/pos";
-import { Search, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import Image from "next/image";
 import type { ChangeEvent } from "react";
 import { useMemo, useState } from "react";
@@ -91,7 +91,7 @@ export default function PuntoDeVenta({
       tasa: tasaActiva,
       totalUsd,
     });
-    const url = `https://wa.me/+584242526757?text=${encodeURIComponent(texto)}`;
+    const url = `https://wa.me/+584141713932?text=${encodeURIComponent(texto)}`;
     window.open(url, "_blank");
   };
 
@@ -154,43 +154,35 @@ export default function PuntoDeVenta({
             </div>
           </div>
 
-          <div className="relative z-10 mt-5 space-y-2 pl-[4.5rem] sm:pl-[5rem]">
+          <div className="relative z-10 mt-6 flex items-start justify-between pl-[4.5rem] sm:pl-[5rem]">
             <p className="max-w-[22rem] font-century-gothic text-[0.95rem] uppercase tracking-[0.22em] text-gold/95">
               Arte en tu mesa
             </p>
-          </div>
 
-          <div className="relative z-10 mt-4 rounded-[1.75rem] border border-white/10 bg-white/8 p-3 backdrop-blur-sm">
-            <div className="flex items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setMonedaTasa((m) => (m === "usd" ? "eur" : "usd"));
-                  setTasaManual(null);
-                }}
-                className="rounded-full bg-gold px-3 py-1 text-xs font-semibold text-black"
-              >
+            <div className="shrink-0">
+              <div className="rounded-full bg-gold px-4 py-1.5 text-xs font-semibold text-black">
                 Tasa Bs{" "}
                 {tasaActiva.toLocaleString("es-VE", {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}
-              </button>
-              <p className="text-xs uppercase tracking-[0.24em] text-white/60">
-                Venta rápida
-              </p>
+              </div>
             </div>
+          </div>
+          <div className="relative z-10 mt-4 rounded-2xl bg-white/5 backdrop-blur">
+            <div className="relative">
+              {/* Icono de búsqueda (opcional) */}
+              {/* <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/60" /> */}
 
-            <div className="relative mt-3">
-              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/60" />
               <InputField
+                label="Buscar producto o categoría"
                 inputMode="search"
                 value={busqueda}
                 onChange={(e: ChangeEvent<HTMLInputElement>) =>
                   setBusqueda(e.target.value)
                 }
-                placeholder="Buscar producto o categoría..."
-                className="h-12 rounded-2xl border-0 bg-white pl-9 text-base text-foreground"
+                placeholder="Buscar..."
+                className="h-11 w-full rounded-xl border border-white/10 bg-white/40  pl-10 text-sm text-foreground placeholder:text-white/50 outline-none focus:border-white/20 focus:bg-white/60 transition"
               />
             </div>
           </div>
@@ -208,12 +200,12 @@ export default function PuntoDeVenta({
                 key={p.id}
                 type="button"
                 onClick={() => agregar(p.id)}
-                className="group relative flex min-h-44 flex-col justify-between overflow-hidden rounded-3xl border border-border/70 bg-card p-3 text-left shadow-card transition duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.98]"
+                className="group relative flex min-h-44 flex-col justify-between overflow-visible rounded-3xl border border-border/70 bg-card p-3 text-left shadow-card transition duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.98]"
               >
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/5" />
 
                 {cant > 0 && (
-                  <span className="absolute right-2 top-2 z-10 grid size-6 place-items-center rounded-full bg-brand text-xs font-bold text-brand-foreground shadow-sm">
+                  <span className="absolute right-2 top-2 z-30 grid size-7 place-items-center rounded-full border border-white/20 bg-gold text-xs font-bold text-brand-foreground text-primary shadow-lg">
                     {cant}
                   </span>
                 )}
@@ -247,7 +239,7 @@ export default function PuntoDeVenta({
 
                   {/* Precio en Bs */}
                   <span className="text-xs tabular text-muted-foreground">
-                    {fmtBs(p.precioUsd * tasaActiva)} Bs
+                    {fmtBs(p.precioUsd * tasaActiva)}
                   </span>
                 </div>
               </button>
@@ -255,7 +247,6 @@ export default function PuntoDeVenta({
           })}
         </div>
       </section>
-
       {items > 0 && (
         <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md px-3 pb-3 ">
           <button
