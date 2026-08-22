@@ -6,7 +6,7 @@ import { useAppStore } from "@/store/appStore";
 import { Imagen } from "@prisma/client";
 import Image from "next/image";
 
-interface ProductCardProps {
+ export interface ProductCardProps {
   id: number;
   image: Imagen[];
   title: string;

@@ -2,7 +2,7 @@ import useSWR from "swr";
 import { fetcher } from "@/lib/fetcher";
 
 export function useDolar() {
-  const { data, error, isLoading } = useSWR(
+  const { data, error, isLoading, mutate } = useSWR(
     "https://ve.dolarapi.com/v1/dolares", // Usaremos una ruta interna para mejor control
     fetcher,
     {
@@ -18,5 +18,6 @@ export function useDolar() {
     tasa: data?.[0]?.promedio || 0,
     error,
     isLoading,
+    refetch: mutate,
   };
 }
