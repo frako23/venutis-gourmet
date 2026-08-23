@@ -12,6 +12,7 @@ export type Producto = {
   precioUsd: number;
   icono: LucideIcon;
   categoria: string;
+  inventario: number;
 };
 
 export type LineaCarrito = {
