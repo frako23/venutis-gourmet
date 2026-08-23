@@ -69,5 +69,8 @@ export function mensajeWhatsapp(opts: {
     "",
     `Tasa de referencia: *${fmtBs(tasa)} por 1 $*`,
     "",
+    "",
+    `*NO INCLUYE DELIVERY*`,
+    "",
   ].join("\n");
 }
