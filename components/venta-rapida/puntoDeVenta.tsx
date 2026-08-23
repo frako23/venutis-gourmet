@@ -28,6 +28,7 @@ export interface ProductoVentaRapida {
   precioUsd: number;
   categoria: string;
   imagenes?: { url: string }[];
+  inventario: number;
 }
 
 export default function PuntoDeVenta({
