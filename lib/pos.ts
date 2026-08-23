@@ -48,7 +48,7 @@ export function mensajeWhatsapp(opts: {
     .map((l) => {
       const sub = l.producto.precioUsd * l.cantidad;
       return [
-        `• ${l.cantidad} x ${l.producto.categoria}`,
+        `• ${l.cantidad} x ${l.producto.nombre}`,
         `  ${fmtUsd(sub)} / ${fmtBs(sub * tasa)}`,
       ].join("\n");
     })
