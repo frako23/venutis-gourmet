@@ -1,6 +1,7 @@
 "use client";
 
 import { useDolar } from "@/hooks/useDolar";
+import { getPurchaseContextLabel, hasValidPrice } from "@/lib/catalog-context";
 import { useAppStore } from "@/store/appStore";
 import { Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
 import Image from "next/image";
@@ -12,6 +13,10 @@ export const ShoppingCartButton = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const updateQuantity = useAppStore((s) => s.updateQuantity);
   const totalUSD = useAppStore((s) => s.totalUSD);
+  const purchaseContext = useAppStore((s) => s.purchaseContext);
+  const hasUnavailableItems = selectedProducts.some(
+    (product) => !hasValidPrice(product.precio) || product.inventario === 0,
+  );
 
   return (
     <div className="relative">
@@ -37,7 +42,12 @@ export const ShoppingCartButton = () => {
 
           <div className="absolute right-0 mt-4 w-80 bg-zinc-900 shadow-2xl rounded-xl overflow-hidden border border-primary/10 z-[60]">
             <div className="p-4 bg-primary/5 border-b border-primary/10 flex justify-between items-center">
-              <span className="font-century-gothic text-xl ">Tu Carrito</span>
+              <div>
+                <span className="font-century-gothic text-xl">Tu Carrito</span>
+                <p className="mt-1 text-[10px] uppercase tracking-widest text-gold/80">
+                  Contexto: {getPurchaseContextLabel(purchaseContext)}
+                </p>
+              </div>
               <button
                 onClick={() => setIsCartOpen(false)}
                 className="absolute top-2 right-2 text-gray-500 hover:text-gray-300 cursor-pointer"
@@ -70,7 +80,9 @@ export const ShoppingCartButton = () => {
                         {product.nombre}
                       </p>
                       <p className="text-[11px] text-gold">
-                        ${product.precio.toFixed(2)}
+                        {hasValidPrice(product.precio)
+                          ? `$${product.precio.toFixed(2)}`
+                          : "No disponible en este contexto"}
                       </p>
                     </div>
 
@@ -123,12 +135,19 @@ export const ShoppingCartButton = () => {
                 )}
               </div>
 
-              <a
-                href="/finalizar-compra"
-                className="block w-full bg-primary text-white py-3 rounded-lg text-[10px] font-bold uppercase tracking-[2px] text-center hover:bg-gold transition-all shadow-lg"
-              >
-                Realizar Pedido
-              </a>
+              {hasUnavailableItems ? (
+                <p className="text-center text-xs text-red-300">
+                  Actualiza el contexto o retira los productos no disponibles
+                  para continuar.
+                </p>
+              ) : (
+                <a
+                  href="/finalizar-compra"
+                  className="block w-full bg-primary text-white py-3 rounded-lg text-[10px] font-bold uppercase tracking-[2px] text-center hover:bg-gold transition-all shadow-lg"
+                >
+                  Realizar Pedido
+                </a>
+              )}
             </div>
           </div>
         </>

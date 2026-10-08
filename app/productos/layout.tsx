@@ -6,9 +6,9 @@ import { Suspense } from "react";
 import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
-  title: "Panel Administrativo | Venuti's Gourmet - Gestión de Calidad",
+  title: "Catálogo | Venuti's Gourmet",
   description:
-    "Gestión centralizada de clientes, inventarios y pedidos de Venuti's Gourmet. Control total para garantizar la excelencia en cada entrega artesanal.",
+    "Catálogo público de pastas, salsas y productos gourmet de Venuti's Gourmet.",
 };
 
 export default function ProductosLayout({
@@ -19,7 +19,7 @@ export default function ProductosLayout({
   return (
     // Agregamos 'antialiased' para que la fuente Inter se vea nítida
     <div className="bg-background-dark text-[#f9f7f0] min-h-screen font-century-gothic antialiased">
-      <Header />
+      <Header showContextSwitcher />
       <div className="max-w-[1440px] mx-auto flex flex-col lg:flex-row min-h-[calc(100vh-80px)]">
         <Suspense
           fallback={<div className="w-full lg:w-64 p-6 lg:p-10 shrink-0" />}

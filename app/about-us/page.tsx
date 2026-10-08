@@ -27,8 +27,12 @@ export default function AboutUs() {
           />
         </Link>
         <nav className="hidden md:flex items-center gap-10">
-          <NavLink href="/productos/consumidores">Consumidores</NavLink>
-          <NavLink href="/productos/mayoristas">Mayoristas</NavLink>
+          <NavLink href="/productos/consumidores?contexto=consumidor">
+            Consumidores
+          </NavLink>
+          <NavLink href="/productos/consumidores?contexto=mayorista">
+            Mayoristas
+          </NavLink>
         </nav>
         {/* <button className="bg-primary text-white px-6 py-2 text-xs font-bold tracking-widest uppercase hover:bg-opacity-80 transition-all rounded">
           Shop Now
@@ -165,8 +169,14 @@ export default function AboutUs() {
               Explorar
             </h4>
             <ul className="space-y-3 text-sm">
-              <FooterItem label="Consumidores" link="/productos/consumidores" />
-              <FooterItem label="Mayoristas" link="/productos/mayoristas" />
+              <FooterItem
+                label="Consumidores"
+                link="/productos/consumidores?contexto=consumidor"
+              />
+              <FooterItem
+                label="Mayoristas"
+                link="/productos/consumidores?contexto=mayorista"
+              />
             </ul>
           </div>
           <div>

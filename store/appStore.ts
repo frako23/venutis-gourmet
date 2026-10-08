@@ -3,11 +3,21 @@
 import { Cliente } from "@prisma/client";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import {
+  DEFAULT_PURCHASE_CONTEXT,
+  getProductPrice,
+  normalizePurchaseContext,
+  PurchaseContext,
+} from "@/lib/catalog-context";
 
 export interface CartItem {
   id: number;
   nombre: string;
   precio: number;
+  precioDetal: number;
+  precioMayorista: number;
+  contexto: PurchaseContext;
+  inventario?: number;
   descripcion?: string;
   imagen: string;
   cantidad: number;
@@ -25,6 +35,7 @@ interface AppState {
   // Estado
   selectedProducts: CartItem[];
   totalUSD: number;
+  purchaseContext: PurchaseContext;
   progressStep: ProgressStep;
   deliveryMethod: DeliveryMethod;
   clientId: number | null;
@@ -34,8 +45,11 @@ interface AppState {
 
   // Acciones (Quitamos los "?" para evitar errores de "undefined")
   setSelectedProducts: (products: CartItem[]) => void;
+  setPurchaseContext: (context: PurchaseContext) => void;
   updateQuantity: (id: number, delta: number) => void;
-  addToCart: (product: Omit<CartItem, "cantidad">) => void;
+  addToCart: (
+    product: Omit<CartItem, "cantidad" | "precio"> & { precio: number },
+  ) => void;
   clearCart: () => void;
   setDeliveryMethod: (method: DeliveryMethod) => void;
   setProgressStep: (step: ProgressStep) => void;
@@ -55,6 +69,7 @@ export const useAppStore = create<AppState>()(
       // Valores iniciales
       selectedProducts: [],
       totalUSD: 0,
+      purchaseContext: DEFAULT_PURCHASE_CONTEXT,
       progressStep: "client-details",
       deliveryMethod: "envio",
       clientId: null,
@@ -71,6 +86,22 @@ export const useAppStore = create<AppState>()(
           selectedProducts: products,
           totalUSD: calculateTotal(products),
         }),
+
+      setPurchaseContext: (context) => {
+        const normalizedContext = normalizePurchaseContext(context);
+        const { selectedProducts } = get();
+        const updatedProducts = selectedProducts.map((product) => ({
+          ...product,
+          contexto: normalizedContext,
+          precio: getProductPrice(product, normalizedContext),
+        }));
+
+        set({
+          purchaseContext: normalizedContext,
+          selectedProducts: updatedProducts,
+          totalUSD: calculateTotal(updatedProducts),
+        });
+      },
 
       updateQuantity: (id, delta) => {
         const { selectedProducts } = get();
@@ -90,18 +121,32 @@ export const useAppStore = create<AppState>()(
 
       addToCart: (product) => {
         const { selectedProducts } = get();
-        const existing = selectedProducts.find((p) => p.id === product.id);
+        const contexto = normalizePurchaseContext(product.contexto);
+        const contextualProducts = selectedProducts.map((item) => ({
+          ...item,
+          contexto,
+          precio: getProductPrice(item, contexto),
+        }));
+        const incomingProduct = {
+          ...product,
+          contexto,
+          precio: getProductPrice(product, contexto),
+        };
+        const existing = contextualProducts.find((p) => p.id === product.id);
 
         let newProducts;
         if (existing) {
-          newProducts = selectedProducts.map((p) =>
-            p.id === product.id ? { ...p, cantidad: p.cantidad + 1 } : p,
+          newProducts = contextualProducts.map((p) =>
+            p.id === product.id
+              ? { ...p, cantidad: p.cantidad + 1 }
+              : p,
           );
         } else {
-          newProducts = [...selectedProducts, { ...product, cantidad: 1 }];
+          newProducts = [...contextualProducts, { ...incomingProduct, cantidad: 1 }];
         }
 
         set({
+          purchaseContext: contexto,
           selectedProducts: newProducts,
           totalUSD: calculateTotal(newProducts),
         });
@@ -129,6 +174,42 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: "venuti-app-storage",
+      version: 2,
+      migrate: (persistedState, version) => {
+        if (version >= 2) return persistedState as AppState;
+
+        const state = persistedState as Partial<AppState> & {
+          selectedProducts?: Array<
+            Partial<CartItem> & { precio?: number }
+          >;
+        };
+        const context = normalizePurchaseContext(state.purchaseContext);
+        const selectedProducts = (state.selectedProducts || []).map(
+          (product) => {
+            const legacyPrice = product.precio || 0;
+            const precioDetal = product.precioDetal ?? legacyPrice;
+            const precioMayorista = product.precioMayorista ?? legacyPrice;
+
+            return {
+              ...product,
+              precioDetal,
+              precioMayorista,
+              precio: getProductPrice(
+                { precioDetal, precioMayorista },
+                context,
+              ),
+              contexto: context,
+            } as CartItem;
+          },
+        );
+
+        return {
+          ...state,
+          purchaseContext: context,
+          selectedProducts,
+          totalUSD: calculateTotal(selectedProducts),
+        } as AppState;
+      },
     },
   ),
 );

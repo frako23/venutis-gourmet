@@ -6,7 +6,7 @@ import { useDolar } from "@/hooks/useDolar";
 import { useAppStore } from "@/store/appStore";
 import { Minus, Plus, ShieldCheck } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import Loading from "../loading";
 import { VENUTIS_EMAIL } from "@/lib/constants/constants";
 
@@ -14,13 +14,12 @@ export default function CheckoutPage() {
   const selectedProducts = useAppStore((s) => s.selectedProducts);
   const deliveryPrice = useAppStore((s) => s.deliveryPrice);
   const { tasa } = useDolar();
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(
+    () => () => undefined,
+    () => true,
+    () => false,
+  );
   const totalUSD = useAppStore((s) => s.totalUSD);
-  useEffect(() => {
-    // Simulamos un pequeño delay opcional para que la transición no sea un "parpadeo"
-    // o simplemente marcamos como montado inmediatamente.
-    setMounted(true);
-  }, []);
   // Hasta que el cliente no esté listo, mostramos tu componente de carga
   if (!mounted) {
     return <Loading />;

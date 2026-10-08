@@ -1,80 +1,171 @@
+import {
+  getCatalogHref,
+  getProductPrice,
+  isWholesaleOffer,
+  normalizePurchaseContext,
+  PurchaseContext,
+} from "@/lib/catalog-context";
 import { ProductCard } from "@/components/productos/productCard";
 import { PRODUCT_ORDER } from "@/lib/constants/constants";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
+import Link from "next/link";
+
+type SearchParams = {
+  categoria?: string;
+  contexto?: string;
+};
 
 export default async function Productos({
   searchParams,
 }: {
-  searchParams: Promise<{ categoria?: string }>; // En Next 15, searchParams es una Promise
+  searchParams: Promise<SearchParams>;
 }) {
-  // await new Promise((resolve) => setTimeout(resolve, 5000));
-  const prisma = new PrismaClient();
   const params = await searchParams;
   const categoriaSeleccionada = params.categoria || "TODOS";
-  const [products] = await Promise.all([
-    prisma.producto.findMany({
-      orderBy: { createdAt: "desc" },
+  const contexto = normalizePurchaseContext(params.contexto);
+  const products = await prisma.producto.findMany({
+    orderBy: { createdAt: "desc" },
+    include: { imagenes: true },
+  });
 
-      // AGREGAR ESTO:
-      include: {
-        imagenes: true, // Esto hace el "JOIN" con la tabla de imágenes
-      },
-    }),
-  ]);
-
-  // Ordenamos los productos usando nuestro mapa de prioridades
   const sortedProducts = [...products].sort((a, b) => {
     const orderA = PRODUCT_ORDER[a.nombre.toUpperCase()] || 999;
     const orderB = PRODUCT_ORDER[b.nombre.toUpperCase()] || 999;
     return orderA - orderB;
   });
-  // 2. Luego filtramos por la categoría si existe en la URL
+
+  const wholesaleProducts = sortedProducts.filter(isWholesaleOffer);
+  const contextProducts =
+    contexto === "mayorista" ? wholesaleProducts : sortedProducts;
   const filteredProducts =
     categoriaSeleccionada !== "TODOS"
-      ? sortedProducts.filter((p) => p.categoria === categoriaSeleccionada)
-      : sortedProducts;
+      ? contextProducts.filter((product) => product.categoria === categoriaSeleccionada)
+      : contextProducts;
+  const heroImage = getHeroImage(categoriaSeleccionada);
+
   return (
-    <main className="flex-1 p-6 lg:p-12 overflow-x-hidden">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden rounded-2xl mb-16 group">
-        <div className="absolute inset-0   to-transparent z-10"></div>
+    <main className="flex-1 overflow-x-hidden p-6 lg:p-12">
+      <section className="relative mb-8 overflow-hidden rounded-2xl group">
+        <div className="absolute inset-0 z-10 bg-gradient-to-r from-background-dark/30 to-transparent" />
         <div
-          className="relative aspect-[2.06/1] w-full bg-center bg-cover transition-transform duration-1000 group-hover:scale-105"
-          style={{
-            backgroundImage: `url(${categoriaSeleccionada === "BAKERY" ? "/pan1.avif" : categoriaSeleccionada === "PASTAS" ? "/pasta1.avif" : categoriaSeleccionada === "SALSAS" ? "/Salsa1.avif" : categoriaSeleccionada === "POSTRES" ? "/trufas1.avif" : categoriaSeleccionada === "PASTICHOS" ? "/pasticho1.avif" : "/todos1.avif"})`,
-          }}
+          className="relative aspect-[2.06/1] w-full bg-cover bg-center transition-transform duration-1000 group-hover:scale-105"
+          style={{ backgroundImage: `url(${heroImage})` }}
         />
       </section>
 
-      {/* Product Toolbar */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 border-b border-primary/5 pb-6 font-century-gothic">
+      <section className="mb-8 flex flex-col gap-4 rounded-2xl border border-gold/20 bg-primary/5 p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-gold">
+            {contexto === "mayorista" ? "Oferta mayorista" : "Catálogo unificado"}
+          </p>
+          <h1 className="mt-2 text-2xl text-white">
+            {contexto === "mayorista"
+              ? "Productos para negocios y compras al mayor"
+              : "Productos para disfrutar en casa"}
+          </h1>
+          <p className="mt-2 max-w-2xl text-sm text-white/65">
+            {contexto === "mayorista"
+              ? "Consulta la oferta mayorista disponible usando el mismo catálogo y flujo de compra."
+              : "Explora el catálogo y cambia a la oferta mayorista cuando quieras, sin salir de esta experiencia."}
+          </p>
+        </div>
+        {contexto === "consumidor" && wholesaleProducts.length > 0 && (
+          <Link
+            href={getCatalogHref("mayorista", categoriaSeleccionada)}
+            className="shrink-0 rounded-lg bg-gold px-5 py-3 text-center text-sm font-bold uppercase tracking-widest text-primary transition hover:bg-gold/90"
+          >
+            Ver oferta mayorista
+          </Link>
+        )}
+        {contexto === "mayorista" && (
+          <Link
+            href={getCatalogHref("consumidor", categoriaSeleccionada)}
+            className="shrink-0 rounded-lg border border-gold/50 px-5 py-3 text-center text-sm font-bold uppercase tracking-widest text-gold transition hover:bg-gold/10"
+          >
+            Ver catálogo consumidor
+          </Link>
+        )}
+      </section>
+
+      <div className="mb-8 flex flex-col items-start justify-between gap-4 border-b border-primary/5 pb-6 font-century-gothic sm:flex-row sm:items-center">
         <h2 className="text-2xl">
-          Nuestro Menú{" "}
-          <span className="text-gold text-base ml-2 not-italic">
+          {contexto === "mayorista" ? "Oferta mayorista" : "Nuestro Menú"}{" "}
+          <span className="ml-2 text-base text-gold not-italic">
             ({filteredProducts.length} productos)
           </span>
         </h2>
-        {/* <div className="flex gap-3 flex-wrap">
-          <ToolbarButton label="Sort: Featured" />
-          <ToolbarButton label="Price: Low-High" />
-        </div> */}
       </div>
 
-      {/* Product Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-        {filteredProducts.map((product) => (
-          <ProductCard
-            key={product.id}
-            image={product.imagenes}
-            id={product.id}
-            title={product.nombre}
-            categoria={product.categoria}
-            price={product.precioDetal}
-            desc={product.descripcion || ""}
-            inventario={product.inventario}
-          />
-        ))}
-      </div>
+      {filteredProducts.length > 0 ? (
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
+          {filteredProducts.map((product) => (
+            <ProductCard
+              key={product.id}
+              image={product.imagenes}
+              id={product.id}
+              title={product.nombre}
+              categoria={product.categoria}
+              price={getProductPrice(product, contexto)}
+              precioDetal={product.precioDetal}
+              precioMayorista={product.precioMayorista}
+              contexto={contexto}
+              desc={product.descripcion || ""}
+              inventario={product.inventario}
+            />
+          ))}
+        </div>
+      ) : (
+        <EmptyState
+          categoria={categoriaSeleccionada}
+          contexto={contexto}
+        />
+      )}
     </main>
   );
+}
+
+function EmptyState({
+  categoria,
+  contexto,
+}: {
+  categoria: string;
+  contexto: PurchaseContext;
+}) {
+  return (
+    <div className="rounded-2xl border border-dashed border-gold/30 px-6 py-16 text-center">
+      <h2 className="text-2xl text-white">
+        {contexto === "mayorista"
+          ? "No hay ofertas mayoristas disponibles"
+          : "No hay productos disponibles en esta categoría"}
+      </h2>
+      <p className="mx-auto mt-3 max-w-xl text-sm text-white/60">
+        {contexto === "mayorista"
+          ? "Prueba otra categoría o continúa con el catálogo de productos para consumidores."
+          : "Prueba otra categoría o revisa nuevamente el catálogo más tarde."}
+      </p>
+      <Link
+        href={getCatalogHref("consumidor", categoria)}
+        className="mt-6 inline-flex rounded-lg bg-gold px-5 py-3 text-sm font-bold uppercase tracking-widest text-primary"
+      >
+        Volver al catálogo consumidor
+      </Link>
+    </div>
+  );
+}
+
+function getHeroImage(category: string) {
+  switch (category) {
+    case "BAKERY":
+      return "/pan1.avif";
+    case "PASTAS":
+      return "/pasta1.avif";
+    case "SALSAS":
+      return "/Salsa1.avif";
+    case "POSTRES":
+      return "/trufas1.avif";
+    case "PASTICHOS":
+      return "/pasticho1.avif";
+    default:
+      return "/todos1.avif";
+  }
 }

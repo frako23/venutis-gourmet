@@ -2,15 +2,25 @@
 import { Eye, ShoppingCart, Star, StarHalf } from "lucide-react";
 
 import { useDolar } from "@/hooks/useDolar";
+import {
+  getCatalogProductHref,
+  getPurchaseContextLabel,
+  hasValidPrice,
+  isWholesaleOffer,
+  PurchaseContext,
+} from "@/lib/catalog-context";
 import { useAppStore } from "@/store/appStore";
 import { Imagen } from "@prisma/client";
 import Image from "next/image";
 
- export interface ProductCardProps {
+export interface ProductCardProps {
   id: number;
   image: Imagen[];
   title: string;
   price: number;
+  precioDetal: number;
+  precioMayorista: number;
+  contexto: PurchaseContext;
   badge?: string;
   categoria?: string;
   badgeColor?: string;
@@ -24,6 +34,9 @@ export function ProductCard({
   image,
   title,
   price,
+  precioDetal,
+  precioMayorista,
+  contexto,
   categoria,
   badge,
   inventario,
@@ -49,16 +62,25 @@ export function ProductCard({
     );
   };
   const imageSrc = image?.[0]?.url || "/food-avatar.png";
+  const productHref = getCatalogProductHref(id, contexto);
+  const wholesaleOffer = isWholesaleOffer({ precioDetal, precioMayorista });
+  const canBuy = inventario > 0 && hasValidPrice(price);
+  const offerBadge =
+    contexto === "mayorista"
+      ? getPurchaseContextLabel(contexto)
+      : wholesaleOffer
+        ? "Disponible para mayoristas"
+        : badge;
 
   return (
     <div className="group bg-primary/5 rounded-xl overflow-hidden hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 border border-transparent hover:border-primary/10 flex flex-col">
       <div className="relative aspect-[4/5] overflow-hidden">
-        {badge && (
+        {offerBadge && (
           <div className="absolute top-4 left-4 z-10">
             <span
               className={`${badgeColor} text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full`}
             >
-              {badge}
+              {offerBadge}
             </span>
           </div>
         )}
@@ -71,7 +93,7 @@ export function ProductCard({
         />
         <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
           <a
-            href={`/productos/consumidores/${id}`}
+            href={productHref}
             className="bg-white text-primary p-3 rounded-full hover:bg-gold hover:text-white transition-all shadow-xl"
           >
             <Eye size={20} />
@@ -88,7 +110,7 @@ export function ProductCard({
         </span>
         <div className="flex justify-between items-start mb-2 font-good-brush">
           <a
-            href={`/productos/consumidores/${id}`}
+            href={productHref}
             className="text-2xl transition-colors "
           >
             <span className="font-good-brush"></span>{" "}
@@ -151,11 +173,11 @@ export function ProductCard({
         </div>
 
         <button
-          disabled={inventario === 0}
+          disabled={!canBuy}
           className={`mt-auto w-full py-3 rounded-lg  uppercase tracking-widest text-[18px] 
     flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 cursor-pointer font-century-gothic
     ${
-      inventario === 0
+      !canBuy
         ? "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
         : "bg-gold text-primary hover:bg-gold/90 hover:shadow-gold/20 shadow-gold/10"
     }`}
@@ -164,12 +186,20 @@ export function ProductCard({
               id,
               nombre: title,
               precio: price,
+              precioDetal,
+              precioMayorista,
+              contexto,
               imagen: imageSrc,
+              inventario,
             });
           }}
         >
           <ShoppingCart size={20} />
-          {inventario === 0 ? "Sin Stock" : "Agregar al Carrito"}
+          {inventario === 0
+            ? "Sin Stock"
+            : hasValidPrice(price)
+              ? "Agregar al Carrito"
+              : "No disponible"}
         </button>
       </div>
     </div>

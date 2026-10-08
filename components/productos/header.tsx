@@ -1,9 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Suspense } from "react";
 import { LoginButton } from "./loginButton";
+import { PurchaseContextSwitcher } from "./purchaseContextSwitcher";
 import { ShoppingCartButton } from "./shoppingCartButton";
 
-const Header = () => {
+const Header = ({ showContextSwitcher = false }: { showContextSwitcher?: boolean }) => {
   return (
     <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-md border-b-2 border-gold px-6 lg:px-12 py-4 font-century-gothic">
       <div className=" mx-auto flex items-center justify-between gap-8">
@@ -17,18 +19,18 @@ const Header = () => {
             />
           </Link>
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium uppercase tracking-widest">
-            <a className="hover:text-gold transition-colors" href="/about-us">
+            <Link className="hover:text-gold transition-colors" href="/about-us">
               Nuestra historia
-            </a>
+            </Link>
             {/* <a className="hover:text-gold transition-colors" href="#">
               Shipping
             </a> */}
-            <a
+            <Link
               className="hover:text-gold transition-colors"
-              href="/prodcutos/mayoristas"
+              href="/productos/consumidores?contexto=mayorista"
             >
               Mayoristas
-            </a>
+            </Link>
           </nav>
         </div>
         {/* 
@@ -42,6 +44,15 @@ const Header = () => {
         </div> */}
 
         <div className="flex items-center gap-6">
+          {showContextSwitcher && (
+            <Suspense
+              fallback={
+                <div className="h-9 w-40 animate-pulse rounded-full bg-gold/10" />
+              }
+            >
+              <PurchaseContextSwitcher />
+            </Suspense>
+          )}
           <LoginButton />
 
           <ShoppingCartButton />

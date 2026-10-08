@@ -31,6 +31,7 @@ export const PaymentInformation = () => {
   const selectedProducts = useAppStore((s) => s.selectedProducts);
   const { tasa } = useDolar();
   const totalUSD = useAppStore((s) => s.totalUSD);
+  const purchaseContext = useAppStore((s) => s.purchaseContext);
   const client = useAppStore((s) => s.client);
   const { setCanContinue, setIsSubmitting, isSubmitting, setOrderFinished } =
     useCheckout();
@@ -104,6 +105,7 @@ export const PaymentInformation = () => {
 
       const datos: CheckoutData = {
         clientId: client.id,
+        contexto: purchaseContext,
         montoTotal: totalPago,
         tipodeRetiro: deliveryMethod,
         total: itemsParaOrden.length,

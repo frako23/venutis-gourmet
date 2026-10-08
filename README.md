@@ -4,7 +4,7 @@ Aplicación web para la comercialización de pastas, salsas y productos gourmet.
 
 ## Características
 
-- Catálogo para consumidores y clientes mayoristas.
+- Catálogo público unificado para consumidores y clientes mayoristas.
 - Detalle de productos con imágenes, descripción y reseñas.
 - Carrito persistente en el navegador.
 - Checkout por pasos con cliente, dirección, tipo de retiro y pago.
@@ -127,9 +127,9 @@ El alias de imports `@/*` apunta a la raíz del proyecto.
 
 - `/`: página principal.
 - `/about-us`: información de la marca.
-- `/productos/consumidores`: catálogo para clientes detallistas.
+- `/productos/consumidores`: catálogo público canónico; admite `?contexto=consumidor` o `?contexto=mayorista`.
 - `/productos/consumidores/[id]`: detalle de producto.
-- `/productos/mayoristas`: catálogo mayorista.
+- `/productos/mayoristas`: entrada de compatibilidad que redirige al catálogo unificado con contexto mayorista.
 - `/finalizar-compra`: flujo de checkout.
 - `/confirmacion`: confirmación de compra.
 
@@ -149,6 +149,8 @@ El área administrativa requiere autenticación. Si `ALLOWED_EMAILS` está confi
 ### Punto de venta
 
 `/venta-rapida` muestra los productos con inventario disponible, permite buscar por nombre o categoría, calcula el total en USD y bolívares y genera un pedido para enviarlo por WhatsApp.
+
+El catálogo público usa una sola experiencia para consumidores y mayoristas. El contexto elegido en la entrada determina la presentación y el precio vigente (`precioDetal` o `precioMayorista`) sin crear una aplicación ni un checkout separado.
 
 Este flujo no registra actualmente una `Transaccion` en la base de datos ni descuenta inventario; el registro persistente de ventas se realiza mediante el checkout web.
 
@@ -181,4 +183,3 @@ Los formularios utilizan esquemas Zod para validar datos antes de acceder a la b
 ## Documentación adicional
 
 Consulta la [descripción técnica completa](docs/descripcion-tecnica.md) para conocer la arquitectura, el modelo de datos, los flujos internos y las consideraciones técnicas identificadas.
-

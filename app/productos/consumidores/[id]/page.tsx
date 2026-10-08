@@ -2,16 +2,25 @@ import AddToCartBlock from "@/components/producto/addToCart";
 import { ImageGalery } from "@/components/producto/imageGalery";
 import { ReviewButton } from "@/components/producto/reviewButton";
 import { SinglePagePricetag } from "@/components/producto/singlePagePricetag";
+import {
+  getProductPrice,
+  getPurchaseContextLabel,
+  isWholesaleOffer,
+  normalizePurchaseContext,
+} from "@/lib/catalog-context";
 import { prisma } from "@/lib/prisma";
 import { BadgeCheck, MessageSquare, Star, ThumbsUp } from "lucide-react";
 import { notFound } from "next/navigation";
 
 export interface Props {
   params: Promise<{ id: number }>;
+  searchParams: Promise<{ contexto?: string }>;
 }
 
-export default async function ProductDetail({ params }: Props) {
+export default async function ProductDetail({ params, searchParams }: Props) {
   const { id } = await params;
+  const { contexto: contextoParam } = await searchParams;
+  const contexto = normalizePurchaseContext(contextoParam);
   // Convertimos el string a número entero
   const productId = Number(id);
 
@@ -79,7 +88,24 @@ export default async function ProductDetail({ params }: Props) {
                 </span> */}
               </div>
 
-              <SinglePagePricetag precio={producto.precioDetal} />
+              <div className="mb-6 flex flex-wrap items-center gap-3">
+                <SinglePagePricetag
+                  precio={getProductPrice(producto, contexto)}
+                />
+                {isWholesaleOffer(producto) && (
+                  <span className="rounded-full border border-gold/40 px-3 py-1 text-xs font-bold uppercase tracking-widest text-gold">
+                    {contexto === "mayorista"
+                      ? getPurchaseContextLabel(contexto)
+                      : "Disponible para mayoristas"}
+                  </span>
+                )}
+              </div>
+
+              {producto.inventario === 0 && (
+                <p className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                  Producto agotado
+                </p>
+              )}
 
               <div
                 className="text-slate-200 text-xl leading-relaxed mb-4 space-y-2 
@@ -89,7 +115,7 @@ export default async function ProductDetail({ params }: Props) {
               />
 
               {/* Add to Cart Block */}
-              <AddToCartBlock producto={producto} />
+              <AddToCartBlock producto={producto} contexto={contexto} />
             </div>
           </div>
         </section>

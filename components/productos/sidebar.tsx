@@ -1,10 +1,12 @@
 "use client";
 import { CATEGORIAS } from "@/lib/constants/constants";
+import { normalizePurchaseContext } from "@/lib/catalog-context";
 import { useRouter, useSearchParams } from "next/navigation";
 
 const Sidebar = () => {
   const searchParams = useSearchParams();
   const categoriaActual = searchParams.get("categoria") || "TODOS";
+  const contextoActual = normalizePurchaseContext(searchParams.get("contexto"));
   return (
     <aside className="w-full lg:w-64 p-6 lg:p-10 border-r border-primary/5 shrink-0">
       <div className="sticky top-28">
@@ -20,6 +22,7 @@ const Sidebar = () => {
                 id={cat.id}
                 label={cat.label}
                 active={cat.id === categoriaActual}
+                contexto={contextoActual}
               />
             ))}
 
@@ -48,11 +51,13 @@ function SidebarItem({
   label,
   id,
   active = false,
+  contexto,
 }: {
   icon: any;
   id: string;
   label: string;
   active?: boolean;
+  contexto: "consumidor" | "mayorista";
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -64,6 +69,7 @@ function SidebarItem({
     } else {
       params.set("categoria", categoria);
     }
+    params.set("contexto", contexto);
     // Navegamos a la nueva URL conservando otros parámetros si existen
     router.push(`/productos/consumidores?${params.toString()}`);
   };

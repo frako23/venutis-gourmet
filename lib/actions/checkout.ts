@@ -1,10 +1,17 @@
 "use server";
 
 import { MetodoPago, TipoRetiro } from "@prisma/client";
+import {
+  getProductPrice,
+  hasValidPrice,
+  normalizePurchaseContext,
+  PurchaseContext,
+} from "@/lib/catalog-context";
 import { prisma } from "../prisma";
 
 export interface CheckoutData {
   clientId: number;
+  contexto: PurchaseContext;
   montoTotal: number;
   tipodeRetiro: TipoRetiro;
   total: number;
@@ -29,22 +36,52 @@ export async function procesarCompra(
   prevState: { message: string; status: string; clientId: number | null },
   datos: CheckoutData,
 ) {
+  const contexto = normalizePurchaseContext(datos.contexto);
+
   // 1. Ejecutamos la transacción
   const resultadoTransaccion = await prisma
     .$transaction(async (tx) => {
       try {
+        if (datos.carrito.length === 0) {
+          throw new Error("El carrito está vacío");
+        }
+
         // --- LÓGICA DE INVENTARIO ---
+        const validatedPrices = new Map<number, number>();
         for (const item of datos.carrito) {
           const producto = await tx.producto.findUnique({
             where: { id: item.productoId },
-            select: { inventario: true, nombre: true },
+            select: {
+              inventario: true,
+              nombre: true,
+              precioDetal: true,
+              precioMayorista: true,
+            },
           });
 
-          if (!producto || producto.inventario < item.cantidad) {
+          if (
+            !producto ||
+            !Number.isInteger(item.cantidad) ||
+            item.cantidad <= 0 ||
+            producto.inventario < item.cantidad
+          ) {
             throw new Error(
               `Stock insuficiente para: ${producto?.nombre || "Producto desconocido"}`,
             );
           }
+
+          const precioVigente = getProductPrice(producto, contexto);
+          if (
+            !hasValidPrice(precioVigente) ||
+            !Number.isFinite(item.precio) ||
+            Math.abs(item.precio - precioVigente) > 0.01
+          ) {
+            throw new Error(
+              `El precio de ${producto.nombre} cambió. Actualiza el carrito antes de confirmar.`,
+            );
+          }
+
+          validatedPrices.set(item.productoId, precioVigente);
 
           await tx.producto.update({
             where: { id: item.productoId },
@@ -69,7 +106,7 @@ export async function procesarCompra(
             transaccionId: transaccion.id,
             productoId: item.productoId,
             cantidad: item.cantidad,
-            precioUnitario: item.precio,
+            precioUnitario: validatedPrices.get(item.productoId)!,
           })),
         });
 

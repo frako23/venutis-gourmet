@@ -53,28 +53,31 @@ const Footer = () => {
           </h4>
           <div className="flex gap-12">
             <ul className="space-y-4 text-sm">
-              <FooterLink label="Todos" link="/productos/consumidores" />
+              <FooterLink
+                label="Todos"
+                link="/productos/consumidores?contexto=consumidor"
+              />
               <FooterLink
                 label="Pastas"
-                link="/productos/consumidores?categoria=PASTAS"
+                link="/productos/consumidores?categoria=PASTAS&contexto=consumidor"
               />
               <FooterLink
                 label="Salsas"
-                link="/productos/consumidores?categoria=SALSAS"
+                link="/productos/consumidores?categoria=SALSAS&contexto=consumidor"
               />
             </ul>
             <ul className="space-y-4 text-sm">
               <FooterLink
                 label="Pastichos"
-                link="/productos/consumidores?categoria=PASTICHOS"
+                link="/productos/consumidores?categoria=PASTICHOS&contexto=consumidor"
               />
               <FooterLink
                 label="Postres"
-                link="/productos/consumidores?categoria=POSTRES"
+                link="/productos/consumidores?categoria=POSTRES&contexto=consumidor"
               />
               <FooterLink
                 label="Bakery"
-                link="/productos/consumidores?categoria=BAKERY"
+                link="/productos/consumidores?categoria=BAKERY&contexto=consumidor"
               />
             </ul>
           </div>
@@ -86,7 +89,10 @@ const Footer = () => {
           </h4>
           <ul className="space-y-4 text-sm">
             <FooterLink label="Nuestra Historia" link="/about-us" />
-            <FooterLink label="Mayoristas" link="/productos/mayoristas" />
+            <FooterLink
+              label="Mayoristas"
+              link="/productos/consumidores?contexto=mayorista"
+            />
           </ul>
         </div>
       </div>

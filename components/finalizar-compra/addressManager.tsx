@@ -53,29 +53,42 @@ export function AddressManager() {
   );
 
   async function loadAddresses() {
-    if (client?.id) {
-      const data = await getAddressesByClient(client?.id);
-      // Mapeamos los campos si los nombres en DB son diferentes a tu interfaz
-      setAddresses(data as Address[]);
-      console.log("paso por aqui");
-      // Seleccionar la primera automáticamente si existe
-      if (data.length > 0) setSelectedAddress(data[0].id);
-    }
+    if (!client?.id) return;
+
+    const data = await getAddressesByClient(client.id);
+    // Mapeamos los campos si los nombres en DB son diferentes a tu interfaz
+    setAddresses(data as Address[]);
+    console.log("paso por aqui");
+    // Seleccionar la primera automáticamente si existe
+    if (data.length > 0) setSelectedAddress(data[0].id);
   }
   console.log("addresses", addresses);
   console.log("selectedAddress", selectedAddress);
   console.log("cliente", client);
   useEffect(() => {
-    loadAddresses();
+    if (!client?.id) return;
+
+    let cancelled = false;
+    getAddressesByClient(client.id).then((data) => {
+      if (cancelled) return;
+      setAddresses(data as Address[]);
+      if (data.length > 0) setSelectedAddress(data[0].id);
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [client?.id]);
 
   useEffect(() => {
     // Asumiendo que tu Server Action devuelve algo como { success: true }
     if (state?.status === "success") {
-      toast.success("Dirección agregada con éxito");
-      loadAddresses(); // Esta es la función que definimos antes con getAddressesByClient
-      setIsAdding(false); // Cerramos el formulario
-      setNewAddress({ tipo: "", urbanizacion: "", direccion: "" }); // Limpiamos campos
+      queueMicrotask(() => {
+        toast.success("Dirección agregada con éxito");
+        void loadAddresses(); // Esta es la función que definimos antes con getAddressesByClient
+        setIsAdding(false); // Cerramos el formulario
+        setNewAddress({ tipo: "", urbanizacion: "", direccion: "" }); // Limpiamos campos
+      });
     }
   }, [state]);
 
@@ -140,7 +153,7 @@ Quedo atento para coordinar la entrega.`;
                 setSelectedAddress(addr.id);
                 setDeliveyPrice(
                   DELIVERY_ZONES.find((z) => z.name === addr.urbanizacion)
-                    ?.price!,
+                    ?.price ?? 0,
                 );
               }}
             >
