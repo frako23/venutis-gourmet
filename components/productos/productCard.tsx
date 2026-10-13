@@ -281,7 +281,7 @@ export function ProductCard({
                 ? "Agotado"
                 : inventario <= 5
                   ? `Solo quedan ${inventario} unidades`
-                  : "Disponible"}
+                  : "En inventario"}
             </span>
             {inventario > 5 && (
               <span className="text-[15px] opacity-70">
