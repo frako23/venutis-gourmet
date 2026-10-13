@@ -58,6 +58,7 @@ interface AppState {
   nextStep: (metodoDePago: boolean) => void;
   setDeliveryPrice: (price: number) => void;
   setClient: (client: Cliente) => void;
+  clearClient: () => void;
 }
 
 const calculateTotal = (products: CartItem[]) =>
@@ -76,6 +77,13 @@ export const useAppStore = create<AppState>()(
       canContinue: false,
       deliveryPrice: 0,
       setClient: (client) => set({ client }),
+      clearClient: () =>
+        set({
+          client: null,
+          clientId: null,
+          canContinue: false,
+          progressStep: "client-details",
+        }),
       client: null,
 
       setDeliveryPrice: (price) => set({ deliveryPrice: price }),

@@ -1,13 +1,14 @@
 "use client";
 import { getClientByPhone } from "@/lib/actions/clients";
 import { useAppStore } from "@/store/appStore";
-import { UserCircle } from "lucide-react";
+import { LogOut, UserCircle } from "lucide-react";
 import { useState } from "react";
 
 export const LoginButton = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const client = useAppStore((s) => s.client);
   const setClient = useAppStore((s) => s.setClient);
+  const clearClient = useAppStore((s) => s.clearClient);
   const [loading, setLoading] = useState(false);
   const [phone, setPhone] = useState("");
 
@@ -33,9 +34,21 @@ export const LoginButton = () => {
   return (
     <div className="relative">
       {client ? (
-        <span className="px-4 py-3  text-gold ">
-          {client.nombre} {client.apellido}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="px-2 py-3 text-gold">
+            {client.nombre} {client.apellido}
+          </span>
+          <button
+            type="button"
+            onClick={clearClient}
+            className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-cream/80 transition-colors hover:bg-gold/10 hover:text-gold cursor-pointer"
+            aria-label="Cerrar sesión"
+            title="Cerrar sesión"
+          >
+            <LogOut size={17} />
+            <span className="hidden sm:inline">Salir</span>
+          </button>
+        </div>
       ) : (
         <button
           onClick={() => setIsLoginOpen(!isLoginOpen)}
