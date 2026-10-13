@@ -27,19 +27,18 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const user = await stackServerApp.getUser();
+  // El panel queda libre únicamente en desarrollo local.
+  if (process.env.NODE_ENV !== "development") {
+    const user = await stackServerApp.getUser();
+    const allowedEmails = process.env.ALLOWED_EMAILS?.split(",");
 
-  // Validar correo autorizado
-  const allowedEmails = process.env.ALLOWED_EMAILS?.split(",");
+    if (!user) {
+      redirect("/admin-login");
+    }
 
-  // 1. Si NO hay usuario, mandarlo al login (Stack suele manejar esto, pero es bueno ser explícito)
-  if (!user) {
-    redirect("/admin-login");
-  }
-
-  // 2. Si está autenticado pero NO autorizado
-  if (allowedEmails && !allowedEmails.includes(user.primaryEmail!)) {
-    redirect("/unauthorized");
+    if (allowedEmails && !allowedEmails.includes(user.primaryEmail!)) {
+      redirect("/unauthorized");
+    }
   }
 
   return (

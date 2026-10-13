@@ -1,10 +1,15 @@
 import { stackServerApp } from "@/stack/server";
-import { SignIn } from "@stackframe/stack";
+import { AdminSignIn } from "@/components/auth/adminSignIn";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
 export default async function AdminLogin() {
+  // Bypass únicamente para desarrollo local. Producción sigue usando Stack Auth.
+  if (process.env.NODE_ENV === "development") {
+    redirect("/admin/inventory");
+  }
+
   const user = await stackServerApp.getUser();
 
   // Validar correo autorizado
@@ -50,25 +55,7 @@ export default async function AdminLogin() {
             </p>
 
             <div className="w-full space-y-6">
-              {/* Botón Personalizado (Opcional si usas el componente SignIn) */}
-
-
-              {/* Tu componente SignIn */}
-              {/* <SignIn ... /> */}
-              <SignIn
-                // Esta es la clave para la redirección automática tras éxito
-                fullPage={false}
-                automaticRedirect={true}
-                mockProject={{
-                  config: {
-                    signUpEnabled: false, // Nadie puede crearse cuenta solo
-                    credentialEnabled: false,
-                    passkeyEnabled: false,
-                    magicLinkEnabled: false,
-                    oauthProviders: [{ id: "google" }],
-                  },
-                }}
-              />
+              <AdminSignIn />
             </div>
           </div>
 
