@@ -12,6 +12,10 @@ Aplicación web para la comercialización de pastas, salsas y productos gourmet.
 - Panel administrativo protegido por autenticación.
 - Gestión de productos, imágenes, precios e inventario.
 - Consulta de transacciones y detalles de pedidos.
+- Registro manual de ventas en una hoja operativa con descuentos porcentuales o en USD.
+- Seguimiento de pedidos por cobrar, en pedido y pagados, con historial administrativo.
+- Analíticas semanales/mensuales por producto y predictor basado en media móvil histórica.
+- Notas de entrega para clientes mayoristas con vista previa y descarga PDF local.
 - Punto de venta rápido en `/venta-rapida`.
 - Conversión de totales USD/Bs y envío de órdenes por WhatsApp.
 
@@ -25,7 +29,7 @@ Aplicación web para la comercialización de pastas, salsas y productos gourmet.
 - Zod para validación de formularios.
 - Stack Auth para autenticación.
 - Cloudinary para imágenes de productos.
-- Tiptap, Recharts, Lucide React y Sonner.
+- Tiptap, Recharts, Lucide React, Sonner y `pdf-lib` para documentos locales.
 
 ## Requisitos
 
@@ -143,6 +147,11 @@ El alias de imports `@/*` apunta a la raíz del proyecto.
 - `/admin/transactions`: transacciones.
 - `/admin/transactions/[id]`: detalle de una transacción.
 - `/admin/add-transaction`: creación administrativa de transacciones.
+- `/admin`: dashboard operativo.
+- `/admin/analytics`: ventas semanales/mensuales, desglose por producto y predictor.
+- `/admin/delivery-notes`: listado de notas de entrega.
+- `/admin/delivery-notes/new`: creación de notas para clientes mayoristas.
+- `/admin/delivery-notes/[id]/pdf`: descarga protegida del PDF.
 
 El área administrativa requiere autenticación. Si `ALLOWED_EMAILS` está configurada, el correo del usuario también debe estar incluido en esa lista separada por comas.
 
@@ -163,6 +172,8 @@ Las entidades principales de Prisma son:
 - `Producto` e `Imagen`: catálogo, precios, inventario e imágenes.
 - `Transaccion` y `DetalleCompra`: pedidos y líneas de productos.
 - `Pago`: método, referencia, montos y tasa de cambio.
+- `EstadoTransaccionHistorial`: auditoría de cambios de estado y actor administrativo.
+- `NotaEntrega` y `DetalleNotaEntrega`: documento mayorista con snapshots de líneas.
 - `Fidelidad`: acumulación o redención de puntos.
 - `Resena`: valoración de productos asociada a una compra.
 
@@ -177,6 +188,9 @@ Las operaciones de escritura se concentran en `lib/actions`:
 - `products.ts`: productos e inventario.
 - `checkout.ts`: pedidos, pagos e inventario.
 - `review.ts`: reseñas.
+- `admin-sales.ts`: ventas manuales, cálculos y descuentos validados.
+- `admin-orders.ts` / `order-status.ts`: cambios de estado con historial.
+- `delivery-notes.ts`: notas mayoristas y consultas protegidas.
 
 Los formularios utilizan esquemas Zod para validar datos antes de acceder a la base de datos.
 

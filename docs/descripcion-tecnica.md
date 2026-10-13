@@ -27,6 +27,7 @@ La interfaz está localizada principalmente en español y utiliza una identidad 
 | Editor | Tiptap |
 | Visualización | Recharts |
 | UI auxiliar | Lucide React, Sonner, `react-to-print`, `@dnd-kit` |
+| Documentos | `pdf-lib` para notas de entrega locales |
 
 ## 3. Organización del código
 
@@ -66,6 +67,11 @@ El alias `@/*` apunta a la raíz del proyecto y se utiliza para imports absoluto
 - `/admin/transactions`: listado de transacciones.
 - `/admin/transactions/[id]`: detalle de una transacción.
 - `/admin/add-transaction`: alta de transacciones desde administración.
+- `/admin`: dashboard operativo con ventas del periodo, pedidos abiertos y alertas.
+- `/admin/analytics`: agregados semanales/mensuales, productos y predictor explicable.
+- `/admin/delivery-notes`: listado y descarga de notas para mayoristas.
+- `/admin/delivery-notes/new`: formulario con vista previa.
+- `/admin/delivery-notes/[id]/pdf`: descarga PDF protegida.
 
 El layout de `/admin` valida que exista un usuario autenticado y, si está definido `ALLOWED_EMAILS`, que su correo pertenezca a la lista autorizada.
 
@@ -81,13 +87,15 @@ La base de datos PostgreSQL está definida en `prisma/schema.prisma`.
 - `Direccion`: direcciones de entrega asociadas a un cliente.
 - `Producto`: nombre, precios detal/mayorista, categoría, descripción, inventario, ubicación e imágenes.
 - `Imagen`: URLs de imágenes asociadas a productos; se eliminan en cascada con el producto.
-- `Transaccion`: número de orden, cliente, total, estado y tipo de retiro (`envio` o `recogida`).
+- `Transaccion`: número de orden, cliente, subtotal, descuento, total canónico en USD, tasa, estado y tipo de retiro (`envio` o `recogida`).
 - `DetalleCompra`: productos, cantidades y precio unitario de cada transacción.
 - `Pago`: montos en bolívares/dólares, tasa de cambio, método y referencia.
+- `EstadoTransaccionHistorial`: estado anterior/nuevo, actor, fecha y motivo.
+- `NotaEntrega` / `DetalleNotaEntrega`: nota mayorista y snapshot de líneas, sin mutar inventario ni pagos.
 - `Fidelidad`: movimientos de puntos por acumulación o redención.
 - `Resena`: valoración de 1 a 5 estrellas vinculada a cliente, producto y transacción.
 
-Los estados de transacción son `pagado`, `pendiente` y `cancelado`. Los métodos de pago contemplados son transferencia en Bs, efectivo USD, Zelle, Pago Móvil y transferencia USD.
+Los estados operativos son `por_cobrar`, `en_pedido` y `pagado`. Se conservan `pendiente` y `cancelado` para compatibilidad histórica; `pendiente` se presenta como “Por cobrar” y `cancelado` no se ofrece como estado nuevo. Los métodos de pago contemplados son transferencia en Bs, efectivo USD, Zelle, Pago Móvil y transferencia USD.
 
 ## 6. Flujo de checkout
 
@@ -112,6 +120,9 @@ Las validaciones de formularios se realizan principalmente con esquemas Zod dent
 - direcciones: alta, edición, eliminación y consulta por cliente;
 - checkout: creación atómica de pedidos, pagos e inventario;
 - reseñas: alta y eliminación.
+- admin-sales: venta manual atómica, descuento y stock.
+- admin-orders / order-status: estado operativo e historial append-only.
+- delivery-notes: validación mayorista, snapshots y consultas para PDF.
 
 Las acciones de productos y direcciones utilizan revalidación o redirecciones para actualizar las vistas administrativas después de una mutación.
 
@@ -152,9 +163,11 @@ El script `postinstall` ejecuta `prisma generate`. Las migraciones existentes es
 
 ## 11. Consideraciones técnicas observadas
 
-- El checkout web registra la venta en PostgreSQL; el punto de venta rápido actualmente solo prepara el pedido y lo envía por WhatsApp, por lo que no actualiza inventario ni crea una `Transaccion` por sí mismo.
+- El checkout web y el registro manual administrativo escriben `Transaccion`; el punto de venta rápido actualmente solo prepara el pedido y lo envía por WhatsApp, por lo que no actualiza inventario ni crea una `Transaccion` por sí mismo.
 - Existen dos representaciones de estado relacionadas con checkout: `store/appStore.ts` y `context/checkoutContext.tsx`. Conviene mantener una única fuente de verdad a futuro para reducir posibles divergencias.
-- Algunas páginas crean directamente `new PrismaClient()` en lugar de reutilizar `lib/prisma.ts`; en desarrollo y despliegues serverless es preferible centralizar la instancia para evitar conexiones innecesarias.
+- Las lecturas administrativas de esta feature reutilizan la instancia singleton de `lib/prisma.ts` para evitar conexiones duplicadas.
+- Las analíticas excluyen transacciones canceladas antes de agregar. El predictor es una media móvil de cuatro semanas completas o tres meses completos y declara insuficiencia cuando no hay historia mínima.
+- El PDF se genera localmente con snapshots guardados, requiere autorización administrativa en cada descarga y no es una factura fiscal.
 - La autorización administrativa depende de `ALLOWED_EMAILS`; si la variable no está definida, el layout valida autenticación pero no aplica una lista adicional de correos.
 - Las migraciones constituyen la fuente de historial de cambios del modelo; cualquier modificación del esquema debe acompañarse de una migración y de la regeneración del cliente Prisma.
 

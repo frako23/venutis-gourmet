@@ -2,107 +2,72 @@
 
 import {
   BarChart3,
+  FileText,
+  LayoutDashboard,
   LucideIcon,
   Settings,
   ShoppingCart,
   Warehouse,
 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-interface SidebarProps {
+type NavigationItem = {
   icon: LucideIcon;
   label: string;
-  active?: boolean;
   link: string;
-}
+};
 
-const Sidebar = () => {
+export const adminNavigation: NavigationItem[] = [
+  { icon: LayoutDashboard, label: "Resumen", link: "/admin" },
+  { icon: ShoppingCart, label: "Ventas y pedidos", link: "/admin/transactions" },
+  { icon: Warehouse, label: "Inventario", link: "/admin/inventory" },
+  { icon: BarChart3, label: "Analíticas", link: "/admin/analytics" },
+  { icon: FileText, label: "Notas de entrega", link: "/admin/delivery-notes" },
+];
+
+export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background-dark selection:bg-primary/20">
-      {/* Sidebar Navigation */}
-      <aside className=" flex flex-col border-r border-[#3a3e44] bg-[#1a1c20] z-20">
-        <div className="p-6">
-          <div className="flex items-center gap-3">
-            <Image
-              src="/logo-venutis.avif"
-              alt="Logo Venutis"
-              width={50}
-              height={50}
-            />
-
-            <div className="flex flex-col">
-              <h1 className="text-white text-base font-bold leading-tight">
-                Venuti's
-              </h1>
-              <p className="text-gold/80 text-[10px] font-black uppercase tracking-widest">
-                Admin Panel
-              </p>
-            </div>
+    <aside className="hidden w-64 shrink-0 flex-col border-r border-[#3a3e44] bg-[#1a1c20] md:flex">
+      <div className="border-b border-[#3a3e44] p-5">
+        <Link href="/admin" className="flex items-center gap-3">
+          <Image src="/logo-venutis.avif" alt="Logo Venuti's" width={44} height={44} />
+          <div>
+            <h1 className="text-base font-bold leading-tight text-white">Venuti&apos;s</h1>
+            <p className="text-[10px] font-black uppercase tracking-widest text-gold/80">Panel administrativo</p>
           </div>
-        </div>
+        </Link>
+      </div>
 
-        <nav className="flex-1 px-3 space-y-1">
-          {/* <SidebarLink
-            icon={LayoutDashboard}
-            label="Dashboard"
-            active={pathname === "/admin/dashboard"}
-            link="/admin/dashboard"
-          /> */}
-          <SidebarLink
-            icon={ShoppingCart}
-            label="Transacciones"
-            active={pathname === "/admin/transactions"}
-            link="/admin/transactions"
-          />
-          <SidebarLink
-            icon={Warehouse}
-            label="Inventario"
-            active={pathname === "/admin/inventory"}
-            link="/admin/inventory"
-          />
+      <nav aria-label="Navegación administrativa" className="flex-1 space-y-1 p-3">
+        {adminNavigation.map((item) => (
+          <SidebarLink key={item.link} {...item} active={isActive(pathname, item.link)} />
+        ))}
+      </nav>
 
-          <SidebarLink
-            icon={BarChart3}
-            label="Analytics"
-            active={pathname === "/admin/analytics"}
-            link="/admin/analytics"
-          />
-        </nav>
-
-        <div className="p-4 border-t border-[#3a3e44]">
-          <SidebarLink
-            icon={Settings}
-            label="Settings"
-            link="/admin/settings"
-          />
-        </div>
-      </aside>
-    </div>
+      <div className="border-t border-[#3a3e44] p-3">
+        <SidebarLink icon={Settings} label="Configuración" link="/admin/settings" active={isActive(pathname, "/admin/settings")} />
+      </div>
+    </aside>
   );
-};
+}
 
-export default Sidebar;
+export function isActive(pathname: string, link: string) {
+  return link === "/admin" ? pathname === link : pathname === link || pathname.startsWith(`${link}/`);
+}
 
-// --- Sub-components ---
-
-function SidebarLink({
-  icon: Icon,
-  label,
-  active = false,
-  link,
-}: SidebarProps) {
+function SidebarLink({ icon: Icon, label, active, link }: NavigationItem & { active: boolean }) {
   return (
-    <a
+    <Link
       href={link}
-      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group ${active ? "bg-primary/10 text-white" : "text-gray-400 hover:bg-primary/5"}`}
+      className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition-colors ${active ? "bg-gold/15 font-bold text-white" : "font-semibold text-gray-400 hover:bg-white/5 hover:text-white"}`}
+      aria-current={active ? "page" : undefined}
     >
-      <Icon size={20} className={active ? "stroke-2" : ""} />
-      <span className={`text-sm ${active ? "font-bold" : "font-semibold"}`}>
-        {label}
-      </span>
-    </a>
+      <Icon size={19} aria-hidden="true" />
+      <span>{label}</span>
+    </Link>
   );
 }

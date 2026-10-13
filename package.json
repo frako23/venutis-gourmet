@@ -9,6 +9,7 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
+    "test:admin": "node --loader ts-node/esm --test tests/admin/*.test.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {
@@ -24,6 +25,7 @@
     "lucide-react": "^0.563.0",
     "next": "15.5.9",
     "next-cloudinary": "^6.17.5",
+    "pdf-lib": "^1.17.1",
     "prisma": "^6.17.1",
     "react": "19.1.0",
     "react-dom": "19.1.0",

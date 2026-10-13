@@ -25,6 +25,7 @@
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "prisma/types.d.ts"],
   "exclude": ["node_modules"],
   "ts-node": {
-    "esm": true
+    "esm": true,
+    "transpileOnly": true
   }
 }

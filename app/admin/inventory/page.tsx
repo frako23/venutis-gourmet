@@ -1,8 +1,7 @@
 import { InventoryTable } from "@/components/admin/inventario/inventoryTable";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 
 export default async function InventoryManager() {
-  const prisma = new PrismaClient();
   const [products] = await Promise.all([
     prisma.producto.findMany({
       orderBy: { createdAt: "desc" },

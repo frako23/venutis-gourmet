@@ -1,9 +1,8 @@
 import Header from "@/components/admin/header";
 import Sidebar from "@/components/admin/sidebar";
-import { stackServerApp } from "@/stack/server";
+import { requireAdmin } from "@/lib/admin/auth";
 import { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
-import { redirect } from "next/navigation";
 import { Toaster } from "sonner";
 
 const inter = Inter({
@@ -22,24 +21,14 @@ export const metadata: Metadata = {
     "Gestión centralizada de clientes, inventarios y pedidos de Venuti's Gourmet. Control total para garantizar la excelencia en cada entrega artesanal.",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // El panel queda libre únicamente en desarrollo local.
-  if (process.env.NODE_ENV !== "development") {
-    const user = await stackServerApp.getUser();
-    const allowedEmails = process.env.ALLOWED_EMAILS?.split(",");
-
-    if (!user) {
-      redirect("/admin-login");
-    }
-
-    if (allowedEmails && !allowedEmails.includes(user.primaryEmail!)) {
-      redirect("/unauthorized");
-    }
-  }
+  await requireAdmin();
 
   return (
     // Agregamos 'antialiased' para que la fuente Inter se vea nítida

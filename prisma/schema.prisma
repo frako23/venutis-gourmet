@@ -22,6 +22,7 @@ model Cliente {
   email         String?       @unique
   direcciones   Direccion[]
   transacciones Transaccion[]
+  notasEntrega  NotaEntrega[]
   fidelidades   Fidelidad[]
   resenas       Resena[] // reseñas que deja el cliente
 
@@ -46,16 +47,17 @@ model Direccion {
 }
 
 model Producto {
-  id              Int             @id @default(autoincrement())
+  id              Int                  @id @default(autoincrement())
   nombre          String
-  precioDetal     Float           @default(0.0)
-  precioMayorista Float           @default(0.0)
+  precioDetal     Float                @default(0.0)
+  precioMayorista Float                @default(0.0)
   categoria       String
   descripcion     String?
-  inventario      Int             @default(0)
+  inventario      Int                  @default(0)
   ubicacion       String?
   imagenes        Imagen[]
   detalles        DetalleCompra[]
+  detallesNotas   DetalleNotaEntrega[]
   resenas         Resena[]
 
   createdAt DateTime @default(now())
@@ -72,26 +74,58 @@ model Imagen {
 }
 
 model Transaccion {
-  id           Int               @id @default(autoincrement())
-  numeroOrden  String            @unique
-  clienteId    Int
-  cliente      Cliente           @relation(fields: [clienteId], references: [id])
-  fechaCompra  DateTime          @default(now())
-  montoTotal   Float
-  estado       EstadoTransaccion
-  tipodeRetiro TipoRetiro        @default(envio)
-  detalles     DetalleCompra[]
-  fidelidades  Fidelidad[]
-  pagos        Pago[]
-  resenas      Resena[]
+  id               Int                          @id @default(autoincrement())
+  numeroOrden      String                       @unique
+  clienteId        Int
+  cliente          Cliente                      @relation(fields: [clienteId], references: [id])
+  fechaCompra      DateTime                     @default(now())
+  montoTotal       Float
+  montoSubtotal    Float                        @default(0)
+  tipoDescuento    TipoDescuento?
+  valorDescuento   Float?
+  montoDescuento   Float                        @default(0)
+  tasaCambio       Float?
+  estado           EstadoTransaccion
+  tipodeRetiro     TipoRetiro                   @default(envio)
+  detalles         DetalleCompra[]
+  fidelidades      Fidelidad[]
+  pagos            Pago[]
+  resenas          Resena[]
+  historialEstados EstadoTransaccionHistorial[]
+  notasEntrega     NotaEntrega[]
 
   createdAt DateTime @default(now())
+
+  @@index([fechaCompra, estado])
+  @@index([clienteId, fechaCompra])
 }
 
 enum EstadoTransaccion {
   pagado
   pendiente
+  por_cobrar
+  en_pedido
   cancelado
+}
+
+enum TipoDescuento {
+  porcentaje
+  usd
+}
+
+model EstadoTransaccionHistorial {
+  id             Int                @id @default(autoincrement())
+  transaccionId  Int
+  estadoAnterior EstadoTransaccion?
+  estadoNuevo    EstadoTransaccion
+  actorId        String?
+  actorEmail     String?
+  motivo         String?
+  createdAt      DateTime           @default(now())
+
+  transaccion Transaccion @relation(fields: [transaccionId], references: [id], onDelete: Cascade)
+
+  @@index([transaccionId, createdAt])
 }
 
 enum TipoRetiro {
@@ -108,6 +142,46 @@ model DetalleCompra {
 
   transaccion Transaccion @relation(fields: [transaccionId], references: [id])
   producto    Producto    @relation(fields: [productoId], references: [id])
+
+  @@index([productoId, transaccionId])
+}
+
+model NotaEntrega {
+  id               Int      @id @default(autoincrement())
+  numeroNota       String   @unique
+  clienteId        Int
+  transaccionId    Int?
+  fechaEntrega     DateTime @default(now())
+  direccionEntrega String?
+  personaRecibe    String?
+  observaciones    String?
+  creadoPorId      String?
+  creadoPorEmail   String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  cliente     Cliente              @relation(fields: [clienteId], references: [id])
+  transaccion Transaccion?         @relation(fields: [transaccionId], references: [id])
+  detalles    DetalleNotaEntrega[]
+
+  @@index([clienteId, fechaEntrega])
+  @@index([transaccionId])
+}
+
+model DetalleNotaEntrega {
+  id                Int    @id @default(autoincrement())
+  notaEntregaId     Int
+  productoId        Int?
+  productoNombre    String
+  cantidad          Int
+  precioUnitarioUsd Float?
+  subtotalUsd       Float?
+
+  notaEntrega NotaEntrega @relation(fields: [notaEntregaId], references: [id], onDelete: Cascade)
+  producto    Producto?   @relation(fields: [productoId], references: [id], onDelete: SetNull)
+
+  @@index([notaEntregaId])
+  @@index([productoId])
 }
 
 model Fidelidad {
