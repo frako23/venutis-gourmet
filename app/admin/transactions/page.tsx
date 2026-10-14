@@ -1,5 +1,6 @@
 import { SalesFilters } from "@/components/admin/ventas/salesFilters";
 import { SalesTable } from "@/components/admin/ventas/salesTable";
+import { buildSalesWhere } from "@/lib/admin/sales-query";
 import { getOrderStateLabel } from "@/lib/admin/status";
 import type { PaginatedRows, SalesRow } from "@/lib/admin/types";
 import { prisma } from "@/lib/prisma";
@@ -16,12 +17,7 @@ export default async function TransactionsPage({ searchParams }: { searchParams?
   const orden = first(params.orden)?.trim();
   const desde = first(params.desde);
   const hasta = first(params.hasta);
-  const where = {
-    ...(estado ? { estado: estado as "por_cobrar" | "en_pedido" | "pagado" | "pendiente" | "cancelado" } : {}),
-    ...(orden ? { numeroOrden: { contains: orden, mode: "insensitive" as const } } : {}),
-    ...(cliente ? { cliente: { OR: [{ nombre: { contains: cliente, mode: "insensitive" as const } }, { apellido: { contains: cliente, mode: "insensitive" as const } }] } } : {}),
-    ...(desde || hasta ? { fechaCompra: { ...(desde ? { gte: new Date(`${desde}T00:00:00`) } : {}), ...(hasta ? { lt: new Date(`${hasta}T23:59:59.999`) } : {}) } } : {}),
-  };
+  const where = buildSalesWhere({ desde, hasta, estado, cliente, orden });
   const [total, transactions, clients, products] = await Promise.all([
     prisma.transaccion.count({ where }),
     prisma.transaccion.findMany({ where, orderBy: { fechaCompra: "desc" }, skip: (page - 1) * PAGE_SIZE, take: PAGE_SIZE, include: { cliente: true } }),

@@ -2,7 +2,7 @@
 
 import { BulkSalesEditor } from "@/components/admin/ventas/bulkSalesEditor";
 import type { Cliente, Producto } from "@prisma/client";
-import { Table2 } from "lucide-react";
+import { Download, Table2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -12,8 +12,9 @@ import type { PaginatedRows, SalesRow } from "@/lib/admin/types";
 export function SalesTable({ result, paginationQuery = "", clients, products }: { result: PaginatedRows<SalesRow>; paginationQuery?: string; clients: Pick<Cliente, "id" | "nombre" | "apellido" | "tipoCliente">[]; products: Pick<Producto, "id" | "nombre" | "precioDetal" | "precioMayorista" | "inventario">[] }) {
   const [editing, setEditing] = useState(false);
   if (editing) return <BulkSalesEditor rows={result.rows} clients={clients} products={products} onClose={() => setEditing(false)} />;
+  const exportHref = `/admin/transactions/export${paginationQuery ? `?${paginationQuery}` : ""}`;
   return <div className="admin-panel overflow-hidden">
-    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#ebe9e0] bg-[#fffaf0] p-4"><div><p className="admin-eyebrow">Edición rápida</p><p className="mt-1 text-sm text-[#707970]">Carga varias filas y guarda el lote en una sola operación.</p></div><button type="button" onClick={() => setEditing(true)} className="admin-button-primary admin-button-brass"><Table2 size={16} /> Editor masivo</button></div>
+    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#ebe9e0] bg-[#fffaf0] p-4"><div><p className="admin-eyebrow">Edición y descarga</p><p className="mt-1 text-sm text-[#707970]">Edita varias filas o descarga todos los resultados filtrados.</p></div><div className="flex flex-wrap gap-2"><a href={exportHref} download className="admin-button-secondary"><Download size={16} /> Descargar Excel</a><button type="button" onClick={() => setEditing(true)} className="admin-button-primary admin-button-brass"><Table2 size={16} /> Editor masivo</button></div></div>
     {result.rows.length === 0 ? <div className="p-12 text-center"><p className="font-bold text-[#18211d]">No hay ventas con estos filtros.</p><p className="mt-1 text-sm text-[#707970]">Abre el editor masivo para cargar el siguiente pedido.</p></div> : <><div className="hidden overflow-x-auto md:block"><table className="admin-table min-w-full text-left text-sm"><thead><tr><th>Orden</th><th>Fecha</th><th>Cliente</th><th>Subtotal</th><th>Descuento</th><th>Total</th><th>Estado</th><th /></tr></thead><tbody>{result.rows.map((row) => <SalesTableRow key={row.id} row={row} />)}</tbody></table></div>
     <div className="divide-y divide-[#ebe9e0] md:hidden">{result.rows.map((row) => <div key={row.id} className="p-4"><SalesCard row={row} /></div>)}</div>
     <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#ebe9e0] p-4 text-sm text-[#707970]"><span>{result.total} venta(s) · página {result.page} de {result.totalPages}</span><div className="flex gap-2">{result.page > 1 && <Link href={`?${paginationQuery}${paginationQuery ? "&" : ""}page=${result.page - 1}`} className="admin-button-secondary min-h-0 px-3 py-1.5">Anterior</Link>}{result.page < result.totalPages && <Link href={`?${paginationQuery}${paginationQuery ? "&" : ""}page=${result.page + 1}`} className="admin-button-secondary min-h-0 px-3 py-1.5">Siguiente</Link>}</div></div>
