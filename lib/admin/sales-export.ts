@@ -1,6 +1,5 @@
 type SalesExportPayment = {
   metodoPago: string;
-  montoUsd: number | null;
   referencia: string | null;
 };
 
@@ -8,24 +7,44 @@ export type SalesExportRecord = {
   numeroOrden: string;
   fechaCompra: Date;
   cliente: string;
-  tipoCliente: string;
-  celular: string;
-  email: string | null;
+  productos: Array<{ nombre: string; cantidad: number }>;
+  pagos: SalesExportPayment[];
   subtotalUsd: number;
   descuentoUsd: number;
   totalUsd: number;
   tasaCambio: number | null;
-  totalBs: number | null;
   montoBsPagado: number;
   estado: string;
-  tipoRetiro: string;
-  detalles: Array<{ producto: string; cantidad: number }>;
-  pago: SalesExportPayment | null;
 };
 
 type ZipEntry = { name: string; data: Uint8Array };
 
 const encoder = new TextEncoder();
+
+function paymentLabel(value: string) {
+  return {
+    TransferenciaBs: "Transferencia Bs",
+    EfectivoUsd: "Efectivo USD",
+    Zelle: "Zelle",
+    PagoMovil: "Pago móvil",
+    TransferenciaUsd: "Transferencia USD",
+  }[value] ?? value;
+}
+
+function formatProducts(products: SalesExportRecord["productos"]) {
+  if (products.length === 0) return "Sin productos";
+  return products.map((product) => `${product.nombre} × ${product.cantidad}`).join("\n");
+}
+
+function formatPaymentTypes(payments: SalesExportRecord["pagos"]) {
+  if (payments.length === 0) return "Sin pago";
+  return payments.map((payment) => paymentLabel(payment.metodoPago)).join("\n");
+}
+
+function formatPaymentReferences(payments: SalesExportRecord["pagos"]) {
+  if (payments.length === 0) return "Sin referencia";
+  return payments.map((payment) => payment.referencia || "Sin referencia").join("\n");
+}
 
 function escapeXml(value: string) {
   return value
@@ -55,54 +74,38 @@ function worksheetXml(records: SalesExportRecord[]) {
     "Orden",
     "Fecha",
     "Cliente",
-    "Tipo de cliente",
-    "Celular",
-    "Correo",
-    "Subtotal USD",
-    "Descuento USD",
-    "Total USD",
-    "Tasa de cambio",
-    "Total Bs",
-    "Monto Bs pagado",
+    "Productos y cantidades",
+    "Tasa del día",
+    "Bs pagados",
+    "Tipo de pago",
+    "Referencia",
+    "Subtotal",
+    "Descuento",
+    "Total",
     "Estado",
-    "Tipo de retiro",
-    "Productos",
-    "Cantidades",
-    "Último pago",
-    "Monto último pago USD",
-    "Referencia último pago",
   ];
   const rows = [row(headers.map((header) => textCell(header, 1)), 1)];
 
   records.forEach((record, index) => {
-    const products = record.detalles.map((detail) => detail.producto).join("; ");
-    const quantities = record.detalles.map((detail) => String(detail.cantidad)).join("; ");
     rows.push(row([
       textCell(record.numeroOrden),
-      textCell(record.fechaCompra.toLocaleString("es-VE")),
+      textCell(record.fechaCompra.toLocaleDateString("es-VE")),
       textCell(record.cliente),
-      textCell(record.tipoCliente),
-      textCell(record.celular),
-      textCell(record.email ?? ""),
+      textCell(formatProducts(record.productos)),
+      numberCell(record.tasaCambio),
+      numberCell(record.montoBsPagado),
+      textCell(formatPaymentTypes(record.pagos)),
+      textCell(formatPaymentReferences(record.pagos)),
       numberCell(record.subtotalUsd),
       numberCell(record.descuentoUsd),
       numberCell(record.totalUsd),
-      numberCell(record.tasaCambio),
-      numberCell(record.totalBs),
-      numberCell(record.montoBsPagado),
       textCell(record.estado),
-      textCell(record.tipoRetiro),
-      textCell(products),
-      textCell(quantities),
-      textCell(record.pago?.metodoPago ?? ""),
-      numberCell(record.pago?.montoUsd ?? null),
-      textCell(record.pago?.referencia ?? ""),
     ], index + 2));
   });
 
-  const widths = [16, 20, 28, 16, 16, 30, 15, 15, 15, 15, 15, 15, 15, 16, 42, 12, 18, 20, 24];
+  const widths = [16, 14, 28, 42, 15, 15, 24, 24, 15, 15, 15, 15];
   const columns = widths.map((width, index) => `<col min="${index + 1}" max="${index + 1}" width="${width}" customWidth="1"/>`).join("");
-  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols>${columns}</cols><sheetData>${rows.join("")}</sheetData><autoFilter ref="A1:S${Math.max(1, records.length + 1)}"/></worksheet>`;
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols>${columns}</cols><sheetData>${rows.join("")}</sheetData><autoFilter ref="A1:L${Math.max(1, records.length + 1)}"/></worksheet>`;
 }
 
 function crc32(data: Uint8Array) {

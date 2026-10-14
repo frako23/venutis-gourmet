@@ -24,28 +24,23 @@ export async function GET(request: Request) {
     where: buildSalesWhere(values),
     orderBy: { fechaCompra: "desc" },
     include: {
-      cliente: { select: { nombre: true, apellido: true, tipoCliente: true, celular: true, email: true } },
+      cliente: { select: { nombre: true, apellido: true } },
       detalles: { include: { producto: { select: { nombre: true } } } },
-      pagos: { orderBy: { createdAt: "desc" }, select: { metodoPago: true, montoUsd: true, montoBs: true, tasaCambio: true, referencia: true } },
+      pagos: { orderBy: { createdAt: "desc" }, select: { metodoPago: true, montoBs: true, tasaCambio: true, referencia: true } },
     },
   });
   const records = transactions.map((transaction) => ({
     numeroOrden: transaction.numeroOrden,
     fechaCompra: transaction.fechaCompra,
     cliente: `${transaction.cliente.nombre} ${transaction.cliente.apellido}`,
-    tipoCliente: transaction.cliente.tipoCliente,
-    celular: transaction.cliente.celular,
-    email: transaction.cliente.email,
+    productos: transaction.detalles.map((detail) => ({ nombre: detail.producto.nombre, cantidad: detail.cantidad })),
+    pagos: transaction.pagos.map((payment) => ({ metodoPago: payment.metodoPago, referencia: payment.referencia })),
     subtotalUsd: transaction.montoSubtotal || transaction.montoTotal,
     descuentoUsd: transaction.montoDescuento,
     totalUsd: transaction.montoTotal,
     tasaCambio: transaction.tasaCambio ?? transaction.pagos.find((payment) => payment.tasaCambio !== null)?.tasaCambio ?? null,
-    totalBs: (transaction.tasaCambio ?? transaction.pagos.find((payment) => payment.tasaCambio !== null)?.tasaCambio) ? Math.round(transaction.montoTotal * (transaction.tasaCambio ?? transaction.pagos.find((payment) => payment.tasaCambio !== null)?.tasaCambio ?? 0) * 100) / 100 : null,
     montoBsPagado: Math.round(transaction.pagos.reduce((sum, payment) => sum + (payment.montoBs ?? 0), 0) * 100) / 100,
     estado: getOrderStateLabel(transaction.estado),
-    tipoRetiro: transaction.tipodeRetiro === "envio" ? "Envío" : "Recogida",
-    detalles: transaction.detalles.map((detail) => ({ producto: detail.producto.nombre, cantidad: detail.cantidad })),
-    pago: transaction.pagos[0] ?? null,
   }));
   const workbook = buildSalesWorkbook(records);
   const filename = `ventas-pedidos-${currentCaracasDate()}.xlsx`;
