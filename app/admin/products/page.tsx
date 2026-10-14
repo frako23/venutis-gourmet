@@ -1,7 +1,6 @@
-import React from "react";
+import { ArrowRight, PackageSearch } from "lucide-react";
+import Link from "next/link";
 
-const Productos = () => {
-  return <div>Productos</div>;
-};
-
-export default Productos;
+export default function Productos() {
+  return <main className="admin-page"><div className="admin-content"><div className="mb-6"><p className="admin-eyebrow">Catálogo</p><h1 className="admin-title mt-2">Productos</h1><p className="admin-subtitle mt-3">El catálogo se administra desde la vista de inventario para mantener precios y existencias en un solo lugar.</p></div><section className="admin-panel max-w-2xl p-8"><span className="grid size-11 place-items-center rounded-xl bg-[#e8eee5] text-[#66735f]"><PackageSearch size={23} /></span><h2 className="mt-5 text-xl font-black text-[#18211d]">Gestiona el catálogo desde inventario</h2><p className="mt-2 max-w-lg text-sm leading-relaxed text-[#707970]">Consulta disponibilidad, edita precios y abre fichas de producto sin duplicar la operación en dos pantallas.</p><div className="mt-6 flex flex-wrap gap-3"><Link href="/admin/inventory" className="admin-button-primary admin-button-brass">Abrir inventario <ArrowRight size={16} /></Link><Link href="/admin/add-product" className="admin-button-secondary">Agregar producto</Link></div></section></div></main>;
+}

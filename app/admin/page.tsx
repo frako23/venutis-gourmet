@@ -9,12 +9,18 @@ export default async function AdminDashboardPage() {
   const summary = await getDashboardSummary();
 
   return (
-    <div className="min-h-full bg-slate-50 p-4 dark:bg-background-dark md:p-8">
-      <div className="mx-auto max-w-7xl space-y-6">
-        <div>
-          <p className="text-sm font-semibold text-gold">Visión general · últimos 30 días</p>
-          <h1 className="mt-1 text-3xl font-black text-slate-900 dark:text-white">Control de operación</h1>
-          <p className="mt-2 max-w-2xl text-sm text-slate-500 dark:text-slate-400">Consulta el movimiento comercial, pedidos que requieren seguimiento y alertas que necesitan atención.</p>
+    <div className="admin-page">
+      <div className="admin-content space-y-7">
+        <div className="flex flex-wrap items-end justify-between gap-5">
+          <div>
+            <p className="admin-eyebrow">Visión general · últimos 30 días</p>
+            <h1 className="admin-title mt-2">Control de operación</h1>
+            <p className="admin-subtitle mt-3 max-w-2xl">El pulso del negocio, los pedidos que necesitan seguimiento y las existencias que conviene revisar hoy.</p>
+          </div>
+          <div className="flex items-center gap-2 border-l-2 border-[#c8a45d] pl-3 text-xs text-[#707970]">
+            <span className="size-2 rounded-full bg-[#66735f]" />
+            Datos del sistema actualizados
+          </div>
         </div>
 
         <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Indicadores principales">
@@ -27,15 +33,21 @@ export default async function AdminDashboardPage() {
         <QuickActions />
 
         <section className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-white/5">
-            <div className="flex items-center gap-3"><BarChart3 className="text-gold" size={20} /><h2 className="font-bold text-slate-900 dark:text-white">Analítica de ventas</h2></div>
-            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Compara semanas, meses y productos para tomar decisiones con el histórico real.</p>
-            <Link href="/admin/analytics" className="mt-4 inline-block text-sm font-bold text-gold hover:underline">Abrir analíticas →</Link>
+          <div className="admin-panel relative overflow-hidden p-6">
+            <div className="absolute -right-8 -top-10 font-serif text-[9rem] leading-none text-[#66735f]/[0.07]">Σ</div>
+            <div className="relative">
+              <div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-lg bg-[#e8eee5] text-[#66735f]"><BarChart3 size={18} /></span><h2 className="font-bold text-[#18211d]">Analítica de ventas</h2></div>
+              <p className="mt-3 max-w-md text-sm leading-relaxed text-[#707970]">Compara semanas, meses y productos para tomar decisiones con el histórico real.</p>
+              <Link href="/admin/analytics" className="mt-5 inline-flex items-center text-sm font-bold text-[#66735f] hover:text-[#18211d]">Abrir analíticas <span className="ml-2" aria-hidden="true">↗</span></Link>
+            </div>
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-white/5">
-            <div className="flex items-center gap-3"><FileText className="text-gold" size={20} /><h2 className="font-bold text-slate-900 dark:text-white">Documentos mayoristas</h2></div>
-            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Genera notas de entrega con una presentación lista para descargar e imprimir.</p>
-            <Link href="/admin/delivery-notes" className="mt-4 inline-block text-sm font-bold text-gold hover:underline">Gestionar notas →</Link>
+          <div className="admin-panel relative overflow-hidden p-6">
+            <div className="absolute -right-4 -top-6 rotate-12 font-serif text-[8rem] leading-none text-[#c8a45d]/[0.12]">N</div>
+            <div className="relative">
+              <div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-lg bg-[#f5eddc] text-[#a57c2f]"><FileText size={18} /></span><h2 className="font-bold text-[#18211d]">Documentos mayoristas</h2></div>
+              <p className="mt-3 max-w-md text-sm leading-relaxed text-[#707970]">Genera notas de entrega con una presentación lista para descargar e imprimir.</p>
+              <Link href="/admin/delivery-notes" className="mt-5 inline-flex items-center text-sm font-bold text-[#66735f] hover:text-[#18211d]">Gestionar notas <span className="ml-2" aria-hidden="true">↗</span></Link>
+            </div>
           </div>
         </section>
       </div>

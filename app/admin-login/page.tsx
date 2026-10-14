@@ -1,77 +1,15 @@
-import { stackServerApp } from "@/stack/server";
 import { AdminSignIn } from "@/components/auth/adminSignIn";
+import { stackServerApp } from "@/stack/server";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
 export default async function AdminLogin() {
-  // Bypass únicamente para desarrollo local. Producción sigue usando Stack Auth.
-  if (process.env.NODE_ENV === "development") {
-    redirect("/admin/inventory");
-  }
-
+  if (process.env.NODE_ENV === "development") redirect("/admin/inventory");
   const user = await stackServerApp.getUser();
-
-  // Validar correo autorizado
   const allowedEmails = process.env.ALLOWED_EMAILS?.split(",");
+  if (user && allowedEmails?.includes(user.primaryEmail!)) redirect("/admin/inventory");
+  if (user && !allowedEmails?.includes(user.primaryEmail!)) redirect("/unauthorized");
 
-  if (user && allowedEmails?.includes(user.primaryEmail!)) {
-    redirect("/admin/inventory");
-  }
-
-  // Si está autenticado pero no autorizado
-  if (user && !allowedEmails?.includes(user.primaryEmail!)) {
-    redirect("/unauthorized");
-  }
-
-  return (
-    <div className="bg-background-dark font-century-gothic text-white overflow-hidden h-screen flex flex-col relative">
-      {/* Background Section con utilidades de Tailwind 4 */}
-      <div className="fixed inset-0 z-0">
-        <div
-          className="absolute inset-0 blur-bg bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage:
-              'url("https://lh3.googleusercontent.com/aida-public/AB6AXuAYLx5U8bIFkHZJFYzHoekqIhxm-sYalhCoePs9JG8kqtLIOiHchK__w-QIPRZDpV4P5NEFgUnc7zwNc5jus1K48QWgapL-ctbuc8eAQ1NaAUSiw-YI7xGHVWamLagJJXbymPGWQPGQrXZoMux1uWbtK1bFulCahnIfOkZHqvHz3VSTLPQydK4KhTzp2VugCMItXhkcyEommYzcec01sGMbXBmjXC-P_J4BUWiXCRjTwNImd_xB2PsknGoUd6z2F-VjZ6WcCdOxq9c")',
-          }}
-        />
-        <div className="absolute inset-0 custom-gradient-overlay" />
-      </div>
-
-      {/* Main Content */}
-      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-4">
-        <div className="w-full max-w-md">
-          <div className="bg-charcoal/80 backdrop-blur-xl gold-border p-12 rounded-xl shadow-2xl flex flex-col items-center text-center">
-            {/* Icono Central */}
-            <div className="mb-6 p-4 bg-background-dark/50 rounded-full border border-gold/20 text-gold">
-              <ShieldCheck size={40} strokeWidth={1.2} />
-            </div>
-
-            <h1 className="text-2xl font-bold mb-2 tracking-wide text-white uppercase">
-              Portal Administrativo
-            </h1>
-            <p className="text-gold text-sm tracking-widest mb-10">
-              Venuti's Gourmet
-            </p>
-
-            <div className="w-full space-y-6">
-              <AdminSignIn />
-            </div>
-          </div>
-
-          {/* Enlace de Regreso */}
-          <Link
-            className="mt-8 flex items-center justify-center gap-2 text-2xl uppercase tracking-widest text-gray-400 hover:text-gold transition-colors group"
-            href="/"
-          >
-            <ArrowLeft
-              size={24}
-              className="group-hover:-translate-x-1 transition-transform"
-            />
-            Regresar
-          </Link>
-        </div>
-      </main>
-    </div>
-  );
+  return <div data-admin-shell className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#18211d] px-4 py-8 text-[#f4f1e8]"><div className="pointer-events-none absolute -left-32 -top-32 size-[28rem] rounded-full border border-[#c8a45d]/20" /><div className="pointer-events-none absolute -bottom-48 -right-32 size-[32rem] rounded-full border border-[#c8a45d]/15" /><div className="relative grid w-full max-w-4xl overflow-hidden rounded-[1.4rem] border border-white/10 bg-[#23302a] shadow-[0_24px_70px_rgba(0,0,0,0.25)] md:grid-cols-[0.9fr_1.1fr]"><div className="hidden flex-col justify-between border-r border-white/10 bg-[#1d2823] p-10 md:flex"><div><p className="text-[0.65rem] font-bold uppercase tracking-[0.18em] text-[#c8a45d]">Venuti&apos;s Gourmet</p><h1 className="mt-8 max-w-xs text-4xl font-black leading-[0.95] tracking-[-0.07em]">El trabajo fino empieza detrás del mostrador.</h1><p className="mt-5 max-w-xs text-sm leading-relaxed text-white/55">Una vista protegida para cuidar catálogo, pedidos, existencias y entregas.</p></div><div className="flex items-center gap-2 text-xs text-white/45"><span className="size-2 rounded-full bg-[#66735f]" /> Acceso solo para el equipo autorizado</div></div><main className="p-6 sm:p-10"><div className="mb-8 flex items-center gap-3 md:hidden"><span className="grid size-10 place-items-center rounded-lg bg-[#c8a45d] text-[#18211d]"><ShieldCheck size={21} /></span><div><p className="font-black">Venuti&apos;s</p><p className="text-[0.62rem] uppercase tracking-[0.15em] text-[#c8a45d]">Panel interno</p></div></div><div className="mb-8"><span className="grid size-11 place-items-center rounded-xl border border-[#c8a45d]/35 bg-[#c8a45d]/10 text-[#c8a45d]"><ShieldCheck size={24} strokeWidth={1.5} /></span><p className="mt-6 text-[0.65rem] font-bold uppercase tracking-[0.18em] text-[#c8a45d]">Acceso protegido</p><h2 className="mt-2 text-3xl font-black tracking-[-0.06em]">Portal administrativo</h2><p className="mt-3 text-sm leading-relaxed text-white/55">Inicia sesión para entrar al cuaderno de operación.</p></div><AdminSignIn /><Link className="mt-8 inline-flex items-center gap-2 text-xs font-bold text-white/45 transition hover:text-[#c8a45d]" href="/"><ArrowLeft size={15} /> Regresar a la tienda</Link></main></div></div>;
 }

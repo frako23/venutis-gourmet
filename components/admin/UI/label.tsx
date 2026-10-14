@@ -7,7 +7,7 @@ export function Label({
 }) {
   return (
     <label
-      className={`text-[10px] font-black uppercase tracking-[0.25em] text-slate-400 ml-1 ${className}`}
+      className={`admin-label ${className}`}
     >
       {children}
     </label>

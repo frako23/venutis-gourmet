@@ -9,15 +9,18 @@ const actions = [
 
 export function QuickActions() {
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
-      <h2 className="text-lg font-bold text-slate-900 dark:text-white">Accesos rápidos</h2>
+    <section className="admin-panel p-5">
+      <div className="flex flex-wrap items-end justify-between gap-2">
+        <div><p className="admin-eyebrow">Siguiente movimiento</p><h2 className="mt-1 text-lg font-bold text-[#18211d]">Accesos rápidos</h2></div>
+        <span className="text-xs text-[#707970]">Operaciones frecuentes</span>
+      </div>
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         {actions.map(({ href, label, description, icon: Icon }) => (
-          <Link href={href} key={href} className="group rounded-xl border border-slate-200 p-4 transition hover:border-gold hover:bg-gold/5 dark:border-white/10">
-            <Icon className="text-gold" size={20} />
-            <p className="mt-3 font-bold text-slate-900 dark:text-white">{label}</p>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{description}</p>
-            <ArrowRight className="mt-3 text-slate-400 transition group-hover:translate-x-1" size={16} />
+          <Link href={href} key={href} className="group rounded-lg border border-[#dedfd6] p-4 transition hover:border-[#c8a45d] hover:bg-[#fffaf0]">
+            <Icon className="text-[#66735f]" size={20} />
+            <p className="mt-3 font-bold text-[#18211d]">{label}</p>
+            <p className="mt-1 text-xs text-[#707970]">{description}</p>
+            <ArrowRight className="mt-3 text-[#a57c2f] transition group-hover:translate-x-1" size={16} />
           </Link>
         ))}
       </div>

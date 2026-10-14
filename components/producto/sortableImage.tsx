@@ -22,21 +22,21 @@ export const SortableImage = ({ img, index, onRemove }: any) => {
     <div
       ref={setNodeRef}
       style={style}
-      className={`relative aspect-square rounded-2xl overflow-hidden border-2 group cursor-grab active:cursor-grabbing ${
-        index === 0 ? "border-gold" : "border-transparent"
+      className={`group relative aspect-square cursor-grab overflow-hidden rounded-lg border-2 active:cursor-grabbing ${
+        index === 0 ? "border-[#c8a45d]" : "border-[#dedfd6]"
       } ${isDragging ? "opacity-50" : "opacity-100"}`}
     >
       {/* El área de arrastre son los listeners unidos al div */}
       <div
         {...attributes}
         {...listeners}
-        className="w-full h-full bg-cover bg-center"
+        className="size-full bg-cover bg-center"
         style={{ backgroundImage: `url('${img.url}')` }}
       />
 
       {/* Badge de "Principal" para la primera foto */}
       {index === 0 && (
-        <span className="absolute top-2 left-2 bg-gold text-black text-[8px] font-black px-2 py-1 rounded-full uppercase">
+        <span className="absolute left-2 top-2 rounded-full bg-[#c8a45d] px-2 py-1 text-[8px] font-black text-[#18211d]">
           Principal
         </span>
       )}
@@ -44,7 +44,7 @@ export const SortableImage = ({ img, index, onRemove }: any) => {
       <button
         type="button"
         onClick={() => onRemove(index)}
-        className="absolute top-2 right-2 bg-white/90 p-1.5 rounded-full text-red-500 opacity-0 group-hover:opacity-100 transition-opacity z-10 cursor-pointer"
+        className="absolute right-2 top-2 z-10 cursor-pointer rounded-full bg-white/90 p-1.5 text-[#b85f49] opacity-0 transition-opacity group-hover:opacity-100"
       >
         <X size={14} />
       </button>

@@ -33,7 +33,8 @@ export default async function AdminLayout({
   return (
     // Agregamos 'antialiased' para que la fuente Inter se vea nítida
     <div
-      className={`${inter.variable} ${mono.variable} font-sans antialiased flex h-screen bg-background-light overflow-hidden text-slate-900`}
+      data-admin-shell
+      className={`${inter.variable} ${mono.variable} flex h-screen overflow-hidden font-sans antialiased`}
     >
       {/* Sidebar Fija */}
       <Sidebar />
@@ -43,11 +44,8 @@ export default async function AdminLayout({
         <Header />
 
         {/* Contenido Dinámico */}
-        <main className="flex-1 overflow-y-auto">
-          {/* He quitado el padding del div exterior y lo he puesto aquí 
-              para que el scroll sea más natural y profesional.
-          */}
-          <div className="mx-auto">{children}</div>
+        <main className="min-w-0 flex-1 overflow-y-auto">
+          <div className="min-h-full">{children}</div>
         </main>
         <Toaster
           position="top-right"

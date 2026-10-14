@@ -24,7 +24,7 @@ export function AdminSignIn() {
 
   if (!isClient) {
     return (
-      <div className="rounded-lg border border-gold/20 bg-background-dark/50 p-4 text-sm text-gray-300">
+      <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4 text-sm text-white/60">
         Preparando el acceso seguro...
       </div>
     );
@@ -33,7 +33,7 @@ export function AdminSignIn() {
   if (!canUseOAuth) {
     return (
       <div
-        className="rounded-lg border border-amber-400/40 bg-amber-950/30 p-4 text-left text-sm text-amber-100"
+        className="rounded-lg border border-[#c8a45d]/35 bg-[#c8a45d]/10 p-4 text-left text-sm text-[#f4e8c7]"
         role="alert"
       >
         <p className="font-bold">El acceso con Google necesita una conexión segura.</p>
@@ -41,7 +41,7 @@ export function AdminSignIn() {
           Esta página se abrió por HTTP usando una IP de red. Abre el proyecto
           con HTTPS o usa <code>http://localhost:3000</code> en el mismo equipo.
         </p>
-        <p className="mt-2 text-amber-200/80">
+        <p className="mt-2 text-[#e7d59f]/75">
           Para desarrollo, ejecuta <code>npm.cmd run dev:secure</code> y visita
           la dirección HTTPS que muestre Next.js.
         </p>
