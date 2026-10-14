@@ -45,7 +45,7 @@ export default async function AdminLayout({
 
         {/* Contenido Dinámico */}
         <main className="min-w-0 flex-1 overflow-y-auto">
-          <div className="min-h-full">{children}</div>
+          <div className="h-full">{children}</div>
         </main>
         <Toaster
           position="top-right"
