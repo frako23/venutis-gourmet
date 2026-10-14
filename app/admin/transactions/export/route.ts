@@ -26,7 +26,7 @@ export async function GET(request: Request) {
     include: {
       cliente: { select: { nombre: true, apellido: true, tipoCliente: true, celular: true, email: true } },
       detalles: { include: { producto: { select: { nombre: true } } } },
-      pagos: { orderBy: { createdAt: "desc" }, take: 1, select: { metodoPago: true, montoUsd: true, referencia: true } },
+      pagos: { orderBy: { createdAt: "desc" }, select: { metodoPago: true, montoUsd: true, montoBs: true, tasaCambio: true, referencia: true } },
     },
   });
   const records = transactions.map((transaction) => ({
@@ -39,8 +39,9 @@ export async function GET(request: Request) {
     subtotalUsd: transaction.montoSubtotal || transaction.montoTotal,
     descuentoUsd: transaction.montoDescuento,
     totalUsd: transaction.montoTotal,
-    tasaCambio: transaction.tasaCambio,
-    totalBs: transaction.tasaCambio ? Math.round(transaction.montoTotal * transaction.tasaCambio * 100) / 100 : null,
+    tasaCambio: transaction.tasaCambio ?? transaction.pagos.find((payment) => payment.tasaCambio !== null)?.tasaCambio ?? null,
+    totalBs: (transaction.tasaCambio ?? transaction.pagos.find((payment) => payment.tasaCambio !== null)?.tasaCambio) ? Math.round(transaction.montoTotal * (transaction.tasaCambio ?? transaction.pagos.find((payment) => payment.tasaCambio !== null)?.tasaCambio ?? 0) * 100) / 100 : null,
+    montoBsPagado: Math.round(transaction.pagos.reduce((sum, payment) => sum + (payment.montoBs ?? 0), 0) * 100) / 100,
     estado: getOrderStateLabel(transaction.estado),
     tipoRetiro: transaction.tipodeRetiro === "envio" ? "Envío" : "Recogida",
     detalles: transaction.detalles.map((detail) => ({ producto: detail.producto.nombre, cantidad: detail.cantidad })),

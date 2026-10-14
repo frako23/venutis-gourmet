@@ -43,6 +43,9 @@ export type SalesRow = MoneyFields & {
   fechaCompra: Date;
   clienteId: number;
   cliente: string;
+  productos: Array<{ nombre: string; cantidad: number }>;
+  pagos: Array<{ metodoPago: string; referencia: string | null }>;
+  montoBsPagado: number;
   estado: EstadoTransaccion;
   tipoDescuento: TipoDescuento | null;
   valorDescuento: number | null;

@@ -17,6 +17,7 @@ describe("exportación de ventas a Excel", () => {
       totalUsd: 11.5,
       tasaCambio: 100,
       totalBs: 1150,
+      montoBsPagado: 1150,
       estado: "Pagado",
       tipoRetiro: "Envío",
       detalles: [{ producto: "Miel", cantidad: 2 }],
@@ -31,6 +32,6 @@ describe("exportación de ventas a Excel", () => {
     assert.match(archive, /<font><b\/><sz val="11"\/><color rgb="FF000000"\/>/);
     assert.match(archive, /<xf numFmtId="0" fontId="1" fillId="0" borderId="0" applyFont="1"\/>/);
     assert.doesNotMatch(archive, /patternType="solid"|<fgColor/);
-    assert.match(archive, /autoFilter ref="A1:R2"/);
+     assert.match(archive, /autoFilter ref="A1:S2"/);
   });
 });

@@ -16,6 +16,7 @@ export type SalesExportRecord = {
   totalUsd: number;
   tasaCambio: number | null;
   totalBs: number | null;
+  montoBsPagado: number;
   estado: string;
   tipoRetiro: string;
   detalles: Array<{ producto: string; cantidad: number }>;
@@ -62,6 +63,7 @@ function worksheetXml(records: SalesExportRecord[]) {
     "Total USD",
     "Tasa de cambio",
     "Total Bs",
+    "Monto Bs pagado",
     "Estado",
     "Tipo de retiro",
     "Productos",
@@ -87,6 +89,7 @@ function worksheetXml(records: SalesExportRecord[]) {
       numberCell(record.totalUsd),
       numberCell(record.tasaCambio),
       numberCell(record.totalBs),
+      numberCell(record.montoBsPagado),
       textCell(record.estado),
       textCell(record.tipoRetiro),
       textCell(products),
@@ -97,9 +100,9 @@ function worksheetXml(records: SalesExportRecord[]) {
     ], index + 2));
   });
 
-  const widths = [16, 20, 28, 16, 16, 30, 15, 15, 15, 15, 15, 15, 16, 42, 12, 18, 20, 24];
+  const widths = [16, 20, 28, 16, 16, 30, 15, 15, 15, 15, 15, 15, 15, 16, 42, 12, 18, 20, 24];
   const columns = widths.map((width, index) => `<col min="${index + 1}" max="${index + 1}" width="${width}" customWidth="1"/>`).join("");
-  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols>${columns}</cols><sheetData>${rows.join("")}</sheetData><autoFilter ref="A1:R${Math.max(1, records.length + 1)}"/></worksheet>`;
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols>${columns}</cols><sheetData>${rows.join("")}</sheetData><autoFilter ref="A1:S${Math.max(1, records.length + 1)}"/></worksheet>`;
 }
 
 function crc32(data: Uint8Array) {

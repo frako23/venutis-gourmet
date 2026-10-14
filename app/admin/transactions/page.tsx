@@ -20,22 +20,30 @@ export default async function TransactionsPage({ searchParams }: { searchParams?
   const where = buildSalesWhere({ desde, hasta, estado, cliente, orden });
   const [total, transactions, clients, products] = await Promise.all([
     prisma.transaccion.count({ where }),
-    prisma.transaccion.findMany({ where, orderBy: { fechaCompra: "desc" }, skip: (page - 1) * PAGE_SIZE, take: PAGE_SIZE, include: { cliente: true } }),
+    prisma.transaccion.findMany({ where, orderBy: { fechaCompra: "desc" }, skip: (page - 1) * PAGE_SIZE, take: PAGE_SIZE, include: { cliente: true, detalles: { include: { producto: { select: { nombre: true } } } }, pagos: { orderBy: { createdAt: "desc" }, select: { metodoPago: true, referencia: true, montoBs: true, tasaCambio: true } } } }),
     prisma.cliente.findMany({ orderBy: [{ apellido: "asc" }, { nombre: "asc" }], select: { id: true, nombre: true, apellido: true, tipoCliente: true } }),
     prisma.producto.findMany({ orderBy: { nombre: "asc" }, select: { id: true, nombre: true, precioDetal: true, precioMayorista: true, inventario: true } }),
   ]);
   const rows: SalesRow[] = transactions.map((transaction) => ({
+    ...(() => {
+      const tasaCambio = transaction.tasaCambio ?? transaction.pagos.find((payment) => payment.tasaCambio !== null)?.tasaCambio ?? null;
+      return {
+        tasaCambio,
+        totalBs: tasaCambio ? Math.round(transaction.montoTotal * tasaCambio * 100) / 100 : null,
+      };
+    })(),
     id: transaction.id,
     numeroOrden: transaction.numeroOrden,
     fechaCompra: transaction.fechaCompra,
     clienteId: transaction.clienteId,
     cliente: `${transaction.cliente.nombre} ${transaction.cliente.apellido}`,
+    productos: transaction.detalles.map((detail) => ({ nombre: detail.producto.nombre, cantidad: detail.cantidad })),
+    pagos: transaction.pagos.map((payment) => ({ metodoPago: payment.metodoPago, referencia: payment.referencia })),
+    montoBsPagado: Math.round(transaction.pagos.reduce((sum, payment) => sum + (payment.montoBs ?? 0), 0) * 100) / 100,
     estado: transaction.estado,
     subtotalUsd: transaction.montoSubtotal || transaction.montoTotal,
     descuentoUsd: transaction.montoDescuento,
     totalUsd: transaction.montoTotal,
-    tasaCambio: transaction.tasaCambio,
-    totalBs: transaction.tasaCambio ? Math.round(transaction.montoTotal * transaction.tasaCambio * 100) / 100 : null,
     tipoDescuento: transaction.tipoDescuento,
     valorDescuento: transaction.valorDescuento,
     tipodeRetiro: transaction.tipodeRetiro,
