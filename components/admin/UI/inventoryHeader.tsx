@@ -1,9 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useTransition } from "react";
 
-export const InventoryHeader = () => {
-  const [activeTab, setActiveTab] = useState("Todos los productos");
-  const tabs = ["Todos los productos", "Pastas", "Salsas", "Postres", "Encurtidos", "Pan de Jamón"];
-  return <div className="flex gap-5 overflow-x-auto pb-1" role="tablist" aria-label="Categorías de inventario">{tabs.map((tab) => <button key={tab} onClick={() => setActiveTab(tab)} type="button" role="tab" aria-selected={activeTab === tab} className={`whitespace-nowrap border-b-2 px-0.5 pb-2 text-xs font-bold transition ${activeTab === tab ? "border-[#c8a45d] text-[#18211d]" : "border-transparent text-[#8f988f] hover:text-[#66735f]"}`}>{tab}</button>)}</div>;
+export const InventoryHeader = ({
+  productTypes,
+  selectedType,
+}: {
+  productTypes: string[];
+  selectedType: string;
+}) => {
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
+
+  function changeType(value: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) params.set("tipo", value);
+    else params.delete("tipo");
+    params.delete("page");
+    const query = params.toString();
+    startTransition(() => router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false }));
+  }
+
+  return <label className="flex min-w-0 items-center gap-3 text-xs font-bold text-[#707970]">
+    <span className="whitespace-nowrap">Tipo de producto</span>
+    <select aria-label="Filtrar por tipo de producto" value={selectedType} onChange={(event) => changeType(event.target.value)} disabled={isPending} className="admin-field min-w-44 py-2 text-xs normal-case tracking-normal">
+      <option value="">Todos los tipos</option>
+      {productTypes.map((type) => <option key={type} value={type}>{type}</option>)}
+    </select>
+  </label>;
 };

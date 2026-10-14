@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { requireAdmin } from "../admin/auth";
 import { prisma } from "../prisma";
 
 interface ProductActionState {
@@ -23,6 +24,16 @@ const ProductSchema = z.object({
     .positive("El inventario debe ser mayor a 0"),
   ubicacion: z.string().min(1, "La ubicación es requerida"),
   descripcion: z.string().optional().or(z.literal("")),
+});
+
+const InventoryUpdateSchema = z.object({
+  inventario: z.number().int().nonnegative("El inventario no puede ser negativo"),
+  precioDetal: z.number().finite().nonnegative("El precio detal no puede ser negativo"),
+  precioMayorista: z.number().finite().nonnegative("El precio mayorista no puede ser negativo"),
+});
+
+const BulkInventorySchema = z.object({
+  productos: z.array(InventoryUpdateSchema.extend({ id: z.number().int().positive() })).min(1).max(500),
 });
 
 export async function deleteProduct(formData: FormData) {
@@ -157,19 +168,65 @@ export async function editInventory(
   id: number,
   data: { inventario: number; precioDetal: number; precioMayorista: number },
 ) {
+  await requireAdmin();
+  const parsed = InventoryUpdateSchema.safeParse(data);
+  if (!Number.isInteger(id) || id <= 0 || !parsed.success) {
+    throw new Error("Los datos del inventario no son válidos.");
+  }
+
   try {
     await prisma.producto.update({
       where: { id },
-      data: {
-        inventario: data.inventario,
-        precioDetal: data.precioDetal,
-        precioMayorista: data.precioMayorista,
-      },
+      data: parsed.data,
     });
     revalidatePath("/admin/inventory");
+    revalidatePath("/productos/consumidores");
     return { success: true };
   } catch (error) {
     console.error(error);
     throw new Error("Fallo al actualizar");
+  }
+}
+
+type BulkInventoryState = { success: boolean; message: string; updated?: number };
+
+export async function editInventoryMasiva(_previous: BulkInventoryState, formData: FormData): Promise<BulkInventoryState> {
+  await requireAdmin();
+  const raw = formData.get("inventarioMasivo")?.toString() ?? "";
+
+  let parsed;
+  try {
+    parsed = BulkInventorySchema.safeParse({ productos: raw ? JSON.parse(raw) : null });
+  } catch {
+    return { success: false, message: "El formato de la edición masiva no es válido." };
+  }
+  if (!parsed.success) return { success: false, message: "Revisa existencias y precios antes de guardar." };
+
+  const ids = parsed.data.productos.map((product) => product.id);
+  if (new Set(ids).size !== ids.length) return { success: false, message: "Hay productos repetidos en el lote." };
+
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      const existing = await tx.producto.findMany({ where: { id: { in: ids } }, select: { id: true } });
+      if (existing.length !== ids.length) throw new Error("Uno de los productos ya no existe.");
+
+      for (const product of parsed.data.productos) {
+        await tx.producto.update({
+          where: { id: product.id },
+          data: {
+            inventario: product.inventario,
+            precioDetal: product.precioDetal,
+            precioMayorista: product.precioMayorista,
+          },
+        });
+      }
+      return { updated: parsed.data.productos.length };
+    });
+
+    revalidatePath("/admin/inventory");
+    revalidatePath("/productos/consumidores");
+    return { success: true, message: `${result.updated} producto(s) actualizado(s).`, updated: result.updated };
+  } catch (error) {
+    return { success: false, message: error instanceof Error ? error.message : "No se pudo guardar la edición masiva." };
   }
 }
