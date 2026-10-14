@@ -354,9 +354,9 @@
   }
 }
 
-/* Cambia el color del icono del calendario en navegadores Chrome, Edge, Safari */
+/* Mantiene visible y clicable el icono del calendario en navegadores WebKit */
 input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: invert(1); /* Esto vuelve el icono negro a blanco */
+  filter: none;
   cursor: pointer;
   opacity: 0.8;
   transition: opacity 0.2s;
