@@ -110,9 +110,7 @@ opciones activas de la acción.
 ### Parámetros
 
 ```text
-desde: fecha inclusiva
-hasta: fecha inclusiva
-granularidad: semana | mes
+periodo: semana ISO (YYYY-Www) o mes calendario (YYYY-MM)
 productoId: entero opcional
 incluirPredictor: booleano
 ```
@@ -121,7 +119,7 @@ incluirPredictor: booleano
 
 ```text
 {
-  periodo: { desde, hasta, granularidad },
+  periodo: { tipo, valor, desde, hasta, etiqueta },
   totalUsd: número,
   cantidadVentas: entero,
   porProducto: [

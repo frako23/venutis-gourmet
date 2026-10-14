@@ -6,6 +6,7 @@ import type {
 
 import type { SaleTotals } from "./sales-calculations";
 import type { ActiveOrderState } from "./status";
+import type { AnalyticsPeriod } from "./periods";
 
 export type ValidationIssue = {
   field: string;
@@ -69,11 +70,7 @@ export type AnalyticsProductRow = {
 };
 
 export type AnalyticsResult = {
-  periodo: {
-    desde: Date;
-    hasta: Date;
-    granularidad: "semana" | "mes";
-  };
+  periodo: AnalyticsPeriod;
   totalUsd: number;
   cantidadVentas: number;
   porProducto: AnalyticsProductRow[];
