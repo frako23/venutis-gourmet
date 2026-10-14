@@ -41,9 +41,11 @@ export type SalesRow = MoneyFields & {
   id: number;
   numeroOrden: string;
   fechaCompra: Date;
+  clienteId: number;
   cliente: string;
   estado: EstadoTransaccion;
   tipoDescuento: TipoDescuento | null;
+  valorDescuento: number | null;
   tipodeRetiro: TipoRetiro;
 };
 
@@ -93,4 +95,9 @@ export type ManualSaleState = ActionResult<{
   subtotalUsd: number;
   descuentoUsd: number;
   totalUsd: number;
+}>;
+
+export type BulkSalesState = ActionResult<{
+  updated: number;
+  created: number;
 }>;

@@ -6,7 +6,8 @@ import { z } from "zod";
 
 import { requireAdmin } from "@/lib/admin/auth";
 import { calculateSaleTotals, type DiscountInput, type SaleLineInput } from "@/lib/admin/sales-calculations";
-import type { ManualSaleState } from "@/lib/admin/types";
+import { requiresPaymentConfirmation } from "@/lib/admin/status";
+import type { BulkSalesState, ManualSaleState } from "@/lib/admin/types";
 import { prisma } from "@/lib/prisma";
 
 const lineSchema = z.object({
@@ -142,5 +143,157 @@ export async function actualizarDescuentoVenta(formData: FormData) {
     return { success: true as const, message: "Descuento actualizado." };
   } catch (error) {
     return { success: false as const, message: error instanceof Error ? error.message : "No se pudo actualizar el descuento." };
+  }
+}
+
+const bulkExistingRowSchema = z.object({
+  id: z.number().int().positive(),
+  numeroOrden: z.string().trim().min(1).max(80),
+  clienteId: z.number().int().positive(),
+  fechaCompra: z.coerce.date(),
+  estado: z.enum(["pagado", "pendiente", "por_cobrar", "en_pedido", "cancelado"]),
+  tipodeRetiro: z.enum(["envio", "recogida"]),
+  tipoDescuento: z.enum(["porcentaje", "usd"]).nullable(),
+  valorDescuento: z.number().finite().nonnegative().nullable(),
+});
+
+const bulkNewRowSchema = z.object({
+  numeroOrden: z.string().trim().max(80),
+  clienteId: z.number().int().positive(),
+  fechaCompra: z.coerce.date(),
+  estado: z.enum(["por_cobrar", "en_pedido", "pagado"]),
+  tipodeRetiro: z.enum(["envio", "recogida"]),
+  productoId: z.number().int().positive(),
+  cantidad: z.number().int().positive(),
+  precioUnitarioUsd: z.number().finite().positive(),
+  tipoDescuento: z.enum(["porcentaje", "usd"]).nullable(),
+  valorDescuento: z.number().finite().nonnegative().nullable(),
+});
+
+const bulkSalesSchema = z.object({
+  existentes: z.array(bulkExistingRowSchema).max(100),
+  nuevas: z.array(bulkNewRowSchema).max(50),
+  confirmarPagos: z.boolean(),
+});
+
+function readBulkSales(formData: FormData) {
+  const raw = formData.get("ventasMasivas")?.toString() ?? "";
+  try {
+    return bulkSalesSchema.safeParse(raw ? JSON.parse(raw) : null);
+  } catch {
+    return { success: false as const, error: { issues: [{ path: ["ventasMasivas"], message: "El formato de la edición masiva no es válido." }] } };
+  }
+}
+
+function bulkDiscount(tipo: "porcentaje" | "usd" | null, valor: number | null): DiscountInput | null {
+  return tipo ? { tipo, valor: valor ?? 0 } : null;
+}
+
+export async function guardarEdicionMasivaVentas(_previous: BulkSalesState, formData: FormData): Promise<BulkSalesState> {
+  const actor = await requireAdmin();
+  const parsed = readBulkSales(formData);
+  if (!parsed.success) return { success: false, message: "Revisa los datos de las filas antes de guardar." };
+
+  const input = parsed.data;
+  const orderNumbers = new Set<string>();
+  for (const row of input.existentes) {
+    if (orderNumbers.has(row.numeroOrden)) return { success: false, message: `La orden ${row.numeroOrden} está repetida en la edición.` };
+    orderNumbers.add(row.numeroOrden);
+  }
+  for (const row of input.nuevas) {
+    if (row.numeroOrden && orderNumbers.has(row.numeroOrden)) return { success: false, message: `La orden ${row.numeroOrden} está repetida en la edición.` };
+    if (row.numeroOrden) orderNumbers.add(row.numeroOrden);
+  }
+
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      let updated = 0;
+      let created = 0;
+
+      for (const row of input.existentes) {
+        const transaction = await tx.transaccion.findUnique({ where: { id: row.id }, include: { detalles: true, pagos: true } });
+        if (!transaction) throw new Error(`La venta ${row.numeroOrden} ya no existe.`);
+        if (transaction.estado === "cancelado" && row.estado !== "cancelado") throw new Error(`La venta ${row.numeroOrden} está cancelada y no puede reabrirse desde el editor masivo.`);
+
+        const totals = calculateSaleTotals(
+          transaction.detalles.map((line) => ({ productoId: line.productoId, cantidad: line.cantidad, precioUnitarioUsd: line.precioUnitario })),
+          bulkDiscount(row.tipoDescuento, row.valorDescuento),
+          transaction.tasaCambio,
+        );
+        const paidUsd = transaction.pagos.reduce((sum, payment) => sum + (payment.montoUsd ?? 0), 0);
+        if (row.estado === "pagado" && requiresPaymentConfirmation(totals.totalUsd, paidUsd, input.confirmarPagos, false)) {
+          throw new Error(`Confirma el cobro de ${row.numeroOrden} antes de marcarla como pagada.`);
+        }
+
+        const client = await tx.cliente.findUnique({ where: { id: row.clienteId }, select: { id: true } });
+        if (!client) throw new Error(`El cliente de ${row.numeroOrden} no existe.`);
+        await tx.transaccion.update({
+          where: { id: row.id },
+          data: {
+            numeroOrden: row.numeroOrden,
+            clienteId: row.clienteId,
+            fechaCompra: row.fechaCompra,
+            estado: row.estado as EstadoTransaccion,
+            tipodeRetiro: row.tipodeRetiro as TipoRetiro,
+            montoSubtotal: totals.subtotalUsd,
+            montoDescuento: totals.descuentoUsd,
+            valorDescuento: row.tipoDescuento ? row.valorDescuento ?? 0 : null,
+            tipoDescuento: row.tipoDescuento,
+            montoTotal: totals.totalUsd,
+          },
+        });
+        if (row.estado !== transaction.estado) {
+          await tx.estadoTransaccionHistorial.create({ data: { transaccionId: row.id, estadoAnterior: transaction.estado, estadoNuevo: row.estado as EstadoTransaccion, actorId: actor.id, actorEmail: actor.email, motivo: "Edición masiva desde ventas y pedidos" } });
+        }
+        updated += 1;
+      }
+
+      for (const [index, row] of input.nuevas.entries()) {
+        const [client, product] = await Promise.all([
+          tx.cliente.findUnique({ where: { id: row.clienteId }, select: { id: true } }),
+          tx.producto.findUnique({ where: { id: row.productoId }, select: { id: true, nombre: true } }),
+        ]);
+        if (!client) throw new Error("Uno de los clientes seleccionados no existe.");
+        if (!product) throw new Error("Uno de los productos seleccionados no existe.");
+
+        const totals = calculateSaleTotals(
+          [{ productoId: row.productoId, cantidad: row.cantidad, precioUnitarioUsd: row.precioUnitarioUsd }],
+          bulkDiscount(row.tipoDescuento, row.valorDescuento),
+          null,
+        );
+        if (row.estado === "pagado" && !input.confirmarPagos) throw new Error("Confirma el cobro de las filas nuevas marcadas como pagadas.");
+
+        const stock = await tx.producto.updateMany({ where: { id: row.productoId, inventario: { gte: row.cantidad } }, data: { inventario: { decrement: row.cantidad } } });
+        if (stock.count !== 1) throw new Error(`Stock insuficiente para ${product.nombre}.`);
+
+        const numeroOrden = row.numeroOrden || `VEN-${Date.now()}-${index + 1}`;
+        const transaction = await tx.transaccion.create({
+          data: {
+            numeroOrden,
+            clienteId: row.clienteId,
+            fechaCompra: row.fechaCompra,
+            montoSubtotal: totals.subtotalUsd,
+            montoDescuento: totals.descuentoUsd,
+            valorDescuento: row.tipoDescuento ? row.valorDescuento ?? 0 : null,
+            tipoDescuento: row.tipoDescuento,
+            montoTotal: totals.totalUsd,
+            estado: row.estado as EstadoTransaccion,
+            tipodeRetiro: row.tipodeRetiro as TipoRetiro,
+          },
+        });
+        await tx.detalleCompra.create({ data: { transaccionId: transaction.id, productoId: row.productoId, cantidad: row.cantidad, precioUnitario: row.precioUnitarioUsd } });
+        await tx.estadoTransaccionHistorial.create({ data: { transaccionId: transaction.id, estadoNuevo: row.estado as EstadoTransaccion, actorId: actor.id, actorEmail: actor.email, motivo: "Pedido cargado desde el editor masivo" } });
+        created += 1;
+      }
+
+      return { updated, created };
+    });
+
+    revalidatePath("/admin");
+    revalidatePath("/admin/transactions");
+    revalidatePath("/admin/inventory");
+    return { success: true, message: `${result.updated} venta(s) actualizada(s) y ${result.created} pedido(s) cargado(s).`, ...result };
+  } catch (error) {
+    return { success: false, message: error instanceof Error ? error.message : "No se pudo guardar la edición masiva." };
   }
 }

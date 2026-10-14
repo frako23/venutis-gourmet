@@ -22,14 +22,17 @@ export default async function TransactionsPage({ searchParams }: { searchParams?
     ...(cliente ? { cliente: { OR: [{ nombre: { contains: cliente, mode: "insensitive" as const } }, { apellido: { contains: cliente, mode: "insensitive" as const } }] } } : {}),
     ...(desde || hasta ? { fechaCompra: { ...(desde ? { gte: new Date(`${desde}T00:00:00`) } : {}), ...(hasta ? { lt: new Date(`${hasta}T23:59:59.999`) } : {}) } } : {}),
   };
-  const [total, transactions] = await Promise.all([
+  const [total, transactions, clients, products] = await Promise.all([
     prisma.transaccion.count({ where }),
     prisma.transaccion.findMany({ where, orderBy: { fechaCompra: "desc" }, skip: (page - 1) * PAGE_SIZE, take: PAGE_SIZE, include: { cliente: true } }),
+    prisma.cliente.findMany({ orderBy: [{ apellido: "asc" }, { nombre: "asc" }], select: { id: true, nombre: true, apellido: true, tipoCliente: true } }),
+    prisma.producto.findMany({ orderBy: { nombre: "asc" }, select: { id: true, nombre: true, precioDetal: true, precioMayorista: true, inventario: true } }),
   ]);
   const rows: SalesRow[] = transactions.map((transaction) => ({
     id: transaction.id,
     numeroOrden: transaction.numeroOrden,
     fechaCompra: transaction.fechaCompra,
+    clienteId: transaction.clienteId,
     cliente: `${transaction.cliente.nombre} ${transaction.cliente.apellido}`,
     estado: transaction.estado,
     subtotalUsd: transaction.montoSubtotal || transaction.montoTotal,
@@ -38,10 +41,11 @@ export default async function TransactionsPage({ searchParams }: { searchParams?
     tasaCambio: transaction.tasaCambio,
     totalBs: transaction.tasaCambio ? Math.round(transaction.montoTotal * transaction.tasaCambio * 100) / 100 : null,
     tipoDescuento: transaction.tipoDescuento,
+    valorDescuento: transaction.valorDescuento,
     tipodeRetiro: transaction.tipodeRetiro,
   }));
   const result: PaginatedRows<SalesRow> = { rows, page, pageSize: PAGE_SIZE, total, totalPages: Math.max(1, Math.ceil(total / PAGE_SIZE)) };
 
   const paginationQuery = new URLSearchParams(Object.entries({ desde, hasta, estado, cliente, orden }).filter((entry): entry is [string, string] => Boolean(entry[1]))).toString();
-  return <main className="admin-page"><div className="admin-content space-y-6"><div className="flex flex-wrap items-end justify-between gap-4"><div><p className="admin-eyebrow">Registro operativo</p><h1 className="admin-title mt-2">Ventas y pedidos</h1><p className="admin-subtitle mt-3">Consulta, filtra y da seguimiento a cada operación.</p></div><div className="admin-panel-flat px-4 py-3 text-sm"><span className="text-[#707970]">Estado visible</span><strong className="ml-2 text-[#18211d]">{estado ? getOrderStateLabel(estado as SalesRow["estado"]) : "Todos"}</strong></div></div><SalesFilters values={{ desde, hasta, estado, cliente, orden }} /><SalesTable result={result} paginationQuery={paginationQuery} /></div></main>;
+  return <main className="admin-page"><div className="admin-content space-y-6"><div className="flex flex-wrap items-end justify-between gap-4"><div><p className="admin-eyebrow">Registro operativo</p><h1 className="admin-title mt-2">Ventas y pedidos</h1><p className="admin-subtitle mt-3">Consulta, filtra y da seguimiento a cada operación.</p></div><div className="admin-panel-flat px-4 py-3 text-sm"><span className="text-[#707970]">Estado visible</span><strong className="ml-2 text-[#18211d]">{estado ? getOrderStateLabel(estado as SalesRow["estado"]) : "Todos"}</strong></div></div><SalesFilters values={{ desde, hasta, estado, cliente, orden }} /><SalesTable result={result} paginationQuery={paginationQuery} clients={clients} products={products} /></div></main>;
 }

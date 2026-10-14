@@ -260,6 +260,41 @@
     background: #fffaf0;
   }
 
+  .admin-sheet thead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    box-shadow: 0 1px 0 var(--admin-line);
+  }
+
+  .admin-sheet td {
+    padding: 0.45rem 0.5rem;
+    white-space: nowrap;
+  }
+
+  .admin-sheet-input {
+    min-height: 2.5rem;
+    border: 1px solid transparent;
+    border-radius: 0.45rem;
+    background: rgba(255, 255, 255, 0.72);
+    padding: 0.45rem 0.5rem;
+    color: var(--admin-ink);
+    font-size: 0.78rem;
+    outline: none;
+    transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+  }
+
+  .admin-sheet-input:hover {
+    border-color: var(--admin-line);
+    background: #fffefa;
+  }
+
+  .admin-sheet-input:focus {
+    border-color: var(--admin-brass);
+    background: #fffefa;
+    box-shadow: 0 0 0 3px rgba(200, 164, 93, 0.16);
+  }
+
   .admin-table th,
   .admin-table td {
     padding: 0.95rem 1rem;
