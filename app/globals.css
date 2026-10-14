@@ -85,6 +85,11 @@
     font-family: var(--font-century-gothic), ui-sans-serif, system-ui;
     @apply bg-background-dark;
   }
+
+  button,
+  a {
+    cursor: pointer;
+  }
 }
 
 /* Lenguaje visual del panel administrativo. Se mantiene encapsulado para no
