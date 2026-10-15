@@ -5,8 +5,14 @@ import { toast } from "sonner";
 export const CopyButton = ({ text }: { text: string }) => {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(text);
+  const handleCopy = async () => {
+    const copiedSuccessfully = await copyToClipboard(text);
+
+    if (!copiedSuccessfully) {
+      toast.error("No pudimos copiar los datos al portapapeles.");
+      return;
+    }
+
     setCopied(true);
     toast.success("¡Datos copiados al portapapeles!");
     setTimeout(() => setCopied(false), 2000); // Vuelve al estado original tras 2s
@@ -24,5 +30,34 @@ export const CopyButton = ({ text }: { text: string }) => {
     </button>
   );
 };
+
+async function copyToClipboard(text: string): Promise<boolean> {
+  if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      // Algunos navegadores exponen la API, pero la rechazan fuera de un contexto seguro.
+    }
+  }
+
+  if (typeof document === "undefined") return false;
+
+  const textArea = document.createElement("textarea");
+  textArea.value = text;
+  textArea.setAttribute("readonly", "");
+  textArea.style.position = "fixed";
+  textArea.style.opacity = "0";
+  document.body.appendChild(textArea);
+  textArea.select();
+
+  try {
+    return document.execCommand("copy");
+  } catch {
+    return false;
+  } finally {
+    textArea.remove();
+  }
+}
 
 
