@@ -57,6 +57,7 @@ export function AnalyticsFilters({ products, semanaInicial, mesInicial, producto
 
       <button type="submit" className="admin-button-primary admin-button-brass min-h-11 w-full whitespace-nowrap lg:w-auto">Actualizar analíticas</button>
     </div>
+    {!incluirPredictor && <input type="hidden" name="predictor" defaultValue="0" />}
   </form>;
 }
 

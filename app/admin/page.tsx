@@ -38,7 +38,7 @@ export default async function AdminDashboardPage() {
             <div className="relative">
               <div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-lg bg-[#e8eee5] text-[#66735f]"><BarChart3 size={18} /></span><h2 className="font-bold text-[#18211d]">Analítica de ventas</h2></div>
               <p className="mt-3 max-w-md text-sm leading-relaxed text-[#707970]">Compara semanas, meses y productos para tomar decisiones con el histórico real.</p>
-              <Link href="/admin/analytics" className="mt-5 inline-flex items-center text-sm font-bold text-[#66735f] hover:text-[#18211d]">Abrir analíticas <span className="ml-2" aria-hidden="true">↗</span></Link>
+              <Link href="/admin/analytics/sales" className="mt-5 inline-flex items-center text-sm font-bold text-[#66735f] hover:text-[#18211d]">Abrir analíticas <span className="ml-2" aria-hidden="true">↗</span></Link>
             </div>
           </div>
           <div className="admin-panel relative overflow-hidden p-6">

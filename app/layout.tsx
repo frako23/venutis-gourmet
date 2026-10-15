@@ -1,6 +1,7 @@
 import { WhatsAppButtonWrapper } from "@/components/global/whatsappButtonWrapper";
 import { stackServerApp } from "@/stack/server";
 import { StackProvider, StackTheme } from "@stackframe/stack";
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Toaster } from "sonner";
@@ -74,7 +75,7 @@ export default function RootLayout({
         <StackProvider app={stackServerApp}>
           <StackTheme>
             {children}
-
+            <Analytics />
             <WhatsAppButtonWrapper />
             <Toaster
               position="top-right"

@@ -147,3 +147,47 @@ export type ClientValidationIssue = ValidationIssue & {
   rowId?: number;
   code?: "invalid" | "duplicate" | "stale" | "missing";
 };
+
+export type VisitPreset = "7d" | "30d" | "90d" | "custom";
+
+export type VisitPeriod = {
+  preset: VisitPreset;
+  since: string;
+  until: string;
+  label: string;
+  isValid: boolean;
+  validationMessage?: string;
+};
+
+export type VisitMetric = {
+  pageviews: number;
+  visitors: number;
+};
+
+export type VisitBreakdownRow = VisitMetric & {
+  label: string;
+  isOthers: boolean;
+};
+
+export type WebsiteVisitsStatus =
+  | "ready"
+  | "no_data"
+  | "not_configured"
+  | "unavailable"
+  | "unauthorized"
+  | "invalid";
+
+export type WebsiteVisitsResult = {
+  period: VisitPeriod;
+  environment: "production";
+  queriedAt: string;
+  status: WebsiteVisitsStatus;
+  summary: VisitMetric | null;
+  breakdowns: {
+    paths: VisitBreakdownRow[];
+    referrers: VisitBreakdownRow[];
+    countries: VisitBreakdownRow[];
+    devices: VisitBreakdownRow[];
+  };
+  message: string;
+};

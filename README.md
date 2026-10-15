@@ -58,9 +58,21 @@ STACK_SECRET_SERVER_KEY=""
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=""
 NEXT_PUBLIC_CLOUDINARY_API_KEY=""
 CLOUDINARY_API_SECRET=""
+
+# Web Analytics de Vercel para /admin/analytics/visits
+VERCEL_ANALYTICS_TOKEN=""
+VERCEL_ANALYTICS_PROJECT_ID=""
+# Usa solo una de las dos variables si el proyecto pertenece a un equipo.
+VERCEL_ANALYTICS_TEAM_ID=""
+VERCEL_ANALYTICS_TEAM_SLUG=""
 ```
 
-No publiques valores reales de secretos ni subas el archivo `.env` al repositorio.
+No publiques valores reales de secretos ni subas el archivo `.env` al repositorio. El
+token de Vercel se consume únicamente en el servidor y nunca debe copiarse a variables
+`NEXT_PUBLIC_*`. Para mostrar visitas, habilita Web Analytics en el proyecto de Vercel
+de producción. `VERCEL_ANALYTICS_TOKEN` y `VERCEL_ANALYTICS_PROJECT_ID` son obligatorias;
+si el proyecto pertenece a un equipo, configura `VERCEL_ANALYTICS_TEAM_ID` o
+`VERCEL_ANALYTICS_TEAM_SLUG`, pero no ambas.
 
 ## Base de datos
 
@@ -148,7 +160,9 @@ El alias de imports `@/*` apunta a la raíz del proyecto.
 - `/admin/transactions/[id]`: detalle de una transacción.
 - `/admin/add-transaction`: creación administrativa de transacciones.
 - `/admin`: dashboard operativo.
-- `/admin/analytics`: ventas semanales/mensuales, desglose por producto y predictor.
+- `/admin/analytics`: entrada compatible que redirige a las analíticas de ventas.
+- `/admin/analytics/sales`: ventas semanales/mensuales, desglose por producto y predictor.
+- `/admin/analytics/visits`: visitas agregadas de Web Analytics en producción.
 - `/admin/delivery-notes`: listado de notas de entrega.
 - `/admin/delivery-notes/new`: creación de notas para clientes mayoristas.
 - `/admin/delivery-notes/[id]/pdf`: descarga protegida del PDF.

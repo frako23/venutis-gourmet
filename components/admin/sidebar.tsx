@@ -3,6 +3,7 @@
 import {
   BarChart3,
   FileText,
+  Globe2,
   LayoutDashboard,
   LucideIcon,
   Users,
@@ -18,6 +19,7 @@ type NavigationItem = {
   icon: LucideIcon;
   label: string;
   link: string;
+  children?: NavigationItem[];
 };
 
 export const adminNavigation: NavigationItem[] = [
@@ -25,7 +27,15 @@ export const adminNavigation: NavigationItem[] = [
   { icon: ShoppingCart, label: "Ventas y pedidos", link: "/admin/transactions" },
   { icon: Users, label: "Clientes", link: "/admin/clients" },
   { icon: Warehouse, label: "Inventario", link: "/admin/inventory" },
-  { icon: BarChart3, label: "Analíticas", link: "/admin/analytics" },
+  {
+    icon: BarChart3,
+    label: "Analíticas",
+    link: "/admin/analytics",
+    children: [
+      { icon: ShoppingCart, label: "Ventas", link: "/admin/analytics/sales" },
+      { icon: Globe2, label: "Visitas", link: "/admin/analytics/visits" },
+    ],
+  },
   { icon: FileText, label: "Notas de entrega", link: "/admin/delivery-notes" },
 ];
 
@@ -48,9 +58,7 @@ export default function Sidebar() {
 
       <div className="px-6 pb-2 pt-7 text-[0.62rem] font-bold uppercase tracking-[0.18em] text-white/35">Trabajar hoy</div>
       <nav aria-label="Navegación administrativa" className="flex-1 space-y-1 px-3">
-        {adminNavigation.map((item) => (
-          <SidebarLink key={item.link} {...item} active={isActive(pathname, item.link)} />
-        ))}
+        {adminNavigation.map((item) => <NavigationGroup key={item.link} item={item} pathname={pathname} />)}
       </nav>
 
       <div className="m-3 mt-6 rounded-xl border border-white/10 bg-white/[0.04] p-3">
@@ -76,4 +84,13 @@ function SidebarLink({ icon: Icon, label, active, link }: NavigationItem & { act
       <span>{label}</span>
     </Link>
   );
+}
+
+function NavigationGroup({ item, pathname }: { item: NavigationItem; pathname: string }) {
+  return <div>
+    <SidebarLink icon={item.icon} label={item.label} link={item.link} active={isActive(pathname, item.link)} />
+    {item.children && <div className="ml-5 border-l border-white/10 pl-2">
+      {item.children.map((child) => <SidebarLink key={child.link} icon={child.icon} label={child.label} link={child.link} active={isActive(pathname, child.link)} />)}
+    </div>}
+  </div>;
 }

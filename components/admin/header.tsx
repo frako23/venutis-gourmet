@@ -12,6 +12,8 @@ const titles: Record<string, string> = {
   "/admin/transactions": "Ventas y pedidos",
   "/admin/clients": "Clientes",
   "/admin/inventory": "Inventario",
+  "/admin/analytics/sales": "Analíticas de ventas",
+  "/admin/analytics/visits": "Analíticas de visitas",
   "/admin/analytics": "Analíticas",
   "/admin/delivery-notes": "Notas de entrega",
   "/admin/add-transaction": "Registrar venta",
@@ -58,12 +60,18 @@ export default function Header() {
 
       {menuOpen && (
         <nav className="mt-3 space-y-1 border-t border-[#dedfd6] pt-3 md:hidden" aria-label="Navegación móvil">
-          {adminNavigation.map(({ icon: Icon, label, link }) => (
-            <Link key={link} href={link} onClick={() => setMenuOpen(false)} className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm ${isActive(pathname, link) ? "bg-[#c8a45d] font-bold text-[#18211d]" : "text-[#66735f]"}`}>
-              <Icon size={18} />
+          {adminNavigation.map(({ icon: Icon, label, link, children }) => <div key={link}>
+            <Link href={link} onClick={() => setMenuOpen(false)} className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm ${isActive(pathname, link) ? "bg-[#c8a45d] font-bold text-[#18211d]" : "text-[#66735f]"}`}>
+              <Icon size={18} aria-hidden="true" />
               {label}
             </Link>
-          ))}
+            {children && <div className="ml-5 border-l border-[#dedfd6] pl-2">
+              {children.map(({ icon: ChildIcon, label: childLabel, link: childLink }) => <Link key={childLink} href={childLink} onClick={() => setMenuOpen(false)} className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm ${isActive(pathname, childLink) ? "bg-[#f5eddc] font-bold text-[#8c6a2c]" : "text-[#66735f]"}`}>
+                <ChildIcon size={16} aria-hidden="true" />
+                {childLabel}
+              </Link>)}
+            </div>}
+          </div>)}
         </nav>
       )}
     </header>
