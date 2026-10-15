@@ -18,6 +18,8 @@ test("normaliza, valida y formatea RIF con separadores", () => {
   const checkDigit = calculateRifCheckDigit("J", body);
   const compact = `J${body}${checkDigit}`;
 
+  assert.equal(checkDigit, 4);
+  assert.equal(validateRif("J-12345678-4"), null);
   assert.equal(validateRif(`j-${body}-${checkDigit}`), null);
   assert.equal(normalizeRif(` j-${body}-${checkDigit} `), compact);
   assert.equal(formatRif(compact), `J-${body}-${checkDigit}`);
@@ -26,7 +28,7 @@ test("normaliza, valida y formatea RIF con separadores", () => {
 test("rechaza prefijos, longitud y dígito verificador inválidos", () => {
   assert.match(validateRif("X123456789") ?? "", /prefijo/);
   assert.match(validateRif("J123") ?? "", /prefijo/);
-  assert.match(validateRif("J123456780") ?? "", /dígito/);
-  assert.throws(() => normalizeRif("J123456780"), /dígito/);
+  assert.match(validateRif("J123456789") ?? "", /dígito.*4/);
+  assert.throws(() => normalizeRif("J123456789"), /dígito.*4/);
   assert.equal(normalizeRif(""), null);
 });

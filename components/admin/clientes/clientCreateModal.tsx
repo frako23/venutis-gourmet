@@ -60,8 +60,8 @@ export function ClientCreateModal({ onClose }: { onClose: () => void }) {
                 <option value="mayorista">Mayorista</option>
               </select>
             </Field>
-            <Field label="RIF" error={fieldError("rif")} hint="Obligatorio para mayoristas; acepta espacios y guiones.">
-              <input name="rif" className="admin-field admin-mono" placeholder="J-12345678-9" />
+            <Field label="RIF" error={fieldError("rif")} hint="Obligatorio para mayoristas; acepta espacios y guiones. Ejemplo válido: J-12345678-4.">
+              <input name="rif" className="admin-field admin-mono" placeholder="J-12345678-4" />
             </Field>
             <Field label="Nombre" error={fieldError("nombre")}>
               <input name="nombre" className="admin-field" required autoComplete="given-name" />

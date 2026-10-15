@@ -46,7 +46,7 @@ export function validateRif(value: string | null | undefined): string | null {
   if (!match) return "Usa un RIF con prefijo y nueve dígitos, por ejemplo J123456789.";
 
   const expected = calculateRifCheckDigit(match[1], match[2]);
-  if (Number(match[3]) !== expected) return "El dígito verificador del RIF no es válido.";
+  if (Number(match[3]) !== expected) return `El dígito verificador del RIF no es válido. Para ${match[1]}-${match[2]} debe ser ${expected}.`;
   return null;
 }
 
