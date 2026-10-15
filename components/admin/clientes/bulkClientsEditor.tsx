@@ -82,11 +82,16 @@ export function BulkClientsEditor({ rows: initialRows, onClose }: { rows: Client
     </div>
     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#ebe9e0] px-4 py-3 text-xs text-[#707970] md:px-5"><div><span>{dirtyRows.length} fila(s) pendiente(s) · máximo 100 por tanda</span><span className="ml-3 text-[#8f988f] sm:hidden">Desliza la tabla lateralmente para ver todas las columnas.</span></div><div className="flex gap-2"><button type="button" onClick={discard} disabled={dirtyRows.length === 0} className="admin-button-secondary min-h-9 px-3 py-2 text-xs">Descartar</button><button type="submit" form="bulk-clients-form" disabled={isPending || dirtyRows.length === 0} className="admin-button-primary admin-button-brass min-h-9 px-3 py-2 text-xs"><Save size={15} /> {isPending ? "Guardando..." : "Guardar cambios"}</button></div></div>
     <form id="bulk-clients-form" action={formAction}>
-      <div className="admin-horizontal-scroll w-full max-w-full overflow-x-auto overflow-y-visible overscroll-x-contain">
-        <table className="admin-table admin-sheet min-w-[1120px] text-left text-sm">
+      <div
+        aria-label="Tabla de edición masiva de clientes"
+        className="admin-horizontal-scroll w-full min-w-0 max-w-full overflow-x-auto overflow-y-hidden overscroll-x-contain"
+        role="region"
+        tabIndex={0}
+      >
+        <table className="admin-table admin-sheet w-max min-w-[1400px] text-left text-sm">
           <thead><tr><th>Cliente</th><th>Tipo</th><th>RIF</th><th>Teléfono</th><th>Correo</th><th>Estado</th></tr></thead>
           <tbody>{rows.map((row) => <tr key={row.id} className={dirtyIds.has(row.id) ? "bg-[#fffaf0]" : undefined}>
-            <td><div className="min-w-56 space-y-1 px-2"><input aria-label={`Nombre del cliente ${row.id}`} value={row.nombre} onChange={(event) => updateRow(row.id, "nombre", event.target.value)} className="admin-sheet-input w-full font-semibold" /><input aria-label={`Apellido del cliente ${row.id}`} value={row.apellido} onChange={(event) => updateRow(row.id, "apellido", event.target.value)} className="admin-sheet-input w-full" /><span className="admin-mono block text-xs text-[#8f988f]">#{row.id}</span></div></td>
+            <td><div className="min-w-56 space-y-1 px-2"><input aria-label={`Nombre del cliente ${row.id}`} value={row.nombre} onChange={(event) => updateRow(row.id, "nombre", event.target.value)} className="admin-sheet-input block w-full font-semibold" /><input aria-label={`Apellido del cliente ${row.id}`} value={row.apellido} onChange={(event) => updateRow(row.id, "apellido", event.target.value)} className="admin-sheet-input block w-full" /><span className="admin-mono block text-xs text-[#8f988f]">#{row.id}</span></div></td>
             <td><select aria-label={`Tipo del cliente ${row.id}`} value={row.tipoCliente} onChange={(event) => updateRow(row.id, "tipoCliente", event.target.value)} className="admin-sheet-input w-32"><option value="detal">Consumidor</option><option value="mayorista">Mayorista</option></select></td>
             <td><input aria-label={`RIF del cliente ${row.id}`} value={row.rif ?? ""} onChange={(event) => updateRow(row.id, "rif", event.target.value)} className="admin-sheet-input admin-mono w-40" placeholder="Sin RIF" /></td>
             <td><input aria-label={`Teléfono del cliente ${row.id}`} value={row.celular} onChange={(event) => updateRow(row.id, "celular", event.target.value)} className="admin-sheet-input w-36" /></td>

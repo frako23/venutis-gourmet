@@ -45,10 +45,16 @@ export function BulkInventoryEditor({
     </div>
     <div className="border-b border-[#ebe9e0] px-4 py-3 text-xs text-[#707970] md:px-5">
       Se muestran los productos del filtro actual. Los cambios se validan nuevamente en el servidor antes de guardarse.
+      <span className="ml-3 text-[#8f988f] sm:hidden">Desliza la tabla lateralmente para ver todas las columnas.</span>
     </div>
     <form action={formAction}>
-      <div className="overflow-x-auto">
-        <table className="admin-table admin-sheet min-w-[920px] text-left text-sm">
+      <div
+        aria-label="Tabla de edición masiva de inventario"
+        className="admin-horizontal-scroll w-full min-w-0 max-w-full overflow-x-auto overflow-y-hidden overscroll-x-contain"
+        role="region"
+        tabIndex={0}
+      >
+        <table className="admin-table admin-sheet w-max min-w-[1100px] text-left text-sm">
           <thead><tr><th>Producto</th><th>Tipo</th><th>Existencias</th><th>Precio detal</th><th>Precio mayorista</th></tr></thead>
           <tbody>
             {products.map((product) => <tr key={product.id}>

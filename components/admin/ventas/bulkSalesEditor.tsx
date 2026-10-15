@@ -163,8 +163,13 @@ export function BulkSalesEditor({ rows: initialRows, clients, products, onClose 
       Las filas nuevas descuentan inventario al guardar. Las órdenes canceladas conservan su estado y no se pueden reabrir desde esta vista.
     </div>
     <form action={formAction}>
-      <div className="overflow-x-auto">
-        <table className="admin-table admin-sheet min-w-[1420px] text-left text-sm">
+      <div
+        aria-label="Tabla de edición masiva de ventas"
+        className="admin-horizontal-scroll w-full min-w-0 max-w-full overflow-x-auto overflow-y-hidden overscroll-x-contain"
+        role="region"
+        tabIndex={0}
+      >
+        <table className="admin-table admin-sheet w-max min-w-[1420px] text-left text-sm">
           <thead><tr><th>Orden</th><th>Fecha</th><th>Cliente</th><th>Producto / línea</th><th>Cantidad</th><th>Precio USD</th><th>Descuento</th><th>Estado</th><th>Entrega</th><th>Subtotal</th><th>Total</th><th aria-label="Acciones" /></tr></thead>
           <tbody>
             {rows.map((row) => <tr key={row.key} className={row.esNueva ? "bg-[#fffaf0]" : undefined}>
