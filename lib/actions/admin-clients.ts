@@ -225,7 +225,11 @@ function readBulkClients(formData: FormData) {
 export async function guardarEdicionMasivaClientes(_previous: BulkClientsState, formData: FormData): Promise<BulkClientsState> {
   const actor = await requireAdmin();
   const parsed = readBulkClients(formData);
-  if (!parsed.success) return { success: false, message: "Revisa las filas antes de guardar.", issues: parsed.error.issues.map((issue) => ({ field: issue.path.join(".") || "clientes", message: issue.message })) };
+  if (!parsed.success) {
+    const issues = parsed.error.issues.map((issue) => ({ field: issue.path.join(".") || "clientes", message: issue.message }));
+    console.error("Payload inválido en edición masiva de clientes:", issues);
+    return { success: false, message: "Revisa las filas antes de guardar.", issues };
+  }
 
   const patches = parsed.data.clientes as ClientPatch[];
   const duplicateIds = new Set<number>();
@@ -309,6 +313,7 @@ export async function guardarEdicionMasivaClientes(_previous: BulkClientsState, 
     revalidateClientSurfaces();
     return { success: true, message: `${result.updated} cliente(s) actualizado(s).`, updated: result.updated };
   } catch (error) {
+    console.error("Error al guardar edición masiva de clientes:", error);
     if (error instanceof ClientActionFailure) return { success: false, message: "No se guardó ninguna fila. Corrige los conflictos indicados.", issues: publicIssues(error.issues) };
     if (isPrismaUniqueError(error)) return { success: false, message: "No se guardó ninguna fila porque existe un identificador duplicado." };
     return { success: false, message: error instanceof Error ? error.message : "No se pudo guardar la edición masiva." };

@@ -80,8 +80,9 @@ export function BulkClientsEditor({ rows: initialRows, onClose }: { rows: Client
       <div><p className="admin-eyebrow">Modo de captura</p><h2 className="mt-1 text-lg font-bold text-[#18211d]">Edición masiva de clientes</h2><p className="mt-1 max-w-3xl text-sm leading-relaxed text-[#707970]">Edita las filas visibles como una hoja de cálculo. La tanda se valida y guarda completa o no se guarda.</p></div>
       <button type="button" onClick={closeEditor} className="admin-button-secondary"><X size={16} /> Cerrar</button>
     </div>
-    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#ebe9e0] px-4 py-3 text-xs text-[#707970] md:px-5"><div><span>{dirtyRows.length} fila(s) pendiente(s) · máximo 100 por tanda</span><span className="ml-3 text-[#8f988f] sm:hidden">Desliza la tabla lateralmente para ver todas las columnas.</span></div><div className="flex gap-2"><button type="button" onClick={discard} disabled={dirtyRows.length === 0} className="admin-button-secondary min-h-9 px-3 py-2 text-xs">Descartar</button><button type="submit" form="bulk-clients-form" disabled={isPending || dirtyRows.length === 0} className="admin-button-primary admin-button-brass min-h-9 px-3 py-2 text-xs"><Save size={15} /> {isPending ? "Guardando..." : "Guardar cambios"}</button></div></div>
+    {!state.success && state.message && <div className="border-b border-[#ebe9e0] bg-[#f8e8e3] px-4 py-3 text-sm text-[#a84f3b]" role="alert"><p>{state.message}</p>{(state.issues ?? []).filter((issue) => !issue.rowId).map((issue, index) => <p key={`${issue.field}-${index}`} className="mt-1 text-xs">{issue.field}: {issue.message}</p>)}</div>}
     <form id="bulk-clients-form" action={formAction}>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#ebe9e0] px-4 py-3 text-xs text-[#707970] md:px-5"><div><span>{dirtyRows.length} fila(s) pendiente(s) · máximo 100 por tanda</span><span className="ml-3 text-[#8f988f] sm:hidden">Desliza la tabla lateralmente para ver todas las columnas.</span></div><div className="flex gap-2"><button type="button" onClick={discard} disabled={dirtyRows.length === 0} className="admin-button-secondary min-h-9 px-3 py-2 text-xs">Descartar</button><button type="submit" disabled={isPending || dirtyRows.length === 0} className="admin-button-primary admin-button-brass min-h-9 px-3 py-2 text-xs"><Save size={15} /> {isPending ? "Guardando..." : "Guardar cambios"}</button></div></div>
       <div
         aria-label="Tabla de edición masiva de clientes"
         className="admin-horizontal-scroll w-full min-w-0 max-w-full overflow-x-auto overflow-y-hidden overscroll-x-contain"
@@ -100,7 +101,7 @@ export function BulkClientsEditor({ rows: initialRows, onClose }: { rows: Client
           </tr>)}</tbody>
         </table>
       </div>
-      <input type="hidden" name="clientes" value={JSON.stringify(payload)} />
+      <input type="hidden" name="clientes" value={JSON.stringify({ clientes: payload })} />
     </form>
     {!state.success && state.message && <p className="border-t border-[#ebe9e0] bg-[#f8e8e3] p-3 text-sm text-[#a84f3b]" role="alert">{state.message}</p>}
     <p className="border-t border-[#ebe9e0] px-4 py-3 text-xs text-[#707970] md:px-5">RIF visible de ejemplo: {rows[0] ? formatRif(rows[0].rif) : "Sin filas"}. Los cambios no modifican ventas, pagos ni documentos históricos.</p>
