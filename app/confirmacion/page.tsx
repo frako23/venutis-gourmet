@@ -1,193 +1,57 @@
 import { WHATSAPP_PHONE_NUMBER } from "@/lib/constants/constants";
-import { prisma } from "@/lib/prisma"; // Ajusta la ruta a tu cliente de prisma
-import {
-  CreditCard,
-  MapPin,
-  MessageCircleMore,
-  ShoppingBag,
-  X,
-} from "lucide-react";
+import { getOrderStateLabel } from "@/lib/admin/status";
+import { prisma } from "@/lib/prisma";
+import { CreditCard, MapPin, MessageCircleMore, Package, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-export default async function ConfirmacionPage({
-  searchParams,
-}: {
-  searchParams: { id?: string };
-}) {
+export default async function ConfirmacionPage({ searchParams }: { searchParams: { id?: string } }) {
   const id = Number(searchParams.id);
-  if (!id) return notFound();
+  if (!Number.isInteger(id) || id <= 0) return notFound();
 
   const orden = await prisma.transaccion.findUnique({
     where: { id },
-    include: {
-      cliente: { include: { direcciones: true } },
-      detalles: { include: { producto: true } },
-      pagos: true,
-    },
+    include: { cliente: true, detalles: { include: { producto: true } }, pagos: { orderBy: { createdAt: "desc" } } },
   });
-
   if (!orden) return notFound();
 
-  // Datos del pago principal (tomamos el primero del array 'pagos')
-  const infoPago = orden.pagos[0];
-
-  // Datos de la dirección (tomamos la primera disponible)
-  const infoDireccion = orden.cliente.direcciones[0];
-
-  // 1. Preparamos los datos con valores por defecto por seguridad
+  const infoPago = orden.pagos[0] ?? null;
   const nombreCompleto = `${orden.cliente.nombre} ${orden.cliente.apellido}`;
-  const direccionTexto = infoDireccion
-    ? `${infoDireccion.urbanizacion}, ${infoDireccion.direccion}`
+  const direccionTexto = orden.tipodeRetiro === "envio"
+    ? `${orden.aliasEntrega ?? "Dirección"}: ${orden.zonaEntrega ?? "Sin zona"}, ${orden.direccionEntrega ?? "Sin detalle"}`
     : "Retiro en tienda";
-
-  const detallesPedido = orden.detalles
-    .map((d: any) => `- ${d.cantidad}x ${d.producto.nombre}`)
-    .join("\n");
-
-  // 2. Construcción del mensaje profesional
-  const mensaje = `*ID de Orden:* ${orden.numeroOrden} 
-
-*CLIENTE:* ${nombreCompleto}
-*DIRECCIÓN:* ${direccionTexto}
-*TELÉFONO:* ${orden.cliente.celular}
-
-*PEDIDO:*
-${detallesPedido}
-
-*DETALLES DEL PAGO:*
-- *Método:* ${infoPago?.metodoPago || "No especificado"}
-- *Referencia:* ${infoPago?.referencia || "Pendiente"}
-- *Tasa:* ${infoPago?.tasaCambio || 0} Bs/$
-
-*TOTAL A PAGAR:*
-- *USD:* $${orden.montoTotal.toFixed(2)}
-- *Bs:* ${infoPago?.montoBs?.toLocaleString("es-VE")} Bs.`;
-
-  // 3. Generar el enlace de WhatsApp (opcional pero recomendado)
-  const encodedMessage = encodeURIComponent(mensaje);
-  const whatsappUrl = `https://wa.me/${WHATSAPP_PHONE_NUMBER}?text=${encodedMessage}`;
+  const detallesPedido = orden.detalles.map((detail) => `- ${detail.cantidad}x ${detail.producto.nombre}`).join("\n");
+  const mensaje = `*ID de Orden:* ${orden.numeroOrden}\n\n*CLIENTE:* ${nombreCompleto}\n*TELÉFONO:* ${orden.cliente.celular}\n*ENTREGA:* ${direccionTexto}\n\n*PEDIDO:*\n${detallesPedido}\n\n*PAGO DECLARADO:*\n- Método: ${infoPago?.metodoPago ?? "No especificado"}\n- Referencia: ${infoPago?.referencia ?? "No aplica / pendiente"}\n- Total: $${orden.montoTotal.toFixed(2)} / Bs. ${(infoPago?.montoBs ?? 0).toFixed(2)}`;
+  const whatsappUrl = `https://wa.me/${WHATSAPP_PHONE_NUMBER}?text=${encodeURIComponent(mensaje)}`;
 
   return (
-    <div className="bg-background-dark text-text-offwhite min-h-screen flex flex-col relative overflow-hidden">
-      {/* ... (Fondo y Logo igual) */}
-
-      <main className="flex-grow flex flex-col items-center justify-center p-6 z-10">
+    <div className="bg-background-dark text-text-offwhite min-h-screen flex flex-col">
+      <main className="flex-grow flex flex-col items-center justify-center p-6">
         <div className="max-w-3xl w-full bg-surface-dark/40 backdrop-blur-2xl border border-white/10 rounded-2xl p-8 shadow-2xl">
-          <Link href="/">
-            <Image
-              src="/logo-venutis.avif"
-              alt="logo Venuti's"
-              width={50}
-              height={50}
-            />
-          </Link>
-          <Link
-            className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors"
-            href="/"
-          >
-            <X />
-          </Link>
-          <h1 className="text-3xl  text-center mb-4">
-            Resumen de tu compra{" "}
-            {/* <span className="text-gold">{orden.cliente.nombre}</span> */}
-          </h1>
-          <p className="text-center text-sm text-white/70 mb-8">
-            Importante, para culminar tu pedido debes notificarlo.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Columna: Productos */}
-            <div className="space-y-4">
-              <h3 className="text-gold text-xs font-bold uppercase tracking-widest flex items-center gap-2">
-                <ShoppingBag className="w-4 h-4" /> Detalle del pedido #
-                {orden.numeroOrden}
-              </h3>
-              <div className="space-y-2">
-                {orden.detalles.map((d) => (
-                  <div
-                    key={d.id}
-                    className="flex justify-between text-sm border-b border-white/5 pb-2"
-                  >
-                    <span>
-                      {d.producto.nombre}{" "}
-                      <span className="text-accent-gold">x{d.cantidad}</span>
-                    </span>
-                    <span className="">
-                      ${(d.precioUnitario * d.cantidad).toFixed(2)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <div className="pt-4 border-t border-accent-gold/20">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-white/40 uppercase">
-                    Total Divisas
-                  </span>
-                  <span className="text-xl text-accent-gold font-bold">
-                    ${orden.montoTotal.toFixed(2)}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center mt-1">
-                  <span className="text-xs text-white/40 uppercase">
-                    Total Bolívares
-                  </span>
-                  <span className="text-md text-white/80">
-                    Bs. {infoPago?.montoBs?.toLocaleString("es-VE") || "0,00"}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Columna: Logística y Pago */}
-            <div className="space-y-6">
-              {/* Sección de Entrega */}
-              <div className="bg-white/5 p-4 rounded-xl border border-white/10">
-                <h3 className="text-accent-gold text-[10px] font-bold uppercase mb-2 flex items-center gap-2">
-                  <MapPin className="w-3 h-3" />{" "}
-                  {orden.tipodeRetiro === "envio"
-                    ? "Envío Personalizado"
-                    : "Retiro en Venuti's"}
-                </h3>
-                {orden.tipodeRetiro === "envio" && infoDireccion ? (
-                  <p className="text-xs text-white/70 leading-relaxed">
-                    <span className="font-bold text-white">
-                      {infoDireccion.urbanizacion}
-                    </span>
-                    <br />
-                    {infoDireccion.direccion}
-                  </p>
-                ) : (
-                  <p className="text-xs text-white/50 italic">
-                    Retiro en oficina principal.
-                  </p>
-                )}
-              </div>
-
-              {/* Sección de Pago */}
-              <div className="bg-white/5 p-4 rounded-xl border border-white/10">
-                <h3 className="text-accent-gold text-[10px] font-bold uppercase mb-2 flex items-center gap-2">
-                  <CreditCard className="w-3 h-3" /> Transacción{" "}
-                  {infoPago?.metodoPago}
-                </h3>
-                <p className="text-xs text-white/70">
-                  Ref: {infoPago?.referencia || "Pendiente"}
-                </p>
-                <p className="text-[10px] text-white/30 mt-1 uppercase">
-                  Tasa: 1$ = {infoPago?.tasaCambio} Bs.
-                </p>
-              </div>
-            </div>
+          <Link href="/"><Image src="/logo-venutis.avif" alt="logo Venuti's" width={50} height={50} /></Link>
+          <Link className="float-right text-white/60 hover:text-white" href="/"><X /></Link>
+          <div className="text-center mb-8">
+            <p className="text-accent-gold text-xs uppercase tracking-[0.3em]">Pedido recibido</p>
+            <h1 className="text-3xl mt-2">{orden.numeroOrden}</h1>
+            <p className="mt-3 inline-flex rounded-full bg-white/10 px-3 py-1 text-xs uppercase tracking-widest">{getOrderStateLabel(orden.estado)}</p>
+            <p className="text-sm text-white/70 mt-4">Conservamos tu pedido y validaremos el pago declarado según corresponda.</p>
           </div>
 
-          <Link
-            href={whatsappUrl}
-            target="_blank"
-            className="mt-8 flex items-center justify-center gap-3 bg-gold font-bold py-4 rounded-full hover:scale-[1.02] transition-transform"
-          >
-            <MessageCircleMore className="w-5 h-5" />
-            NOTIFICAR PEDIDO AHORA
-          </Link>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <section className="space-y-4">
+              <h2 className="text-gold text-xs font-bold uppercase tracking-widest flex items-center gap-2"><Package className="w-4 h-4" /> Productos</h2>
+              {orden.detalles.map((detail) => <div key={detail.id} className="flex justify-between text-sm border-b border-white/5 pb-2"><span>{detail.producto.nombre} <span className="text-accent-gold">x{detail.cantidad}</span></span><span>${(detail.precioUnitario * detail.cantidad).toFixed(2)}</span></div>)}
+              <div className="pt-3 border-t border-accent-gold/20 space-y-1 text-sm"><div className="flex justify-between"><span className="text-white/50">Subtotal</span><span>${orden.montoSubtotal.toFixed(2)}</span></div><div className="flex justify-between"><span className="text-white/50">Delivery</span><span>${orden.montoDelivery.toFixed(2)}</span></div><div className="flex justify-between text-lg pt-2"><span>Total</span><strong className="text-accent-gold">${orden.montoTotal.toFixed(2)}</strong></div></div>
+            </section>
+
+            <section className="space-y-5">
+              <div className="bg-white/5 p-4 rounded-xl border border-white/10"><h2 className="text-accent-gold text-[10px] font-bold uppercase mb-2 flex items-center gap-2"><MapPin className="w-3 h-3" /> Entrega</h2><p className="text-xs text-white/70 leading-relaxed">{direccionTexto}</p><p className="text-xs text-white/50 mt-2">Cliente: {nombreCompleto}<br />Teléfono: {orden.cliente.celular}</p></div>
+              <div className="bg-white/5 p-4 rounded-xl border border-white/10"><h2 className="text-accent-gold text-[10px] font-bold uppercase mb-2 flex items-center gap-2"><CreditCard className="w-3 h-3" /> Pago declarado</h2><p className="text-xs text-white/70">Método: {infoPago?.metodoPago ?? "Pendiente"}</p><p className="text-xs text-white/70">USD: ${infoPago?.montoUsd?.toFixed(2) ?? "0.00"} · Bs. {infoPago?.montoBs?.toFixed(2) ?? "0.00"}</p><p className="text-xs text-white/50 mt-1">Tasa: Bs. {infoPago?.tasaCambio?.toFixed(2) ?? orden.tasaCambio?.toFixed(2) ?? "—"}</p><p className="text-xs text-white/50 mt-1">Referencia: {infoPago?.referencia ?? "No aplica / pendiente"}</p></div>
+            </section>
+          </div>
+
+          <Link href={whatsappUrl} target="_blank" className="mt-8 flex items-center justify-center gap-3 bg-gold font-bold py-4 rounded-full hover:scale-[1.02] transition-transform"><MessageCircleMore className="w-5 h-5" /> NOTIFICAR PEDIDO AHORA</Link>
         </div>
       </main>
     </div>

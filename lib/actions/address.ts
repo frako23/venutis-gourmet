@@ -1,13 +1,17 @@
 "use server";
 
 import { z } from "zod";
+import { DELIVERY_ZONES } from "@/lib/constants/constants";
 import { prisma } from "../prisma";
 
 const AddressSchema = z.object({
-  clienteId: z.number(),
-  direccion: z.string(),
-  urbanizacion: z.string(),
-  tipo: z.string(),
+  clienteId: z.number().int().positive(),
+  direccion: z.string().trim().min(1, "La dirección es obligatoria"),
+  urbanizacion: z.string().trim().refine(
+    (value) => DELIVERY_ZONES.some((zone) => zone.name === value),
+    "Selecciona una zona de delivery configurada",
+  ),
+  tipo: z.string().trim().min(1, "El alias es obligatorio"),
 });
 
 export async function deleteAddress(
@@ -19,11 +23,7 @@ export async function deleteAddress(
   }
 
   try {
-    await prisma.direccion.delete({
-      where: {
-        id: Number(id),
-      },
-    });
+    await prisma.direccion.delete({ where: { id: Number(id) } });
   } catch (error) {
     console.error("Error al eliminar la dirección:", error);
     return {
@@ -59,6 +59,18 @@ export async function addAddress(
   }
 
   try {
+    const cliente = await prisma.cliente.findUnique({
+      where: { id: parsed.data.clienteId },
+      select: { id: true },
+    });
+    if (!cliente) {
+      return {
+        message: "El cliente seleccionado no existe",
+        status: "error",
+        clientId: null,
+      };
+    }
+
     await prisma.direccion.create({
       data: {
         urbanizacion: parsed.data.urbanizacion,
@@ -86,9 +98,9 @@ export async function addAddress(
 
 export async function editAddress(formData: FormData, direccionId: number) {
   const parsed = AddressSchema.safeParse({
-    // This is likely incorrect, should be a product schema
-    clienteId: Number(formData.get("clienteId")), // These fields don't match the AddressSchema
+    clienteId: Number(formData.get("clienteId")),
     direccion: String(formData.get("direccion")),
+    urbanizacion: String(formData.get("urbanizacion")),
     tipo: String(formData.get("tipo")),
   });
 
@@ -101,7 +113,9 @@ export async function editAddress(formData: FormData, direccionId: number) {
     await prisma.direccion.update({
       where: { id: direccionId },
       data: {
-        ...parsed.data,
+        direccion: parsed.data.direccion,
+        urbanizacion: parsed.data.urbanizacion,
+        tipo: parsed.data.tipo,
       },
     });
   } catch (error) {

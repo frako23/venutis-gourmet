@@ -4,7 +4,7 @@ import nextTypescript from "eslint-config-next/typescript";
 export default [
   {
     // Es vital que los ignores estén en un objeto independiente al principio
-    ignores: [".next/**", "node_modules/**", "out/**", "build/**"],
+    ignores: [".next/**", "node_modules/**", "out/**", "build/**", "dist/**", "coverage/**", "**/*.min.js"],
   },
   ...nextCoreWebVitals,
   ...nextTypescript,

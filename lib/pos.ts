@@ -20,6 +20,45 @@ export type LineaCarrito = {
   cantidad: number;
 };
 
+export type QuickSaleProduct = {
+  id: string | number;
+  nombre: string;
+  precioUsd: number;
+  categoria: string;
+  imagenes?: { url: string }[];
+  inventario?: number;
+};
+
+export type CheckoutCartItem = {
+  id: number;
+  nombre: string;
+  precio: number;
+  precioDetal: number;
+  precioMayorista: number;
+  contexto: "consumidor";
+  inventario?: number;
+  descripcion?: string;
+  imagen: string;
+  cantidad: number;
+};
+
+export function toCheckoutCartItems(
+  lines: Array<{ producto: QuickSaleProduct; cantidad: number }>,
+): CheckoutCartItem[] {
+  return lines.map(({ producto, cantidad }) => ({
+    id: Number(producto.id),
+    nombre: producto.nombre,
+    precio: producto.precioUsd,
+    precioDetal: producto.precioUsd,
+    precioMayorista: producto.precioUsd,
+    contexto: "consumidor",
+    inventario: producto.inventario,
+    descripcion: producto.categoria,
+    imagen: producto.imagenes?.[0]?.url ?? "/placeholder-image.jpg",
+    cantidad,
+  }));
+}
+
 export const ICONOS_POR_CATEGORIA = {
   Uniforme: Shirt,
   Bata: BriefcaseMedical,

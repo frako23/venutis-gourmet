@@ -47,6 +47,10 @@ export default async function TransactionsPage({ searchParams }: { searchParams?
     tipoDescuento: transaction.tipoDescuento,
     valorDescuento: transaction.valorDescuento,
     tipodeRetiro: transaction.tipodeRetiro,
+    montoDeliveryUsd: transaction.montoDelivery,
+    zonaEntrega: transaction.zonaEntrega,
+    aliasEntrega: transaction.aliasEntrega,
+    direccionEntrega: transaction.direccionEntrega,
   }));
   const result: PaginatedRows<SalesRow> = { rows, page, pageSize: PAGE_SIZE, total, totalPages: Math.max(1, Math.ceil(total / PAGE_SIZE)) };
 

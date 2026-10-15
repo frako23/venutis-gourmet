@@ -103,12 +103,17 @@ model Transaccion {
   fechaCompra      DateTime                     @default(now())
   montoTotal       Float
   montoSubtotal    Float                        @default(0)
+  montoDelivery    Float                        @default(0)
   tipoDescuento    TipoDescuento?
   valorDescuento   Float?
   montoDescuento   Float                        @default(0)
   tasaCambio       Float?
   estado           EstadoTransaccion
   tipodeRetiro     TipoRetiro                   @default(envio)
+  zonaEntrega      String?
+  aliasEntrega     String?
+  direccionEntrega String?
+  claveIdempotencia String?                     @unique
   detalles         DetalleCompra[]
   fidelidades      Fidelidad[]
   pagos            Pago[]

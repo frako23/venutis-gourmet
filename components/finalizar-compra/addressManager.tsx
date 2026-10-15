@@ -13,7 +13,7 @@ import {
 } from "@/lib/constants/constants";
 import { useAppStore } from "@/store/appStore";
 import { MapPin, MessageCircle, Plus, Trash2 } from "lucide-react";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ZoneSelector } from "./zoneSelector";
 
@@ -27,9 +27,10 @@ interface Address {
 export function AddressManager() {
   const [addresses, setAddresses] = useState<Address[] | null>([]);
   const { setCanContinue } = useCheckout();
-  const [selectedAddress, setSelectedAddress] = useState<number | null>(null);
   const [isAdding, setIsAdding] = useState(false);
-  const setDeliveyPrice = useAppStore((s) => s.setDeliveryPrice);
+  const selectedAddress = useAppStore((s) => s.selectedAddressId);
+  const setSelectedAddress = useAppStore((s) => s.setSelectedAddressId);
+  const setDeliveryPrice = useAppStore((s) => s.setDeliveryPrice);
   const client = useAppStore((s) => s.client);
   const selectedProducts = useAppStore((s) => s.selectedProducts);
   const { tasa } = useDolar();
@@ -43,56 +44,69 @@ export function AddressManager() {
 
   // El botón de "Continuar" solo se habilita si hay al menos una dirección
   useEffect(() => {
-    const hasAddresses = Array.isArray(addresses) && addresses.length > 0;
-    setCanContinue(hasAddresses);
-  }, [addresses, setCanContinue]);
+    const selected = addresses?.find((address) => address.id === selectedAddress);
+    setCanContinue(Boolean(selected && selected.urbanizacion && selected.direccion.trim()));
+  }, [addresses, selectedAddress, setCanContinue]);
 
   const [state, formAction, isPending] = useActionState(
     addAddress,
     initialState,
   );
 
-  async function loadAddresses() {
+  const loadAddresses = useCallback(async () => {
     if (!client?.id) return;
 
     const data = await getAddressesByClient(client.id);
-    // Mapeamos los campos si los nombres en DB son diferentes a tu interfaz
-    setAddresses(data as Address[]);
-    console.log("paso por aqui");
-    // Seleccionar la primera automáticamente si existe
-    if (data.length > 0) setSelectedAddress(data[0].id);
-  }
-  console.log("addresses", addresses);
-  console.log("selectedAddress", selectedAddress);
-  console.log("cliente", client);
+    const nextAddresses = data as Address[];
+    setAddresses(nextAddresses);
+    const nextSelected = nextAddresses.some((address) => address.id === selectedAddress)
+      ? selectedAddress
+      : (nextAddresses[0]?.id ?? null);
+    setSelectedAddress(nextSelected);
+    const selected = nextAddresses.find((address) => address.id === nextSelected);
+    setDeliveryPrice(
+      selected
+        ? (DELIVERY_ZONES.find((zone) => zone.name === selected.urbanizacion)?.price ?? 0)
+        : 0,
+    );
+  }, [client, selectedAddress, setDeliveryPrice, setSelectedAddress]);
+
   useEffect(() => {
     if (!client?.id) return;
 
     let cancelled = false;
     getAddressesByClient(client.id).then((data) => {
       if (cancelled) return;
-      setAddresses(data as Address[]);
-      if (data.length > 0) setSelectedAddress(data[0].id);
+      const nextAddresses = data as Address[];
+      setAddresses(nextAddresses);
+      const nextSelected = nextAddresses.some((address) => address.id === selectedAddress)
+        ? selectedAddress
+        : (nextAddresses[0]?.id ?? null);
+      setSelectedAddress(nextSelected);
+      const selected = nextAddresses.find((address) => address.id === nextSelected);
+      setDeliveryPrice(
+        selected
+          ? (DELIVERY_ZONES.find((zone) => zone.name === selected.urbanizacion)?.price ?? 0)
+          : 0,
+      );
     });
 
     return () => {
       cancelled = true;
     };
-  }, [client?.id]);
+  }, [client?.id, selectedAddress, setDeliveryPrice, setSelectedAddress]);
 
   useEffect(() => {
     // Asumiendo que tu Server Action devuelve algo como { success: true }
     if (state?.status === "success") {
       queueMicrotask(() => {
         toast.success("Dirección agregada con éxito");
-        void loadAddresses(); // Esta es la función que definimos antes con getAddressesByClient
+        void loadAddresses();
         setIsAdding(false); // Cerramos el formulario
         setNewAddress({ tipo: "", urbanizacion: "", direccion: "" }); // Limpiamos campos
       });
     }
-  }, [state]);
-
-  console.log("selectedProduct", selectedProducts);
+  }, [loadAddresses, state]);
 
   const handleWhatsAppCheckout = () => {
     // 1. Formateamos la lista de productos con su cantidad
@@ -134,6 +148,7 @@ Quedo atento para coordinar la entrega.`;
         </h3>
         {addresses && !isAdding && (
           <button
+            type="button"
             onClick={() => setIsAdding(true)}
             className="flex items-center gap-2 text-[10px] text-accent-gold hover:opacity-80 transition-all font-black cursor-pointer"
           >
@@ -151,7 +166,7 @@ Quedo atento para coordinar la entrega.`;
               className={`group relative p-4 bg-white/5 border  rounded-xl hover:border-accent-gold/50 transition-all cursor-pointer ${selectedAddress === addr.id ? "border-accent-gold" : "border-white/10"}`}
               onClick={() => {
                 setSelectedAddress(addr.id);
-                setDeliveyPrice(
+                setDeliveryPrice(
                   DELIVERY_ZONES.find((z) => z.name === addr.urbanizacion)
                     ?.price ?? 0,
                 );
@@ -174,10 +189,15 @@ Quedo atento para coordinar la entrega.`;
               <button
                 className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-500 transition-all cursor-pointer"
                 type="button"
-                onClick={() => {
-                  deleteAddress(initialState, addr.id);
-                  toast.success("Dirección eliminada con éxito");
-                  loadAddresses();
+                onClick={async (event) => {
+                  event.stopPropagation();
+                  const result = await deleteAddress(initialState, addr.id);
+                  if (result.status === "success") {
+                    toast.success("Dirección eliminada con éxito");
+                    await loadAddresses();
+                  } else {
+                    toast.error(result.message);
+                  }
                 }}
               >
                 <Trash2 size={14} />
@@ -190,7 +210,7 @@ Quedo atento para coordinar la entrega.`;
       {isAdding && (
         <div className="p-6 bg-white/[0.02] border border-dashed border-white/20 rounded-2xl animate-in fade-in slide-in-from-top-4 duration-500">
           <div className="grid md:grid-cols-2 gap-4">
-            <input type="hidden" name="clienteId" value={client?.id} />
+            <input type="hidden" name="clienteId" value={client?.id ?? ""} />
 
             <div className=" space-y-1.5">
               <label className="text-[10px] uppercase tracking-widest opacity-50 px-1">

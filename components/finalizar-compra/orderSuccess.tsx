@@ -10,10 +10,17 @@ import {
 
 export interface OrderSuccessProps {
   orderId: number;
+  numeroOrden?: string;
+  estado?: string;
   message?: string;
   resumen: {
     montoTotal: number;
     montoBs: number;
+    subtotalUsd?: number;
+    montoDelivery?: number;
+    tasaCambio?: number;
+    direccion?: string;
+    referencia?: string | null;
     items: CartItem[];
     metodoPago: MetodoPago;
     tipoRetiro: TipoRetiro;
@@ -21,7 +28,7 @@ export interface OrderSuccessProps {
   };
 }
 
-export const OrderSuccess = ({ orderId, resumen }: OrderSuccessProps) => {
+export const OrderSuccess = ({ orderId, numeroOrden, estado, resumen }: OrderSuccessProps) => {
   return (
     <div className="max-w-2xl mx-auto py-10 px-4 animate-in fade-in zoom-in duration-500">
       <div className="bg-surface-dark border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
@@ -34,7 +41,8 @@ export const OrderSuccess = ({ orderId, resumen }: OrderSuccessProps) => {
             ¡PEDIDO RECIBIDO!
           </h2>
           <p className="text-accent-gold font-mono tracking-widest text-sm uppercase">
-            Orden #{orderId}
+            Orden #{numeroOrden || orderId}
+            {estado ? <span className="block mt-2 text-[10px] text-white/60">{estado}</span> : null}
           </p>
         </div>
 
@@ -46,7 +54,7 @@ export const OrderSuccess = ({ orderId, resumen }: OrderSuccessProps) => {
                 <MapPin size={14} /> Entrega en
               </div>
               <p className="text-white text-sm leading-relaxed">
-                {/* {resumen.direccion} */}
+                {resumen.direccion || "Retiro en tienda"}
               </p>
             </div>
             <div className="space-y-3">
@@ -87,11 +95,14 @@ export const OrderSuccess = ({ orderId, resumen }: OrderSuccessProps) => {
           <div className="flex justify-between items-end pt-2">
             <div>
               <p className="text-white/40 text-[10px] uppercase tracking-[0.2em]">
-                Total Pagado
+                Total del pedido
               </p>
               <p className="text-3xl text-accent-gold font-light tracking-tighter">
                 ${resumen.montoTotal.toFixed(2)}
               </p>
+              <p className="text-white/40 text-xs">Subtotal: ${(resumen.subtotalUsd ?? resumen.montoTotal).toFixed(2)}</p>
+              <p className="text-white/40 text-xs">Delivery: ${(resumen.montoDelivery ?? 0).toFixed(2)}</p>
+              <p className="text-white/40 text-xs">Tasa: Bs. {(resumen.tasaCambio ?? 0).toFixed(2)}</p>
             </div>
             <button
               onClick={() => window.print()}

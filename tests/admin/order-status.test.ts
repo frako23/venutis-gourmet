@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { canSelectOrderState, getOrderStateLabel, normalizeLegacyState, requiresPaymentConfirmation } from "../../lib/admin/status.js";
+import { canSelectOrderState, getOrderStateLabel, normalizeLegacyState, requiresExplicitPaymentConfirmation, requiresPaymentConfirmation } from "../../lib/admin/status.js";
 
 describe("estados operativos", () => {
   it("presenta pendiente como por cobrar y conserva cancelado como histórico", () => {
@@ -22,5 +22,11 @@ describe("estados operativos", () => {
     assert.equal(requiresPaymentConfirmation(20, 0, false, false), true);
     assert.equal(requiresPaymentConfirmation(20, 20, false, false), false);
     assert.equal(requiresPaymentConfirmation(20, 0, true, false), false);
+  });
+
+  it("exige confirmación explícita para cerrar un pedido directo", () => {
+    assert.equal(requiresExplicitPaymentConfirmation("en_pedido", "pagado", false), true);
+    assert.equal(requiresExplicitPaymentConfirmation("por_cobrar", "pagado", true), false);
+    assert.equal(requiresExplicitPaymentConfirmation("en_pedido", "en_pedido", false), false);
   });
 });

@@ -35,3 +35,15 @@ export function canSelectOrderState(state: string) {
 export function requiresPaymentConfirmation(totalUsd: number, paidUsd: number, confirmed: boolean, hasNewPayment: boolean) {
   return totalUsd > paidUsd && !confirmed && !hasNewPayment;
 }
+
+export function requiresExplicitPaymentConfirmation(
+  currentState: EstadoTransaccion,
+  nextState: EstadoTransaccion,
+  confirmed: boolean,
+) {
+  return (
+    (currentState === "por_cobrar" || currentState === "en_pedido") &&
+    nextState === "pagado" &&
+    !confirmed
+  );
+}

@@ -1,5 +1,31 @@
 export type ClientType = "detal" | "mayorista";
 
+export type CheckoutClientInput = {
+  nombre: string;
+  apellido: string;
+  celular: string;
+  email?: string | null;
+};
+
+export function validateCheckoutClientData(input: CheckoutClientInput) {
+  const nombre = input.nombre.trim();
+  const apellido = input.apellido.trim();
+  const celular = input.celular.trim();
+  const email = (input.email ?? "").trim();
+  const issues: Record<string, string> = {};
+
+  if (!nombre) issues.nombre = "El nombre es obligatorio.";
+  if (!apellido) issues.apellido = "El apellido es obligatorio.";
+  if (celular.length < 10) issues.celular = "El teléfono debe tener al menos 10 caracteres.";
+  if (email && !/^\S+@\S+\.\S+$/.test(email)) issues.email = "El correo no es válido.";
+
+  return {
+    ok: Object.keys(issues).length === 0,
+    issues,
+    value: { nombre, apellido, celular, email },
+  };
+}
+
 const RIF_PREFIX_VALUES: Record<string, number> = {
   V: 4,
   E: 8,

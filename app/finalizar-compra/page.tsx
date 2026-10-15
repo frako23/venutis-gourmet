@@ -20,6 +20,7 @@ export default function CheckoutPage() {
     () => false,
   );
   const totalUSD = useAppStore((s) => s.totalUSD);
+  const finalTotalUSD = totalUSD + deliveryPrice;
   // Hasta que el cliente no esté listo, mostramos tu componente de carga
   if (!mounted) {
     return <Loading />;
@@ -85,16 +86,11 @@ export default function CheckoutPage() {
                   <span className="opacity-60">Envío</span>
                   <div className="text-right">
                     <p className="font-medium">
-                      {deliveryPrice !== 0 && deliveryPrice !== undefined
-                        ? `$${deliveryPrice.toFixed(2)}`
-                        : "$ 0.00"}
+                      ${deliveryPrice.toFixed(2)}
                     </p>
-                    {tasa > 0 && deliveryPrice !== 0 && (
+                    {tasa > 0 && (
                       <p className="text-[10px] opacity-40">
-                        Bs.{" "}
-                        {deliveryPrice !== 0 && deliveryPrice !== undefined
-                          ? (deliveryPrice * tasa).toLocaleString("es-VE")
-                          : "0.00"}{" "}
+                        Bs. {(deliveryPrice * tasa).toLocaleString("es-VE")}
                       </p>
                     )}
                   </div>
@@ -106,10 +102,7 @@ export default function CheckoutPage() {
                     <span className=" text-xl">Total</span>
                     <div className="text-right">
                       <span className="text-4xl font-bold text-white tracking-tighter">
-                        $
-                        {deliveryPrice !== 0 && deliveryPrice !== undefined
-                          ? (totalUSD + deliveryPrice).toFixed(2)
-                          : totalUSD.toFixed(2)}
+                        ${finalTotalUSD.toFixed(2)}
                       </span>
                     </div>
                   </div>
@@ -122,18 +115,10 @@ export default function CheckoutPage() {
                       </span>
                       <span className="text-lg font-bold text-accent-gold ">
                         Bs.{" "}
-                        {deliveryPrice > 0
-                          ? ((totalUSD + deliveryPrice) * tasa).toLocaleString(
-                              "es-VE",
-                              {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                              },
-                            )
-                          : (totalUSD * tasa).toLocaleString("es-VE", {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            })}
+                        {(finalTotalUSD * tasa).toLocaleString("es-VE", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                       </span>
                     </div>
                   )}

@@ -15,10 +15,13 @@ import {
   fmtRef,
   fmtUsd,
   mensajeWhatsapp,
+  toCheckoutCartItems,
   type LineaCarrito,
 } from "@/lib/pos";
+import { useAppStore } from "@/store/appStore";
 import { Trash2 } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import type { ChangeEvent } from "react";
 import { useMemo, useState } from "react";
 
@@ -36,15 +39,16 @@ export default function PuntoDeVenta({
 }: {
   products: ProductoVentaRapida[];
 }) {
+  const router = useRouter();
   const [busqueda, setBusqueda] = useState("");
   const [carrito, setCarrito] = useState<Record<string, number>>({});
   const [tasaManual, setTasaManual] = useState<number | null>(null);
-  const [monedaTasa, setMonedaTasa] = useState<"usd" | "eur">("usd");
   const [negocio, setNegocio] = useState("Venuti's Gourmet");
   const [abrirCobro, setAbrirCobro] = useState(false);
   const [abrirAjustes, setAbrirAjustes] = useState(false);
 
-  const { tasa, refetch } = useDolar();
+  const { tasa } = useDolar();
+  const startDirectCheckout = useAppStore((state) => state.startDirectCheckout);
 
   const tasaActiva = tasaManual ?? tasa;
 
@@ -94,6 +98,12 @@ export default function PuntoDeVenta({
     });
     const url = `https://wa.me/+584141713932?text=${encodeURIComponent(texto)}`;
     window.open(url, "_blank");
+  };
+
+  const iniciarCheckoutDirecto = () => {
+    startDirectCheckout(toCheckoutCartItems(lineas));
+    setAbrirCobro(false);
+    router.push("/finalizar-compra");
   };
 
   return (
@@ -341,6 +351,12 @@ export default function PuntoDeVenta({
               onClick={enviarWhatsapp}
             >
               Enviar Orden por WhatsApp
+            </Button>
+            <Button
+              className="w-full bg-gold py-4 font-semibold text-black hover:opacity-95"
+              onClick={iniciarCheckoutDirecto}
+            >
+              Procesar pedido en la app
             </Button>
             <div className="flex gap-2">
               <Button

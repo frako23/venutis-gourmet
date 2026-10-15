@@ -27,7 +27,7 @@ export interface CartItem {
 type ProgressStep =
   | "client-details"
   | "delivery-method"
-  | "payment"
+  | "payment-method"
   | "confirmation";
 type DeliveryMethod = "envio" | "recogida";
 
@@ -41,10 +41,12 @@ interface AppState {
   clientId: number | null;
   canContinue: boolean;
   deliveryPrice: number;
+  selectedAddressId: number | null;
   client: Cliente | null;
 
   // Acciones (Quitamos los "?" para evitar errores de "undefined")
   setSelectedProducts: (products: CartItem[]) => void;
+  startDirectCheckout: (products: CartItem[]) => void;
   setPurchaseContext: (context: PurchaseContext) => void;
   updateQuantity: (id: number, delta: number) => void;
   addToCart: (
@@ -57,7 +59,8 @@ interface AppState {
   setCanContinue: (val: boolean) => void;
   nextStep: (metodoDePago: boolean) => void;
   setDeliveryPrice: (price: number) => void;
-  setClient: (client: Cliente) => void;
+  setSelectedAddressId: (id: number | null) => void;
+  setClient: (client: Cliente | null) => void;
   clearClient: () => void;
 }
 
@@ -76,6 +79,7 @@ export const useAppStore = create<AppState>()(
       clientId: null,
       canContinue: false,
       deliveryPrice: 0,
+      selectedAddressId: null,
       setClient: (client) => set({ client }),
       clearClient: () =>
         set({
@@ -83,16 +87,32 @@ export const useAppStore = create<AppState>()(
           clientId: null,
           canContinue: false,
           progressStep: "client-details",
+          selectedAddressId: null,
         }),
       client: null,
 
       setDeliveryPrice: (price) => set({ deliveryPrice: price }),
+      setSelectedAddressId: (id) => set({ selectedAddressId: id }),
 
       // Métodos
       setSelectedProducts: (products) =>
         set({
           selectedProducts: products,
           totalUSD: calculateTotal(products),
+        }),
+
+      startDirectCheckout: (products) =>
+        set({
+          selectedProducts: products,
+          totalUSD: calculateTotal(products),
+          purchaseContext: DEFAULT_PURCHASE_CONTEXT,
+          progressStep: "client-details",
+          deliveryMethod: "envio",
+          clientId: null,
+          client: null,
+          canContinue: false,
+          deliveryPrice: 0,
+          selectedAddressId: null,
         }),
 
       setPurchaseContext: (context) => {
@@ -175,8 +195,8 @@ export const useAppStore = create<AppState>()(
         if (progressStep === "client-details")
           set({ progressStep: "delivery-method" });
         else if (progressStep === "delivery-method")
-          set({ progressStep: metodoDePago ? "payment" : "confirmation" });
-        else if (progressStep === "payment")
+          set({ progressStep: metodoDePago ? "payment-method" : "confirmation" });
+        else if (progressStep === "payment-method")
           set({ progressStep: "confirmation" });
       },
     }),

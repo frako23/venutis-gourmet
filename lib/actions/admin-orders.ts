@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { requireAdmin } from "@/lib/admin/auth";
-import { requiresPaymentConfirmation } from "@/lib/admin/status";
+import { requiresExplicitPaymentConfirmation } from "@/lib/admin/status";
 import { prisma } from "@/lib/prisma";
 
 const stateSchema = z.object({
@@ -46,8 +46,7 @@ export async function actualizarEstadoPedido(formData: FormData) {
       if (!transaction) throw new Error("La venta no existe.");
       if (transaction.estado === "cancelado") throw new Error("Una venta cancelada no puede reabrirse desde este flujo.");
 
-      const paidUsd = transaction.pagos.reduce((sum, payment) => sum + (payment.montoUsd ?? 0), 0);
-      if (input.estadoNuevo === "pagado" && requiresPaymentConfirmation(transaction.montoTotal, paidUsd, input.confirmacionPago, Boolean(input.pago))) throw new Error("Confirma el pago o registra los datos del cobro antes de marcar la venta como pagada.");
+      if (requiresExplicitPaymentConfirmation(transaction.estado, input.estadoNuevo as EstadoTransaccion, input.confirmacionPago)) throw new Error("Confirma explícitamente el cobro antes de marcar la venta como pagada.");
       if (input.estadoNuevo === transaction.estado && !input.pago) return { previous: transaction.estado, current: transaction.estado, changedAt: transaction.createdAt };
 
       await tx.transaccion.update({ where: { id: transaction.id }, data: { estado: input.estadoNuevo as EstadoTransaccion } });

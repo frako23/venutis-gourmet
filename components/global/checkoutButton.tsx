@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 export const CheckoutButton = ({
   type,
   onClick,
+  isPending,
 }: {
   isPending: boolean;
   type: "submit" | "button";
@@ -19,15 +20,16 @@ export const CheckoutButton = ({
   return (
     <div className="pt-6">
       <button
-        disabled={!canContinue}
+        disabled={!canContinue || isPending}
         className={`w-full py-5 rounded-xl font-bold text-lg transition-all transform flex items-center justify-center gap-3
           ${
-            !canContinue
+            !canContinue || isPending
               ? "bg-white/5 text-white/20 cursor-not-allowed shadow-none"
               : "bg-gold hover:bg-gold/90 text-primary shadow-[0_10px_30px_rgba(128,0,32,0.3)] active:scale-[0.98] cursor-pointer"
           }`}
         onClick={onClick}
         type={type}
+        aria-busy={isPending}
       >
         {message}
         <ArrowRight size={20} />

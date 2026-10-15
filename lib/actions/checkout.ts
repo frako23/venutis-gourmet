@@ -1,177 +1,280 @@
 "use server";
 
-import { MetodoPago, TipoRetiro } from "@prisma/client";
+import { EstadoTransaccion, MetodoPago, TipoRetiro } from "@prisma/client";
 import {
   getProductPrice,
   hasValidPrice,
   normalizePurchaseContext,
   PurchaseContext,
 } from "@/lib/catalog-context";
+import { DELIVERY_ZONES } from "@/lib/constants/constants";
+import {
+  calculateCheckoutTotals,
+  getInitialOrderState,
+  isAddressOwnedByClient,
+  isValidIdempotencyKey,
+  validateDeliveryInput,
+  validatePaymentInput,
+} from "@/lib/checkout-rules";
 import { prisma } from "../prisma";
 
 export interface CheckoutData {
   clientId: number;
   contexto: PurchaseContext;
-  montoTotal: number;
   tipodeRetiro: TipoRetiro;
-  total: number;
-  carrito: {
-    productoId: number;
-    cantidad: number;
-    precio: number;
-  }[];
-
+  direccionId: number | null;
+  claveIdempotencia: string;
+  carrito: { productoId: number; cantidad: number; precio: number }[];
   pago: {
     montoBs: number;
     montoUsd: number;
     metodoPago: MetodoPago;
-    referencia: string;
-    fechaPago: Date;
+    referencia?: string | null;
+    fechaPago?: Date | null;
     tasaCambio: number;
   };
 }
 
-// lib/actions/checkout.ts
-export async function procesarCompra(
-  prevState: { message: string; status: string; clientId: number | null },
-  datos: CheckoutData,
-) {
-  const contexto = normalizePurchaseContext(datos.contexto);
+type CheckoutState = { message: string; status: string; clientId: number | null };
+type CheckoutSuccess = {
+  success: true;
+  transactionId: number;
+  numeroOrden: string;
+  estado: "por_cobrar" | "en_pedido";
+  message: string;
+  clientId: number;
+};
+type CheckoutFailure = {
+  success: false;
+  code:
+    | "EMPTY_CART"
+    | "INVALID_CLIENT"
+    | "INVALID_ADDRESS"
+    | "INVALID_PAYMENT"
+    | "PRICE_CHANGED"
+    | "STOCK_INSUFFICIENT"
+    | "RATE_UNAVAILABLE"
+    | "DUPLICATE_CONFIRMATION"
+    | "PERSISTENCE_ERROR";
+  message: string;
+  status: "error";
+  clientId: number | null;
+};
 
-  // 1. Ejecutamos la transacción
-  const resultadoTransaccion = await prisma
-    .$transaction(async (tx) => {
-      try {
-        if (datos.carrito.length === 0) {
-          throw new Error("El carrito está vacío");
-        }
-
-        // --- LÓGICA DE INVENTARIO ---
-        const validatedPrices = new Map<number, number>();
-        for (const item of datos.carrito) {
-          const producto = await tx.producto.findUnique({
-            where: { id: item.productoId },
-            select: {
-              inventario: true,
-              nombre: true,
-              precioDetal: true,
-              precioMayorista: true,
-            },
-          });
-
-          if (
-            !producto ||
-            !Number.isInteger(item.cantidad) ||
-            item.cantidad <= 0 ||
-            producto.inventario < item.cantidad
-          ) {
-            throw new Error(
-              `Stock insuficiente para: ${producto?.nombre || "Producto desconocido"}`,
-            );
-          }
-
-          const precioVigente = getProductPrice(producto, contexto);
-          if (
-            !hasValidPrice(precioVigente) ||
-            !Number.isFinite(item.precio) ||
-            Math.abs(item.precio - precioVigente) > 0.01
-          ) {
-            throw new Error(
-              `El precio de ${producto.nombre} cambió. Actualiza el carrito antes de confirmar.`,
-            );
-          }
-
-          validatedPrices.set(item.productoId, precioVigente);
-
-          await tx.producto.update({
-            where: { id: item.productoId },
-            data: { inventario: { decrement: item.cantidad } },
-          });
-        }
-
-        // --- CREAR TRANSACCIÓN ---
-        const transaccion = await tx.transaccion.create({
-          data: {
-            numeroOrden: `VEN-${Date.now()}`,
-            clienteId: datos.clientId,
-            montoTotal: datos.montoTotal,
-            estado: "pagado",
-            tipodeRetiro: datos.tipodeRetiro,
-          },
-        });
-
-        // --- DETALLES Y PAGO ---
-        await tx.detalleCompra.createMany({
-          data: datos.carrito.map((item) => ({
-            transaccionId: transaccion.id,
-            productoId: item.productoId,
-            cantidad: item.cantidad,
-            precioUnitario: validatedPrices.get(item.productoId)!,
-          })),
-        });
-
-        await tx.pago.create({
-          data: {
-            transaccionId: transaccion.id,
-            montoBs: datos.pago.montoBs,
-            montoUsd: datos.pago.montoUsd,
-            metodoPago: datos.pago.metodoPago,
-            referencia: datos.pago.referencia,
-            fechaPago: datos.pago.fechaPago,
-            tasaCambio: datos.pago.tasaCambio,
-          },
-        });
-
-        // --- PUNTOS ---
-        const puntosGanados = Math.floor(datos.montoTotal);
-        if (puntosGanados > 0) {
-          await tx.fidelidad.create({
-            data: {
-              clienteId: datos.clientId,
-              transaccionId: transaccion.id,
-              puntos: puntosGanados,
-              tipoMovimiento: "acumulacion",
-            },
-          });
-        }
-
-        // IMPORTANTE: Este objeto se guarda en 'resultadoTransaccion'
-        return {
-          success: true as const,
-          id: transaccion.id,
-          message: "Éxito",
-          status: "success",
-        };
-      } catch (error: any) {
-        console.error("Error en checkout:", error.message);
-        throw error; // Lanza para que el .catch de abajo lo tome
-      }
-    })
-    .catch((err) => {
-      return {
-        success: false as const,
-        message: err.message || "Error al procesar la compra",
-        status: "error",
-        id: null,
-      };
-    });
-
-  // --- EL CAMBIO CLAVE AQUÍ ---
-
-  // Si la transacción fue exitosa, retornamos ese resultado al cliente
-  if (resultadoTransaccion.success) {
-    return {
-      ...resultadoTransaccion,
-      clientId: datos.clientId, // Mantenemos la estructura de tu estado
-    };
+class CheckoutError extends Error {
+  constructor(public readonly code: CheckoutFailure["code"], message: string) {
+    super(message);
   }
+}
 
-  // Si falló, retornamos el error estructurado
+function successMessage(estado: CheckoutSuccess["estado"]) {
+  return estado === "por_cobrar"
+    ? "Pedido recibido. El pago se coordinará al entregar."
+    : "Pedido recibido. Verificaremos el pago declarado antes del despacho.";
+}
+
+function asFailure(error: unknown, clientId: number | null): CheckoutFailure {
+  if (error instanceof CheckoutError) {
+    return { success: false, code: error.code, message: error.message, status: "error", clientId };
+  }
   return {
     success: false,
-    message: resultadoTransaccion.message,
+    code: "PERSISTENCE_ERROR",
+    message: "No pudimos registrar el pedido. Conservamos tu carrito para intentarlo nuevamente.",
     status: "error",
-    clientId: datos.clientId,
-    id: null,
+    clientId,
   };
+}
+
+export async function procesarCompra(
+  _prevState: CheckoutState,
+  datos: CheckoutData,
+): Promise<CheckoutSuccess | CheckoutFailure> {
+  const clientId = Number.isInteger(datos.clientId) ? datos.clientId : null;
+  const idempotencyKey = datos.claveIdempotencia?.trim() ?? "";
+  if (!clientId) return asFailure(new CheckoutError("INVALID_CLIENT", "El cliente no es válido."), clientId);
+  if (!isValidIdempotencyKey(idempotencyKey)) {
+    return asFailure(new CheckoutError("INVALID_PAYMENT", "La confirmación del pedido no es válida."), clientId);
+  }
+
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const previous = await tx.transaccion.findUnique({
+        where: { claveIdempotencia: idempotencyKey },
+        select: { id: true, numeroOrden: true, estado: true, clienteId: true },
+      });
+      if (previous) {
+        if (previous.clienteId !== clientId) {
+          throw new CheckoutError("DUPLICATE_CONFIRMATION", "La clave de confirmación ya fue utilizada.");
+        }
+        if (previous.estado !== "por_cobrar" && previous.estado !== "en_pedido") {
+          throw new CheckoutError("DUPLICATE_CONFIRMATION", "La confirmación del pedido ya fue procesada.");
+        }
+        return {
+          success: true as const,
+          transactionId: previous.id,
+          numeroOrden: previous.numeroOrden,
+          estado: previous.estado,
+          message: successMessage(previous.estado),
+          clientId,
+        };
+      }
+
+      const cliente = await tx.cliente.findUnique({ where: { id: clientId }, select: { id: true } });
+      if (!cliente) throw new CheckoutError("INVALID_CLIENT", "El cliente no existe.");
+      if (!datos.carrito.length) throw new CheckoutError("EMPTY_CART", "El carrito está vacío.");
+
+      let montoDelivery = 0;
+      let snapshot: { zonaEntrega: string; aliasEntrega: string; direccionEntrega: string } | null = null;
+      if (datos.tipodeRetiro === "envio") {
+        if (!datos.direccionId) throw new CheckoutError("INVALID_ADDRESS", "Selecciona una dirección de delivery.");
+        const address = await tx.direccion.findUnique({ where: { id: datos.direccionId } });
+        if (!address || !isAddressOwnedByClient(address.clienteId, clientId)) {
+          throw new CheckoutError("INVALID_ADDRESS", "La dirección seleccionada no pertenece al cliente.");
+        }
+        const zone = DELIVERY_ZONES.find((item) => item.name === address.urbanizacion);
+        if (!zone) throw new CheckoutError("INVALID_ADDRESS", "La zona de delivery no está configurada.");
+        montoDelivery = zone.price;
+        snapshot = {
+          zonaEntrega: address.urbanizacion,
+          aliasEntrega: address.tipo,
+          direccionEntrega: address.direccion.trim(),
+        };
+      } else if (datos.tipodeRetiro === "recogida") {
+        if (datos.direccionId) throw new CheckoutError("INVALID_ADDRESS", "El retiro no puede incluir una dirección de delivery.");
+      } else {
+        throw new CheckoutError("INVALID_ADDRESS", "La modalidad de entrega no es válida.");
+      }
+
+      const deliveryValidation = validateDeliveryInput({
+        tipodeRetiro: datos.tipodeRetiro,
+        montoDelivery,
+        zonaEntrega: snapshot?.zonaEntrega,
+        aliasEntrega: snapshot?.aliasEntrega,
+        direccionEntrega: snapshot?.direccionEntrega,
+        zonaConfigurada: Boolean(snapshot),
+      });
+      if (!deliveryValidation.ok) throw new CheckoutError("INVALID_ADDRESS", deliveryValidation.message);
+
+      const normalizedContext = normalizePurchaseContext(datos.contexto);
+      const seenProducts = new Set<number>();
+      const validatedLines: Array<{ productoId: number; cantidad: number; precioUnitario: number }> = [];
+      for (const line of datos.carrito) {
+        if (!Number.isInteger(line.productoId) || line.productoId <= 0 || !Number.isInteger(line.cantidad) || line.cantidad <= 0) {
+          throw new CheckoutError("EMPTY_CART", "Una línea del pedido no es válida.");
+        }
+        if (seenProducts.has(line.productoId)) throw new CheckoutError("EMPTY_CART", "El carrito contiene un producto repetido.");
+        seenProducts.add(line.productoId);
+
+        const producto = await tx.producto.findUnique({
+          where: { id: line.productoId },
+          select: { inventario: true, nombre: true, precioDetal: true, precioMayorista: true },
+        });
+        if (!producto || producto.inventario < line.cantidad) {
+          throw new CheckoutError("STOCK_INSUFFICIENT", `No hay inventario suficiente para ${producto?.nombre ?? "el producto seleccionado"}.`);
+        }
+        const precioUnitario = getProductPrice(producto, normalizedContext);
+        if (!hasValidPrice(precioUnitario) || !Number.isFinite(line.precio) || Math.abs(line.precio - precioUnitario) > 0.01) {
+          throw new CheckoutError("PRICE_CHANGED", `El precio de ${producto.nombre} cambió. Actualiza el carrito antes de confirmar.`);
+        }
+        validatedLines.push({ productoId: line.productoId, cantidad: line.cantidad, precioUnitario });
+      }
+
+      const totals = calculateCheckoutTotals(
+        validatedLines.map((line) => ({ precio: line.precioUnitario, cantidad: line.cantidad })),
+        montoDelivery,
+      );
+      const paymentValidation = validatePaymentInput(datos.pago, totals.montoTotal);
+      if (!paymentValidation.ok) {
+        const code = paymentValidation.message.includes("tasa") ? "RATE_UNAVAILABLE" : "INVALID_PAYMENT";
+        throw new CheckoutError(code, paymentValidation.message);
+      }
+
+      const estado = getInitialOrderState(datos.pago.metodoPago);
+      const transaccion = await tx.transaccion.create({
+        data: {
+          numeroOrden: `VEN-${Date.now()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`,
+          clienteId: clientId,
+          montoSubtotal: totals.subtotalUsd,
+          montoDelivery: totals.montoDelivery,
+          montoTotal: totals.montoTotal,
+          tasaCambio: datos.pago.tasaCambio,
+          estado: estado as EstadoTransaccion,
+          tipodeRetiro: datos.tipodeRetiro,
+          zonaEntrega: snapshot?.zonaEntrega ?? null,
+          aliasEntrega: snapshot?.aliasEntrega ?? null,
+          direccionEntrega: snapshot?.direccionEntrega ?? null,
+          claveIdempotencia: idempotencyKey,
+        },
+      });
+      await tx.detalleCompra.createMany({
+        data: validatedLines.map((line) => ({ ...line, transaccionId: transaccion.id })),
+      });
+      for (const line of validatedLines) {
+        const stockUpdate = await tx.producto.updateMany({
+          where: { id: line.productoId, inventario: { gte: line.cantidad } },
+          data: { inventario: { decrement: line.cantidad } },
+        });
+        if (stockUpdate.count !== 1) {
+          throw new CheckoutError("STOCK_INSUFFICIENT", "El inventario cambió. Revisa el carrito e inténtalo nuevamente.");
+        }
+      }
+      await tx.pago.create({
+        data: {
+          transaccionId: transaccion.id,
+          montoBs: datos.pago.montoBs,
+          montoUsd: datos.pago.montoUsd,
+          metodoPago: datos.pago.metodoPago,
+          referencia: datos.pago.metodoPago === "EfectivoUsd" ? null : datos.pago.referencia?.trim() || null,
+          fechaPago: datos.pago.metodoPago === "EfectivoUsd" ? null : datos.pago.fechaPago ?? null,
+          tasaCambio: datos.pago.tasaCambio,
+        },
+      });
+      await tx.estadoTransaccionHistorial.create({
+        data: {
+          transaccionId: transaccion.id,
+          estadoAnterior: null,
+          estadoNuevo: estado as EstadoTransaccion,
+          motivo: "Pedido directo desde venta rápida",
+        },
+      });
+
+      const puntosGanados = Math.floor(totals.montoTotal);
+      if (puntosGanados > 0) {
+        await tx.fidelidad.create({ data: { clienteId: clientId, transaccionId: transaccion.id, puntos: puntosGanados, tipoMovimiento: "acumulacion" } });
+      }
+      return {
+        success: true as const,
+        transactionId: transaccion.id,
+        numeroOrden: transaccion.numeroOrden,
+        estado,
+        message: successMessage(estado),
+        clientId,
+      };
+    });
+  } catch (error) {
+    try {
+      const previous = await prisma.transaccion.findUnique({
+        where: { claveIdempotencia: idempotencyKey },
+        select: { id: true, numeroOrden: true, estado: true, clienteId: true },
+      });
+      if (
+        previous &&
+        previous.clienteId === clientId &&
+        (previous.estado === "por_cobrar" || previous.estado === "en_pedido")
+      ) {
+        return {
+          success: true,
+          transactionId: previous.id,
+          numeroOrden: previous.numeroOrden,
+          estado: previous.estado,
+          message: successMessage(previous.estado),
+          clientId,
+        };
+      }
+    } catch {
+      // Conserva la respuesta controlada de abajo si la consulta de recuperación falla.
+    }
+    return asFailure(error, clientId);
+  }
 }

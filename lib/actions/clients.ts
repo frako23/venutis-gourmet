@@ -7,11 +7,11 @@ import { normalizeSearchName } from "@/lib/client-rules";
 import { prisma } from "../prisma";
 
 const ClientSchema = z.object({
-  nombre: z.string().min(1, "El nombre es obligatorio"),
-  apellido: z.string().min(1, "El apellido es obligatorio"),
-  celular: z.string().min(10, "Formato de teléfono inválido"),
+  nombre: z.string().trim().min(1, "El nombre es obligatorio"),
+  apellido: z.string().trim().min(1, "El apellido es obligatorio"),
+  celular: z.string().trim().min(10, "Formato de teléfono inválido"),
   email: z.string().email().optional().or(z.literal("")), // Sigue siendo opcional
-  tipoCliente: z.enum(["mayorista", "detal"]),
+  tipoCliente: z.enum(["detal", "mayorista"]),
 });
 
 export async function deleteClient(formData: FormData) {
@@ -40,17 +40,24 @@ export async function addClient(
   formData: FormData,
 ): Promise<{ message: string; status: string; client: Cliente | null }> {
   const parsed = ClientSchema.safeParse({
-    nombre: String(formData.get("nombre")),
-    apellido: String(formData.get("apellido")),
-    celular: String(formData.get("celular")),
-    email: String(formData.get("email")),
-    tipoCliente: String(formData.get("tipoCliente")),
+    nombre: formData.get("nombre")?.toString() ?? "",
+    apellido: formData.get("apellido")?.toString() ?? "",
+    celular: formData.get("celular")?.toString() ?? "",
+    email: formData.get("email")?.toString() ?? "",
+    tipoCliente: formData.get("tipoCliente")?.toString() ?? "detal",
   });
 
   if (!parsed.success) {
     console.error("Validation errors:", parsed.error.flatten().fieldErrors);
     return {
       message: "Datos inválidos, revisa el formulario",
+      status: "error",
+      client: null,
+    };
+  }
+  if (parsed.data.tipoCliente !== "detal") {
+    return {
+      message: "Este checkout solo permite clientes detal",
       status: "error",
       client: null,
     };
@@ -68,9 +75,22 @@ export async function addClient(
       };
     }
 
+    const normalizedEmail = parsed.data.email || null;
+    if (normalizedEmail) {
+      const existingEmail = await prisma.cliente.findUnique({ where: { email: normalizedEmail } });
+      if (existingEmail) {
+        return {
+          message: "Ese correo ya pertenece a otro cliente. Conservamos los datos ingresados.",
+          status: "error",
+          client: null,
+        };
+      }
+    }
+
     const newClient = await prisma.cliente.create({
       data: {
         ...parsed.data,
+        email: normalizedEmail,
         nombreBusqueda: normalizeSearchName(parsed.data.nombre, parsed.data.apellido),
       },
     });
@@ -108,6 +128,7 @@ export async function editClient(formData: FormData, clientId: number) {
       where: { id: clientId },
       data: {
         ...parsed.data,
+        email: parsed.data.email || null,
         nombreBusqueda: normalizeSearchName(parsed.data.nombre, parsed.data.apellido),
       },
     });
@@ -120,11 +141,12 @@ export async function editClient(formData: FormData, clientId: number) {
 }
 
 export async function getClientByPhone(phone: string) {
-  if (!phone || phone.length < 8) return null;
+  const normalizedPhone = phone.trim();
+  if (!normalizedPhone || normalizedPhone.length < 10) return null;
 
   try {
     const cliente = await prisma.cliente.findUnique({
-      where: { celular: phone },
+      where: { celular: normalizedPhone },
     });
     return cliente;
   } catch (error) {

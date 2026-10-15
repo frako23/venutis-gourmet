@@ -10,6 +10,7 @@
     "start": "next start",
     "lint": "eslint",
     "test:admin": "node --loader ts-node/esm --test tests/admin/*.test.ts",
+    "test:checkout": "node --loader ts-node/esm --test tests/checkout/*.test.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {

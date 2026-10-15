@@ -53,6 +53,10 @@ export type SalesRow = MoneyFields & {
   tipoDescuento: TipoDescuento | null;
   valorDescuento: number | null;
   tipodeRetiro: TipoRetiro;
+  montoDeliveryUsd: number;
+  zonaEntrega: string | null;
+  aliasEntrega: string | null;
+  direccionEntrega: string | null;
 };
 
 export type PaginatedRows<T> = {

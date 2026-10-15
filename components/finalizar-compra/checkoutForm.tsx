@@ -1,9 +1,4 @@
 import { CheckoutProvider, useCheckout } from "@/context/checkoutContext";
-import { addClient } from "@/lib/actions/clients";
-import { initialStateClient } from "@/lib/constants/constants";
-import { useAppStore } from "@/store/appStore";
-import { useActionState, useEffect } from "react";
-import { toast } from "sonner";
 import { CheckoutLoader } from "./checkoutLoader";
 import { DeliveryInformation } from "./deliveryInformation";
 import { OrderSuccess } from "./orderSuccess";
@@ -11,20 +6,6 @@ import { PaymentInformation } from "./paymentInformation";
 import { PersonalInformation } from "./personalInformation";
 
 export const CheckoutForm = ({ metodoDePago }: { metodoDePago: boolean }) => {
-  const [state] = useActionState(addClient, initialStateClient);
-
-  useEffect(() => {
-    if (state.status === "error") {
-      toast.error(state.message || "Ocurrió un error inesperado");
-    }
-
-    if (state.status === "success") {
-      toast.success(
-        state.message || "¡Datos del cliente guardados correctamente!",
-      );
-    }
-  }, [state]); // Escuchamos el objeto de estado completo
-
   return (
     <CheckoutProvider metodoDePago={metodoDePago}>
       <CheckoutContent metodoDePago={metodoDePago} />
@@ -33,13 +14,7 @@ export const CheckoutForm = ({ metodoDePago }: { metodoDePago: boolean }) => {
 };
 
 const CheckoutContent = ({ metodoDePago }: { metodoDePago: boolean }) => {
-  const { progressStep, isSubmitting, orderFinished, setProgressStep } =
-    useCheckout();
-  const client = useAppStore((s) => s.client);
-
-  useEffect(() => {
-    if (client) setProgressStep("delivery-method");
-  }, [client]);
+  const { progressStep, isSubmitting, orderFinished } = useCheckout();
   return (
     <div className="lg:col-span-7">
       <div className="bg-surface-dark rounded-2xl p-8 border border-white/5 shadow-2xl space-y-10">
@@ -82,10 +57,7 @@ const CheckoutContent = ({ metodoDePago }: { metodoDePago: boolean }) => {
         ) : progressStep === "payment-method" ? (
           <PaymentInformation />
         ) : (
-          <OrderSuccess
-            orderId={orderFinished?.orderId || 0}
-            resumen={orderFinished?.resumen || {}}
-          />
+          orderFinished ? <OrderSuccess {...orderFinished} /> : null
         )}
       </div>
     </div>

@@ -19,18 +19,20 @@ export const PersonalInformation = () => {
     celular: "",
     tipoCliente: "detal",
   });
+  const [isSearching, setIsSearching] = useState(false);
   const setClient = useAppStore((s) => s.setClient);
+  const setStoreClientId = useAppStore((s) => s.setClientId);
 
   useEffect(() => {
     // Definimos qué hace que este paso sea válido
     const isValid =
       userData.nombre.trim().length > 0 &&
       userData.apellido.trim().length > 0 &&
-      userData.celular.length >= 10;
+      userData.celular.trim().length >= 10 &&
+      !isSearching;
 
     setCanContinue(isValid);
-  }, [userData, setCanContinue]);
-  const [isSearching, setIsSearching] = useState(false);
+  }, [userData, isSearching, setCanContinue]);
   const [state, formAction, isPending] = useActionState(
     addClient,
     initialStateClient,
@@ -41,9 +43,14 @@ export const PersonalInformation = () => {
     if (state.status === "success" && state.client) {
       toast.success("¡Bienvenido!");
       setClient(state.client);
+      setClientId(state.client.id);
+      setStoreClientId(state.client.id);
       nextStep();
     }
-  }, [state, nextStep]);
+    if (state.status === "error") {
+      toast.error(state.message || "No se pudieron guardar tus datos.");
+    }
+  }, [setClient, setClientId, setStoreClientId, state, nextStep]);
 
   // Verificamos si el teléfono tiene al menos una longitud mínima para habilitar el resto
   const isPhoneEmpty = userData.celular.trim().length < 10;
@@ -51,15 +58,16 @@ export const PersonalInformation = () => {
   // Función para buscar cliente
   const handlePhoneBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
     const phone = e.target.value;
-    if (phone.length >= 10) {
+    if (phone.trim().length >= 10) {
       // Longitud mínima para buscar
       setIsSearching(true);
       const cliente = await getClientByPhone(phone);
 
       if (cliente) {
         toast.success("¡Bienvenido de nuevo!");
-        setIsExistingClient(true); // 👈 Marcamos como existente
-        setClientId(cliente.id); // 👈 Guardamos el ID en el contexto
+        setIsExistingClient(true);
+        setClientId(cliente.id);
+        setStoreClientId(cliente.id);
         setUserData({
           nombre: cliente.nombre || "",
           apellido: cliente.apellido || "",
@@ -69,7 +77,10 @@ export const PersonalInformation = () => {
         });
         setClient(cliente);
       } else {
-        setIsExistingClient(false); // 👈 Es un cliente nuevo
+        setIsExistingClient(false);
+        setClient(null);
+        setClientId(null);
+        setStoreClientId(null);
         // Si no existe, solo actualizamos el celular pero dejamos el resto vacío
         setUserData((prev) => ({
           ...prev,
@@ -87,6 +98,12 @@ export const PersonalInformation = () => {
   // Manejar cambios manuales en los inputs
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    if (name === "celular") {
+      setIsExistingClient(false);
+      setClient(null);
+      setClientId(null);
+      setStoreClientId(null);
+    }
     setUserData((prev) => ({ ...prev, [name]: value }));
   };
   return (
