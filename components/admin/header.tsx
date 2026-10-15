@@ -10,6 +10,7 @@ import { adminNavigation, isActive } from "./sidebar";
 const titles: Record<string, string> = {
   "/admin": "Resumen operativo",
   "/admin/transactions": "Ventas y pedidos",
+  "/admin/clients": "Clientes",
   "/admin/inventory": "Inventario",
   "/admin/analytics": "Analíticas",
   "/admin/delivery-notes": "Notas de entrega",

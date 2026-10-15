@@ -8,7 +8,7 @@ test("cambio de estado persiste historial y respeta confirmación de pago", { sk
   const prisma = createIntegrationClient();
   const celular = uniqueValue("0415").slice(0, 12);
   try {
-    const client = await prisma.cliente.create({ data: { tipoCliente: "detal", nombre: "Fixture", apellido: "Estado", celular } });
+    const client = await prisma.cliente.create({ data: { tipoCliente: "detal", nombre: "Fixture", apellido: "Estado", nombreBusqueda: "fixture estado", celular } });
     const transaction = await prisma.transaccion.create({ data: { numeroOrden: uniqueValue("INT-ESTADO"), clienteId: client.id, montoSubtotal: 10, montoTotal: 10, estado: "por_cobrar" } });
     assert.equal(requiresPaymentConfirmation(transaction.montoTotal, 0, false, false), true);
     const changed = await prisma.$transaction(async (tx) => {

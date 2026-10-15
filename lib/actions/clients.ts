@@ -3,6 +3,7 @@
 import { Cliente } from "@prisma/client";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { normalizeSearchName } from "@/lib/client-rules";
 import { prisma } from "../prisma";
 
 const ClientSchema = z.object({
@@ -70,6 +71,7 @@ export async function addClient(
     const newClient = await prisma.cliente.create({
       data: {
         ...parsed.data,
+        nombreBusqueda: normalizeSearchName(parsed.data.nombre, parsed.data.apellido),
       },
     });
     return {
@@ -106,6 +108,7 @@ export async function editClient(formData: FormData, clientId: number) {
       where: { id: clientId },
       data: {
         ...parsed.data,
+        nombreBusqueda: normalizeSearchName(parsed.data.nombre, parsed.data.apellido),
       },
     });
   } catch (error) {

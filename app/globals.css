@@ -300,6 +300,26 @@
     box-shadow: 0 0 0 3px rgba(200, 164, 93, 0.16);
   }
 
+  .admin-horizontal-scroll {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-color: var(--admin-brass) #ebe9e0;
+    scrollbar-width: thin;
+  }
+
+  .admin-horizontal-scroll::-webkit-scrollbar {
+    height: 0.65rem;
+  }
+
+  .admin-horizontal-scroll::-webkit-scrollbar-track {
+    background: #ebe9e0;
+  }
+
+  .admin-horizontal-scroll::-webkit-scrollbar-thumb {
+    border: 2px solid #ebe9e0;
+    border-radius: 999px;
+    background: var(--admin-brass);
+  }
+
   .admin-table th,
   .admin-table td {
     padding: 0.95rem 1rem;

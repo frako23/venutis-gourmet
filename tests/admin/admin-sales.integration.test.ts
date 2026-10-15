@@ -11,7 +11,7 @@ test("venta manual revierte todas las escrituras cuando falla una línea de stoc
   let productIds: number[] = [];
   let transactionId: number | undefined;
   try {
-    const client = await prisma.cliente.create({ data: { tipoCliente: "detal", nombre: "Fixture", apellido: "Venta", celular } });
+    const client = await prisma.cliente.create({ data: { tipoCliente: "detal", nombre: "Fixture", apellido: "Venta", nombreBusqueda: "fixture venta", celular } });
     clientId = client.id;
     const available = await prisma.producto.create({ data: { nombre: uniqueValue("Producto disponible"), precioDetal: 5, precioMayorista: 4, categoria: "Fixture", inventario: 2 } });
     const empty = await prisma.producto.create({ data: { nombre: uniqueValue("Producto agotado"), precioDetal: 6, precioMayorista: 5, categoria: "Fixture", inventario: 0 } });

@@ -1,4 +1,6 @@
 import type {
+  AccionHistorialCliente,
+  TipoCliente,
   EstadoTransaccion,
   TipoDescuento,
   TipoRetiro,
@@ -101,3 +103,47 @@ export type BulkSalesState = ActionResult<{
   updated: number;
   created: number;
 }>;
+
+export type ClientAddressRow = {
+  id: number;
+  tipo: string;
+  urbanizacion: string;
+  direccion: string;
+};
+
+export type ClientRow = {
+  id: number;
+  tipoCliente: TipoCliente;
+  tipoLabel: "Consumidor" | "Mayorista";
+  nombre: string;
+  apellido: string;
+  rif: string | null;
+  celular: string;
+  email: string | null;
+  direcciones: ClientAddressRow[];
+  cantidadTransacciones: number;
+  ultimaCompra: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ClientPatch = {
+  id: number;
+  updatedAt: string;
+  changes: Partial<Pick<ClientRow, "tipoCliente" | "nombre" | "apellido" | "rif" | "celular" | "email">>;
+};
+
+export type BulkClientsState =
+  | { success: true; message: string; updated: number }
+  | { success: false; message: string; issues?: ClientValidationIssue[] };
+
+export type ClientHistoryAction = AccionHistorialCliente;
+
+export type ClientCreateState = ActionResult<{
+  clientId: number;
+}>;
+
+export type ClientValidationIssue = ValidationIssue & {
+  rowId?: number;
+  code?: "invalid" | "duplicate" | "stale" | "missing";
+};

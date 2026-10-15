@@ -14,17 +14,20 @@ datasource db {
 }
 
 model Cliente {
-  id            Int           @id @default(autoincrement())
-  tipoCliente   TipoCliente
-  nombre        String
-  apellido      String
-  celular       String        @unique
-  email         String?       @unique
-  direcciones   Direccion[]
-  transacciones Transaccion[]
-  notasEntrega  NotaEntrega[]
-  fidelidades   Fidelidad[]
-  resenas       Resena[] // reseñas que deja el cliente
+  id               Int                @id @default(autoincrement())
+  tipoCliente      TipoCliente
+  nombre           String
+  apellido         String
+  rif              String?            @unique
+  nombreBusqueda   String
+  celular          String             @unique
+  email            String?            @unique
+  direcciones      Direccion[]
+  transacciones    Transaccion[]
+  notasEntrega     NotaEntrega[]
+  fidelidades      Fidelidad[]
+  resenas          Resena[] // reseñas que deja el cliente
+  historialCliente HistorialCliente[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -33,6 +36,25 @@ model Cliente {
 enum TipoCliente {
   mayorista
   detal
+}
+
+enum AccionHistorialCliente {
+  creado
+  actualizado
+}
+
+model HistorialCliente {
+  id                Int                    @id @default(autoincrement())
+  clienteId         Int
+  actorId           String?
+  actorEmail        String?
+  accion            AccionHistorialCliente
+  camposModificados String[]
+  createdAt         DateTime               @default(now())
+
+  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+
+  @@index([clienteId, createdAt])
 }
 
 model Direccion {

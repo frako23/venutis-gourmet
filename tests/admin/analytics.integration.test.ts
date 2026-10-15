@@ -10,7 +10,7 @@ test("analítica de fixture excluye transacciones canceladas", { skip: !integrat
   let productId: number | undefined;
   let transactionIds: number[] = [];
   try {
-    const client = await prisma.cliente.create({ data: { tipoCliente: "detal", nombre: "Fixture", apellido: "Analytics", celular } });
+    const client = await prisma.cliente.create({ data: { tipoCliente: "detal", nombre: "Fixture", apellido: "Analytics", nombreBusqueda: "fixture analytics", celular } });
     clientId = client.id;
     const product = await prisma.producto.create({ data: { nombre: uniqueValue("Producto analytics"), precioDetal: 10, precioMayorista: 8, categoria: "Fixture", inventario: 10 } });
     productId = product.id;
