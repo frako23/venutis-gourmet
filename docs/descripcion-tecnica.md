@@ -78,6 +78,7 @@ El layout de `/admin` valida que exista un usuario autenticado y, si está defin
 ### Operación rápida
 
 - `/venta-rapida`: punto de venta compacto. Consulta productos disponibles, filtra por nombre o categoría, calcula totales en USD/Bs y genera un mensaje de WhatsApp.
+- `/cotizacion-rapida`: herramienta temporal para preparar cotizaciones, generar un PNG y compartirlo por WhatsApp. Mantiene la selección, el destinatario y la imagen únicamente en el navegador; no crea pedidos, ventas, clientes, pagos o direcciones, no descuenta inventario y no usa el checkout persistido. Si el navegador no permite compartir archivos, descarga la imagen y abre WhatsApp con texto preparado para que la operadora adjunte el PNG manualmente.
 
 ## 5. Modelo de datos
 
@@ -164,6 +165,7 @@ El script `postinstall` ejecuta `prisma generate`. Las migraciones existentes es
 ## 11. Consideraciones técnicas observadas
 
 - El checkout web y el registro manual administrativo escriben `Transaccion`; el punto de venta rápido actualmente solo prepara el pedido y lo envía por WhatsApp, por lo que no actualiza inventario ni crea una `Transaccion` por sí mismo.
+- La cotización rápida reutiliza la lectura del catálogo y la tasa vigente, pero es deliberadamente no persistida: la revalidación previa a la generación solo lee precio, inventario y existencia para evitar producir una imagen con datos obsoletos. Generar, descargar o compartir la imagen no representa una reserva, venta, pago ni cambio de inventario.
 - Existen dos representaciones de estado relacionadas con checkout: `store/appStore.ts` y `context/checkoutContext.tsx`. Conviene mantener una única fuente de verdad a futuro para reducir posibles divergencias.
 - Las lecturas administrativas de esta feature reutilizan la instancia singleton de `lib/prisma.ts` para evitar conexiones duplicadas.
 - Las analíticas excluyen transacciones canceladas antes de agregar. El predictor es una media móvil de cuatro semanas completas o tres meses completos y declara insuficiencia cuando no hay historia mínima.
