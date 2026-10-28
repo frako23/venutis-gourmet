@@ -5,7 +5,7 @@ import { calculateSaleTotals } from "@/lib/admin/sales-calculations";
 import type { BulkSalesState, SalesRow } from "@/lib/admin/types";
 import type { Cliente, EstadoTransaccion, Producto, TipoDescuento, TipoRetiro } from "@prisma/client";
 import { Plus, Save, Trash2, X } from "lucide-react";
-import { useActionState, useEffect, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 type EditorClient = Pick<Cliente, "id" | "nombre" | "apellido" | "tipoCliente">;
@@ -117,7 +117,16 @@ export function BulkSalesEditor({ rows: initialRows, clients, products, onClose 
   const router = useRouter();
   const [rows, setRows] = useState<EditorRow[]>(() => initialRows.map(rowFromSale));
   const [confirmarPagos, setConfirmarPagos] = useState(false);
-  const [state, formAction, isPending] = useActionState(guardarEdicionMasivaVentas, initialState);
+  const [state, formAction, isActionPending] = useActionState(guardarEdicionMasivaVentas, initialState);
+  const [isTransitionPending, startTransition] = useTransition();
+  const isPending = isActionPending || isTransitionPending;
+
+  // Se envía con onSubmit (y no con action=) para que React no reinicie el formulario y los selects conserven lo editado.
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    startTransition(() => formAction(data));
+  }
 
   useEffect(() => {
     if (state.success) {
@@ -148,6 +157,7 @@ export function BulkSalesEditor({ rows: initialRows, clients, products, onClose 
   }
 
   return <section className="admin-panel overflow-hidden">
+    <form id="bulk-sales-form" onSubmit={handleSubmit}>
     <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[#ebe9e0] bg-[#fffaf0] p-4 md:p-5">
       <div>
         <p className="admin-eyebrow">Modo de captura</p>
@@ -156,13 +166,14 @@ export function BulkSalesEditor({ rows: initialRows, clients, products, onClose 
       </div>
       <div className="flex flex-wrap gap-2">
         <button type="button" onClick={() => setRows((current) => [...current, newRow(`new-${Date.now()}`, clients, products)])} disabled={clients.length === 0 || products.length === 0} className="admin-button-primary admin-button-brass"><Plus size={16} /> Agregar fila siguiente</button>
+        <button type="submit" disabled={isPending || rows.length === 0} className="admin-button-primary admin-button-brass"><Save size={16} /> {isPending ? "Guardando..." : "Guardar cambios"}</button>
         <button type="button" onClick={onClose} className="admin-button-secondary"><X size={16} /> Cerrar</button>
       </div>
     </div>
+    {state.message && <p className={`border-b p-3 text-sm ${state.success ? "bg-[#e8eee5] text-[#55704d]" : "bg-[#f8e8e3] text-[#a84f3b]"}`} role="status">{state.message}</p>}
     <div className="border-b border-[#ebe9e0] px-4 py-3 text-xs text-[#707970] md:px-5">
       Las filas nuevas descuentan inventario al guardar. Las órdenes canceladas conservan su estado y no se pueden reabrir desde esta vista.
     </div>
-    <form action={formAction}>
       <div
         aria-label="Tabla de edición masiva de ventas"
         className="admin-horizontal-scroll w-full min-w-0 max-w-full overflow-x-auto overflow-y-hidden overscroll-x-contain"
@@ -192,11 +203,10 @@ export function BulkSalesEditor({ rows: initialRows, clients, products, onClose 
       </div>
       <div className="flex flex-wrap items-center justify-between gap-4 border-t border-[#ebe9e0] bg-[#f8f6ef] p-4 md:p-5">
         <label className="flex max-w-xl items-start gap-2 text-xs leading-relaxed text-[#707970]"><input type="checkbox" checked={confirmarPagos} onChange={(event) => setConfirmarPagos(event.target.checked)} className="mt-0.5 size-4 accent-[#66735f]" /> Confirmo los cobros de las filas que queden en estado Pagado.</label>
-        <div className="flex items-center gap-3"><span className="text-xs text-[#707970]">{rows.length} fila(s) · {newCount} nueva(s)</span><button type="submit" disabled={isPending || rows.length === 0} className="admin-button-primary admin-button-brass"><Save size={16} /> {isPending ? "Guardando..." : "Guardar cambios"}</button></div>
+        <span className="text-xs text-[#707970]">{rows.length} fila(s) · {newCount} nueva(s)</span>
       </div>
       <input type="hidden" name="confirmarPagos" value={confirmarPagos ? "true" : "false"} />
       <input type="hidden" name="ventasMasivas" value={JSON.stringify({ existentes: rows.filter((row): row is ExistingRow => !row.esNueva).map((row) => ({ id: row.id, numeroOrden: row.numeroOrden, clienteId: row.clienteId, fechaCompra: row.fechaCompra, estado: row.estado, tipodeRetiro: row.tipodeRetiro, tipoDescuento: row.tipoDescuento || null, valorDescuento: row.tipoDescuento && row.valorDescuento !== "" ? row.valorDescuento : null })), nuevas: rows.filter((row): row is NewRow => row.esNueva).map((row) => ({ numeroOrden: row.numeroOrden, clienteId: row.clienteId, fechaCompra: row.fechaCompra, estado: row.estado, tipodeRetiro: row.tipodeRetiro, productoId: row.productoId, cantidad: row.cantidad, precioUnitarioUsd: row.precioUnitarioUsd, tipoDescuento: row.tipoDescuento || null, valorDescuento: row.tipoDescuento && row.valorDescuento !== "" ? row.valorDescuento : null })), confirmarPagos })} />
     </form>
-    {state.message && <p className={`border-t p-3 text-sm ${state.success ? "bg-[#e8eee5] text-[#55704d]" : "bg-[#f8e8e3] text-[#a84f3b]"}`} role="status">{state.message}</p>}
   </section>;
 }

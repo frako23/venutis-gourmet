@@ -210,8 +210,12 @@ export async function guardarEdicionMasivaVentas(_previous: BulkSalesState, form
       let updated = 0;
       let created = 0;
 
+      const existingTransactions = new Map(
+        (await tx.transaccion.findMany({ where: { id: { in: input.existentes.map((row) => row.id) } }, include: { detalles: true, pagos: true } })).map((item) => [item.id, item]),
+      );
+
       for (const row of input.existentes) {
-        const transaction = await tx.transaccion.findUnique({ where: { id: row.id }, include: { detalles: true, pagos: true } });
+        const transaction = existingTransactions.get(row.id);
         if (!transaction) throw new Error(`La venta ${row.numeroOrden} ya no existe.`);
         if (transaction.estado === "cancelado" && row.estado !== "cancelado") throw new Error(`La venta ${row.numeroOrden} está cancelada y no puede reabrirse desde el editor masivo.`);
 
@@ -221,7 +225,7 @@ export async function guardarEdicionMasivaVentas(_previous: BulkSalesState, form
           transaction.tasaCambio,
         );
         const paidUsd = transaction.pagos.reduce((sum, payment) => sum + (payment.montoUsd ?? 0), 0);
-        if (row.estado === "pagado" && requiresPaymentConfirmation(totals.totalUsd, paidUsd, input.confirmarPagos, false)) {
+        if (row.estado === "pagado" && transaction.estado !== "pagado" && requiresPaymentConfirmation(totals.totalUsd, paidUsd, input.confirmarPagos, false)) {
           throw new Error(`Confirma el cobro de ${row.numeroOrden} antes de marcarla como pagada.`);
         }
 
@@ -287,7 +291,7 @@ export async function guardarEdicionMasivaVentas(_previous: BulkSalesState, form
       }
 
       return { updated, created };
-    });
+    }, { maxWait: 10000, timeout: 60000 });
 
     revalidatePath("/admin");
     revalidatePath("/admin/transactions");
