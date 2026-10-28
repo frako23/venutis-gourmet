@@ -15,6 +15,10 @@ export function ClientCreateModal({ onClose }: { onClose: () => void }) {
   const [dirty, setDirty] = useState(false);
 
   useEffect(() => {
+    if (state.message && !state.success) {
+      toast.error(state.message);
+      return;
+    }
     if (!state.success) return;
     toast.success(state.message);
     router.refresh();
@@ -86,7 +90,6 @@ export function ClientCreateModal({ onClose }: { onClose: () => void }) {
             </div>
           </fieldset>
 
-          {!state.success && state.message && <p className="rounded-lg bg-[#f8e8e3] p-3 text-sm text-[#a84f3b]" role="alert">{state.message}</p>}
           <div className="flex flex-wrap justify-end gap-2 border-t border-[#ebe9e0] pt-5">
             <button type="button" onClick={() => close()} className="admin-button-secondary">Cancelar</button>
             <button type="submit" disabled={isPending} className="admin-button-primary admin-button-brass">{isPending ? "Guardando..." : "Crear cliente"}</button>

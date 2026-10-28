@@ -24,6 +24,10 @@ export function BulkInventoryEditor({
   const [state, formAction, isPending] = useActionState(editInventoryMasiva, initialState);
 
   useEffect(() => {
+    if (state.message && !state.success) {
+      toast.error(state.message);
+      return;
+    }
     if (!state.success) return;
     toast.success(state.message);
     router.refresh();
@@ -74,6 +78,5 @@ export function BulkInventoryEditor({
       </div>
       <input type="hidden" name="inventarioMasivo" value={JSON.stringify(products.map(({ id, inventario, precioDetal, precioMayorista }) => ({ id, inventario, precioDetal, precioMayorista })))} />
     </form>
-    {state.message && <p className={`border-t p-3 text-sm ${state.success ? "bg-[#e8eee5] text-[#55704d]" : "bg-[#f8e8e3] text-[#a84f3b]"}`} role="status">{state.message}</p>}
   </section>;
 }

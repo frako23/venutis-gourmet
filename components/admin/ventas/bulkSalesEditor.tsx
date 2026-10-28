@@ -7,6 +7,7 @@ import type { Cliente, EstadoTransaccion, Producto, TipoDescuento, TipoRetiro } 
 import { Plus, Save, Trash2, X } from "lucide-react";
 import { useActionState, useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 type EditorClient = Pick<Cliente, "id" | "nombre" | "apellido" | "tipoCliente">;
 type EditorProduct = Pick<Producto, "id" | "nombre" | "precioDetal" | "precioMayorista" | "inventario">;
@@ -129,11 +130,13 @@ export function BulkSalesEditor({ rows: initialRows, clients, products, onClose 
   }
 
   useEffect(() => {
+    if (state.message && !state.success) toast.error(state.message);
     if (state.success) {
+      toast.success(state.message);
       router.refresh();
       onClose();
     }
-  }, [onClose, router, state.success]);
+  }, [onClose, router, state.message, state.success]);
 
   const newCount = useMemo(() => rows.filter((row) => row.esNueva).length, [rows]);
   const updateRow = (key: string, patch: RowPatch) => {
@@ -170,7 +173,6 @@ export function BulkSalesEditor({ rows: initialRows, clients, products, onClose 
         <button type="button" onClick={onClose} className="admin-button-secondary"><X size={16} /> Cerrar</button>
       </div>
     </div>
-    {state.message && <p className={`border-b p-3 text-sm ${state.success ? "bg-[#e8eee5] text-[#55704d]" : "bg-[#f8e8e3] text-[#a84f3b]"}`} role="status">{state.message}</p>}
     <div className="border-b border-[#ebe9e0] px-4 py-3 text-xs text-[#707970] md:px-5">
       Las filas nuevas descuentan inventario al guardar. Las órdenes canceladas conservan su estado y no se pueden reabrir desde esta vista.
     </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "sonner";
 import { getCurrentQuoteCatalog } from "@/lib/actions/cotizacion-rapida";
 import {
   addQuoteLine,
@@ -65,7 +66,6 @@ export default function QuickQuote({ products, catalogError = false }: QuickQuot
   const [recipientPhone, setRecipientPhone] = useState("");
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [notice, setNotice] = useState("");
   const [artifact, setArtifact] = useState<QuoteImageArtifact | null>(null);
   const artworkRef = useRef<HTMLDivElement>(null);
   const { tasa, isLoading: isRateLoading, refetch } = useDolar();
@@ -100,35 +100,30 @@ export default function QuickQuote({ products, catalogError = false }: QuickQuot
     return () => revokeQuoteImage(artifact);
   }, [artifact]);
 
-  const showNotice = (message: string) => {
-    setNotice(message);
+  const showNotice = (message: string, kind: "info" | "success" | "error" = "info") => {
+    toast[kind](message);
   };
 
   const addProduct = (product: QuoteProduct) => {
     const next = addQuoteLine(lines, product);
     const existing = lines.find((line) => line.product.id === product.id);
     if (next.length === lines.length && existing && existing.cantidad >= product.inventario) {
-      showNotice(`No hay más unidades disponibles de ${product.nombre}.`);
-    } else {
-      setNotice("");
+      showNotice(`No hay más unidades disponibles de ${product.nombre}.`, "error");
     }
     setLines(next);
   };
 
   const changeQuantity = (product: QuoteProduct, delta: number) => {
     setLines((current) => applyQuoteQuantity(current, product.id, delta, product));
-    setNotice("");
   };
 
   const removeProduct = (productId: number) => {
     setLines((current) => removeQuoteLine(current, productId));
-    setNotice("");
   };
 
   const clearQuote = () => {
     setLines([]);
     setArtifact(null);
-    setNotice("");
   };
 
   const revalidateSelection = async () => {
@@ -157,16 +152,15 @@ export default function QuickQuote({ products, catalogError = false }: QuickQuot
       return;
     }
     if (!draft.totalBs || draft.exchangeRate <= 0) {
-      showNotice("La tasa de referencia aún no está disponible. Actualízala e intenta de nuevo.");
+      showNotice("La tasa de referencia aún no está disponible. Actualízala e intenta de nuevo.", "error");
       return;
     }
     if (!artworkRef.current) {
-      showNotice("No se pudo preparar el diseño de la cotización. Intenta de nuevo.");
+      showNotice("No se pudo preparar el diseño de la cotización. Intenta de nuevo.", "error");
       return;
     }
 
     setIsGenerating(true);
-    setNotice("");
     try {
       const catalogChanged = await revalidateSelection();
       if (catalogChanged) return;
@@ -174,10 +168,10 @@ export default function QuickQuote({ products, catalogError = false }: QuickQuot
       const nextArtifact = await createQuoteImage(artworkRef.current, draft);
       setArtifact(nextArtifact);
       setIsSummaryOpen(true);
-      showNotice("Imagen generada. Puedes descargarla o compartirla por WhatsApp.");
+      showNotice("Imagen generada. Puedes descargarla o compartirla por WhatsApp.", "success");
     } catch (error) {
       console.error("No se pudo generar la cotización", error);
-      showNotice("No se pudo generar la imagen. Revisa tu conexión e intenta de nuevo.");
+      showNotice("No se pudo generar la imagen. Revisa tu conexión e intenta de nuevo.", "error");
     } finally {
       setIsGenerating(false);
     }
@@ -189,7 +183,7 @@ export default function QuickQuote({ products, catalogError = false }: QuickQuot
       return;
     }
     downloadQuoteImage(artifact);
-    showNotice("La imagen se descargó. Puedes adjuntarla manualmente en WhatsApp.");
+    showNotice("La imagen se descargó. Puedes adjuntarla manualmente en WhatsApp.", "success");
   };
 
   const shareImage = async () => {
@@ -199,17 +193,16 @@ export default function QuickQuote({ products, catalogError = false }: QuickQuot
     }
 
     setIsGenerating(true);
-    setNotice("");
     try {
       const result = await shareQuoteImage(artifact, draft);
       if (result === "native-share-started") {
-        showNotice("Se abrió el menú nativo para compartir la imagen.");
+        showNotice("Se abrió el menú nativo para compartir la imagen.", "success");
       } else if (result === "fallback-download-and-whatsapp") {
         showNotice("La imagen se descargó y WhatsApp se abrió con el texto listo. Adjunta el PNG manualmente.");
       } else if (result === "user-cancelled") {
         showNotice("Compartir cancelado. La imagen sigue disponible.");
       } else {
-        showNotice("No se pudo abrir WhatsApp automáticamente. Descarga la imagen y adjúntala manualmente.");
+        showNotice("No se pudo abrir WhatsApp automáticamente. Descarga la imagen y adjúntala manualmente.", "error");
       }
     } finally {
       setIsGenerating(false);
@@ -218,7 +211,7 @@ export default function QuickQuote({ products, catalogError = false }: QuickQuot
 
   const handleRecipientSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setNotice("Datos del destinatario guardados solo en esta cotización.");
+    showNotice("Datos del destinatario guardados solo en esta cotización.", "success");
   };
 
   return (
@@ -368,15 +361,6 @@ export default function QuickQuote({ products, catalogError = false }: QuickQuot
         )}
       </section>
 
-      {notice && (
-        <p
-          className="mx-4 mt-4 rounded-2xl border border-gold/30 bg-gold/10 px-4 py-3 text-sm text-foreground"
-          role="status"
-          aria-live="polite"
-        >
-          {notice}
-        </p>
-      )}
 
       {selectedQuantity > 0 && (
         <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md px-3 pb-3">
