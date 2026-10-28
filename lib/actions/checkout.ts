@@ -16,6 +16,7 @@ import {
   validateDeliveryInput,
   validatePaymentInput,
 } from "@/lib/checkout-rules";
+import { nextOrderNumber } from "../order-number";
 import { prisma } from "../prisma";
 
 export interface CheckoutData {
@@ -193,7 +194,7 @@ export async function procesarCompra(
       const estado = getInitialOrderState(datos.pago.metodoPago);
       const transaccion = await tx.transaccion.create({
         data: {
-          numeroOrden: `VEN-${Date.now()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`,
+          numeroOrden: await nextOrderNumber(tx),
           clienteId: clientId,
           montoSubtotal: totals.subtotalUsd,
           montoDelivery: totals.montoDelivery,

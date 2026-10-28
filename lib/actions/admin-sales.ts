@@ -8,6 +8,7 @@ import { requireAdmin } from "@/lib/admin/auth";
 import { calculateSaleTotals, type DiscountInput, type SaleLineInput } from "@/lib/admin/sales-calculations";
 import { requiresPaymentConfirmation } from "@/lib/admin/status";
 import type { BulkSalesState, ManualSaleState } from "@/lib/admin/types";
+import { nextOrderNumber } from "@/lib/order-number";
 import { prisma } from "@/lib/prisma";
 
 const lineSchema = z.object({
@@ -98,7 +99,7 @@ export async function registrarVentaManual(_previous: ManualSaleState, formData:
         if (updated.count !== 1) throw new Error(`Stock insuficiente para ${product.nombre}.`);
       }
 
-      const orderNumber = input.numeroOrden || `VEN-${Date.now()}`;
+      const orderNumber = input.numeroOrden || await nextOrderNumber(tx);
       const transaction = await tx.transaccion.create({
         data: {
           numeroOrden: orderNumber,
@@ -252,7 +253,7 @@ export async function guardarEdicionMasivaVentas(_previous: BulkSalesState, form
         updated += 1;
       }
 
-      for (const [index, row] of input.nuevas.entries()) {
+      for (const row of input.nuevas) {
         const [client, product] = await Promise.all([
           tx.cliente.findUnique({ where: { id: row.clienteId }, select: { id: true } }),
           tx.producto.findUnique({ where: { id: row.productoId }, select: { id: true, nombre: true } }),
@@ -270,7 +271,7 @@ export async function guardarEdicionMasivaVentas(_previous: BulkSalesState, form
         const stock = await tx.producto.updateMany({ where: { id: row.productoId, inventario: { gte: row.cantidad } }, data: { inventario: { decrement: row.cantidad } } });
         if (stock.count !== 1) throw new Error(`Stock insuficiente para ${product.nombre}.`);
 
-        const numeroOrden = row.numeroOrden || `VEN-${Date.now()}-${index + 1}`;
+        const numeroOrden = row.numeroOrden || await nextOrderNumber(tx);
         const transaction = await tx.transaccion.create({
           data: {
             numeroOrden,
