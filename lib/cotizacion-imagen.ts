@@ -131,7 +131,7 @@ async function renderQuoteCanvas(draft: QuoteDraft) {
   if (recipientLines.length) contentHeight += recipientLines.length * 22 + 36;
   contentHeight += 64;
   contentHeight += rows.reduce((total, row) => total + row.height + 1, 0);
-  contentHeight += 150;
+  contentHeight += 150 + (draft.delivery ? 56 : 0);
   const canvasHeight = contentHeight + OUTER_PADDING * 2;
 
   const canvas = document.createElement("canvas");
@@ -241,7 +241,13 @@ async function renderQuoteCanvas(draft: QuoteDraft) {
   context.font = "14px Arial, sans-serif";
   context.fillStyle = "rgba(255,255,255,0.6)";
   context.textAlign = "right";
-  context.fillText(`Total USD: ${fmtUsd(draft.subtotalUsd)}`, right, cursor);
+  if (draft.delivery) {
+    context.fillText(`Subtotal: ${fmtUsd(draft.subtotalUsd)}`, right, cursor);
+    cursor += 28;
+    context.fillText(`Delivery (${draft.delivery.zona}): ${fmtUsd(draft.deliveryUsd)}`, right, cursor);
+    cursor += 28;
+  }
+  context.fillText(`Total USD: ${fmtUsd(draft.totalUsd)}`, right, cursor);
   cursor += 28;
   context.font = "700 20px Arial, sans-serif";
   context.fillStyle = "#d4af37";

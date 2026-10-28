@@ -30,6 +30,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/venta-rapida/sheet";
+import { DELIVERY_ZONES } from "@/lib/constants/constants";
 import { useDolar } from "@/hooks/useDolar";
 import { Download, Image as ImageIcon, RefreshCw, Share2, Trash2 } from "lucide-react";
 import Image from "next/image";
@@ -64,6 +65,7 @@ export default function QuickQuote({ products, catalogError = false }: QuickQuot
   const [lines, setLines] = useState<QuoteLine[]>([]);
   const [recipientName, setRecipientName] = useState("");
   const [recipientPhone, setRecipientPhone] = useState("");
+  const [deliveryZone, setDeliveryZone] = useState("");
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [artifact, setArtifact] = useState<QuoteImageArtifact | null>(null);
@@ -71,13 +73,17 @@ export default function QuickQuote({ products, catalogError = false }: QuickQuot
   const { tasa, isLoading: isRateLoading, refetch } = useDolar();
 
   const exchangeRate = typeof tasa === "number" ? tasa : 0;
+  const selectedZone = useMemo(
+    () => DELIVERY_ZONES.find((zone) => zone.name === deliveryZone) ?? null,
+    [deliveryZone],
+  );
   const draft = useMemo<QuoteDraft>(
     () =>
       buildQuoteDraft(lines, exchangeRate, {
         nombre: recipientName,
         telefono: recipientPhone,
-      }),
-    [exchangeRate, lines, recipientName, recipientPhone],
+      }, new Date(), selectedZone ? { zona: selectedZone.name, precioUsd: selectedZone.price } : null),
+    [exchangeRate, lines, recipientName, recipientPhone, selectedZone],
   );
 
   const selectedQuantity = useMemo(
@@ -123,6 +129,7 @@ export default function QuickQuote({ products, catalogError = false }: QuickQuot
 
   const clearQuote = () => {
     setLines([]);
+    setDeliveryZone("");
     setArtifact(null);
   };
 
@@ -374,7 +381,7 @@ export default function QuickQuote({ products, catalogError = false }: QuickQuot
             </span>
             <span className="ml-4 shrink-0 text-right">
               <span className="block font-century-gothic text-xl font-bold leading-none tabular-nums">
-                {fmtUsd(draft.subtotalUsd)}
+                {fmtUsd(draft.totalUsd)}
               </span>
               <span className="mt-1 block text-xs font-medium leading-none tabular-nums text-success-foreground/80">
                 {draft.totalBs === null ? "Bs no disponible" : fmtBs(draft.totalBs)}
@@ -435,10 +442,53 @@ export default function QuickQuote({ products, catalogError = false }: QuickQuot
               ))
             )}
 
-            <div className="flex items-end justify-between border-t pt-3">
+            <div className="space-y-1.5 rounded-2xl bg-muted/40 p-3">
+              <Label htmlFor="quote-delivery-zone">Delivery (opcional)</Label>
+              <select
+                id="quote-delivery-zone"
+                value={deliveryZone}
+                onChange={(event) => setDeliveryZone(event.target.value)}
+                className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground"
+              >
+                <option value="" className="bg-white text-black">
+                  Sin delivery
+                </option>
+                {[...new Set(DELIVERY_ZONES.map((zone) => zone.price))]
+                  .sort((a, b) => a - b)
+                  .map((price) => (
+                    <optgroup
+                      key={price}
+                      label={`Zona delivery $${price}`}
+                      className="bg-white font-semibold text-black"
+                    >
+                      {DELIVERY_ZONES.filter((zone) => zone.price === price).map((zone) => (
+                        <option key={zone.name} value={zone.name} className="bg-white font-normal text-black">
+                          {zone.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+              </select>
+            </div>
+
+            <div className="space-y-1 border-t pt-3">
+              {draft.delivery && (
+                <>
+                  <div className="flex justify-between text-sm text-muted-foreground tabular">
+                    <span>Subtotal</span>
+                    <span>{fmtUsd(draft.subtotalUsd)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-muted-foreground tabular">
+                    <span>Delivery ({draft.delivery.zona})</span>
+                    <span>{fmtUsd(draft.deliveryUsd)}</span>
+                  </div>
+                </>
+              )}
+            </div>
+            <div className="flex items-end justify-between">
               <span className="text-sm text-muted-foreground">Total estimado</span>
               <span className="text-right">
-                <span className="block font-century-gothic text-2xl font-bold tabular">{fmtUsd(draft.subtotalUsd)}</span>
+                <span className="block font-century-gothic text-2xl font-bold tabular">{fmtUsd(draft.totalUsd)}</span>
                 <span className="block text-sm tabular text-muted-foreground">
                   {draft.totalBs === null ? "Tasa no disponible" : fmtBs(draft.totalBs)}
                 </span>

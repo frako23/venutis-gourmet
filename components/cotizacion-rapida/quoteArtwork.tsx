@@ -90,8 +90,18 @@ export const QuoteArtwork = forwardRef<
         </div>
 
         <div className="mt-5 space-y-2 border-t border-[#d4af37]/30 pt-5 text-right">
+          {draft.delivery && (
+            <>
+              <p className="text-sm text-white/60">
+                Subtotal: <strong className="text-base text-white">{fmtUsd(draft.subtotalUsd)}</strong>
+              </p>
+              <p className="text-sm text-white/60">
+                Delivery ({draft.delivery.zona}): <strong className="text-base text-white">{fmtUsd(draft.deliveryUsd)}</strong>
+              </p>
+            </>
+          )}
           <p className="text-sm text-white/60">
-            Total USD: <strong className="text-xl text-white">{fmtUsd(draft.subtotalUsd)}</strong>
+            Total USD: <strong className="text-xl text-white">{fmtUsd(draft.totalUsd)}</strong>
           </p>
           <p className="text-sm text-white/60">
             Total Bs: <strong className="text-xl text-[#d4af37]">{draft.totalBs === null ? "No disponible" : fmtBs(draft.totalBs)}</strong>

@@ -20,6 +20,11 @@ export type QuoteRecipient = {
   telefono?: string;
 };
 
+export type QuoteDelivery = {
+  zona: string;
+  precioUsd: number;
+};
+
 export type QuoteDraftStatus =
   | "empty"
   | "draft"
@@ -32,6 +37,9 @@ export type QuoteDraft = {
   recipient: QuoteRecipient;
   exchangeRate: number;
   subtotalUsd: number;
+  delivery: QuoteDelivery | null;
+  deliveryUsd: number;
+  totalUsd: number;
   totalBs: number | null;
   issuedAt: string;
   fingerprint: string;
@@ -130,7 +138,7 @@ export function calculateQuoteTotals(
   };
 }
 
-type QuoteFingerprintInput = Pick<QuoteDraft, "lines" | "recipient" | "exchangeRate">;
+type QuoteFingerprintInput = Pick<QuoteDraft, "lines" | "recipient" | "exchangeRate" | "delivery">;
 
 export function quoteFingerprint(input: QuoteFingerprintInput): string {
   return JSON.stringify({
@@ -142,6 +150,9 @@ export function quoteFingerprint(input: QuoteFingerprintInput): string {
     })),
     recipient: normalizeRecipient(input.recipient),
     exchangeRate: roundMoney(input.exchangeRate),
+    delivery: input.delivery
+      ? { zona: input.delivery.zona, precioUsd: roundMoney(input.delivery.precioUsd) }
+      : null,
   });
 }
 
@@ -170,21 +181,32 @@ export function buildQuoteDraft(
   exchangeRate: number,
   recipient: QuoteRecipient = {},
   issuedAt = new Date(),
+  delivery: QuoteDelivery | null = null,
 ): QuoteDraft {
   const normalizedLines = lines
     .map((line) => toQuoteLine(line.product, line.cantidad))
     .filter((line): line is QuoteLine => line !== null);
   const normalizedRecipient = normalizeRecipient(recipient);
   const totals = calculateQuoteTotals(normalizedLines, exchangeRate);
+  const normalizedDelivery =
+    delivery && delivery.zona.trim() && Number.isFinite(delivery.precioUsd) && delivery.precioUsd > 0
+      ? { zona: delivery.zona.trim(), precioUsd: roundMoney(delivery.precioUsd) }
+      : null;
+  const deliveryUsd = normalizedDelivery?.precioUsd ?? 0;
+  const totalUsd = roundMoney(totals.subtotalUsd + deliveryUsd);
   const draftBase = {
     lines: normalizedLines,
     recipient: normalizedRecipient,
     exchangeRate,
+    delivery: normalizedDelivery,
   };
 
   return {
     ...draftBase,
-    ...totals,
+    subtotalUsd: totals.subtotalUsd,
+    deliveryUsd,
+    totalUsd,
+    totalBs: totals.rateValid ? roundMoney(totalUsd * exchangeRate) : null,
     issuedAt: issuedAt.toISOString(),
     fingerprint: quoteFingerprint(draftBase as QuoteFingerprintInput),
     status: normalizedLines.length ? "draft" : "empty",
@@ -222,7 +244,13 @@ export function buildQuoteWhatsAppText({
     "*Detalle de la cotización*",
     lines,
     "",
-    `Total USD: *${fmtUsd(draft.subtotalUsd)}*`,
+    ...(draft.delivery
+      ? [
+          `Subtotal: *${fmtUsd(draft.subtotalUsd)}*`,
+          `Delivery (${draft.delivery.zona}): *${fmtUsd(draft.deliveryUsd)}*`,
+        ]
+      : []),
+    `Total USD: *${fmtUsd(draft.totalUsd)}*`,
     `Total Bs: *${totalBs}*`,
     isValidExchangeRate(draft.exchangeRate)
       ? `Tasa de referencia: *${fmtBs(draft.exchangeRate)} por 1 $*`
