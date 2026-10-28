@@ -2,36 +2,39 @@ import { Utensils } from "lucide-react";
 
 export default function Loading() {
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background">
-      {/* Contenedor del Logo Animado */}
-      <div className="relative mb-8">
-        {/* Círculos de pulsación decorativos (Color Ocre/Oro) */}
-        <div className="absolute inset-0 rounded-full bg-accent/20 animate-ping duration-[2000ms]"></div>
+    <div
+      role="status"
+      aria-live="polite"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background-dark px-6 text-center"
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(212,175,55,0.08),transparent_60%)]"
+      />
 
-        {/* Icono Principal (Marrón Madera) */}
-        <div className="relative size-24 bg-primary rounded-2xl shadow-2xl flex items-center justify-center border-2 border-gold/30 rotate-3">
-          <Utensils className="text-gold size-12 animate-bounce" />
+      {/* Cuadro de cubiertos: halo y caja comparten tamaño y radio, sin rotación */}
+      <div className="relative mb-8 size-24">
+        <div className="absolute inset-0 rounded-2xl bg-gold/20 animate-ping [animation-duration:2000ms] motion-reduce:animate-none" />
+        <div className="relative flex size-full items-center justify-center rounded-2xl border-2 border-gold/30 bg-primary shadow-2xl">
+          <Utensils className="size-12 text-gold animate-bounce motion-reduce:animate-none" />
         </div>
       </div>
 
-      {/* Texto de Marca (Fuente Caligráfica Artística) */}
-      <div className="text-center space-y-2">
-        <h1 className="font-reklame text-9xl text-gold leading-tight">
-          Venutis Gourmet
+      <div className="relative space-y-3">
+        <h1 className="font-reklame text-6xl leading-tight text-gold sm:text-8xl">
+          Venuti´s Gourmet
         </h1>
-        <p className="font-century-gothic text-[25px] uppercase tracking-[0.4em] text-white font-black">
+        <p className="font-century-gothic text-xs font-medium uppercase tracking-[0.4em] text-cream sm:text-sm">
           Preparando la mesa
         </p>
       </div>
 
-      {/* Barra de progreso minimalista (Gris y Ocre) */}
-      <div className="mt-10 w-48 h-1 bg-border-soft rounded-full overflow-hidden">
-        <div className="h-full bg-accent animate-[loading_1.5s_ease-in-out_infinite] w-1/3 rounded-full shadow-[0_0_8px_rgba(212,175,55,0.5)]"></div>
+      <div className="relative mt-10 h-1 w-48 overflow-hidden rounded-full bg-gold/10">
+        <div className="absolute inset-y-0 w-1/3 rounded-full bg-gold shadow-[0_0_8px_rgba(212,175,55,0.5)] animate-[loading-slide_1.8s_ease-in-out_infinite] motion-reduce:animate-none" />
       </div>
 
-      {/* Frase inspiracional aleatoria (Opcional) */}
-      <p className="mt-6 font-century-gothic text-2xl text-white font-medium">
-        "La verdadera pasta se amasa con tiempo y pasión..."
+      <p className="relative mt-6 max-w-md font-century-gothic text-sm italic text-cream/70 sm:text-base">
+        &ldquo;La verdadera pasta se amasa con tiempo y pasión...&rdquo;
       </p>
     </div>
   );
