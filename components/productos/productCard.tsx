@@ -275,7 +275,7 @@ export function ProductCard({
         <div className="mb-6">
           <div className="flex justify-between items-center mb-1.5 font-century-gothic">
             <span
-              className={`text-[20px] uppercase font-bold tracking-tighter ${inventario <= 5 ? "text-red-500" : "text-gold"}`}
+              className={`text-[20px] uppercase font-bold tracking-tighter ${inventario === 0 ? "text-red-500" : inventario <= 5 ? "text-orange-500" : "text-gold"}`}
             >
               {inventario === 0
                 ? "Agotado"
@@ -291,7 +291,7 @@ export function ProductCard({
           </div>
           <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
             <div
-              className={`h-full transition-all duration-1000 ${inventario <= 5 ? "bg-red-500" : "bg-gold"}`}
+              className={`h-full transition-all duration-1000 ${inventario === 0 ? "bg-red-500" : inventario <= 5 ? "bg-orange-500" : "bg-gold"}`}
               style={{ width: `${Math.min((inventario / 20) * 100, 100)}%` }} // Asumiendo 20 como inventario "lleno"
             />
           </div>
