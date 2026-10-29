@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireAdmin } from "../admin/auth";
+import { ORDEN_CATALOGO, ordenFinal } from "../catalog-order";
 import { isValidQuantity, roundQuantity } from "../inventory";
 import { prisma } from "../prisma";
 
@@ -32,6 +33,12 @@ const InventoryUpdateSchema = z.object({
   precioDetal: z.number().finite().nonnegative("El precio detal no puede ser negativo"),
   precioMayorista: z.number().finite().nonnegative("El precio mayorista no puede ser negativo"),
 });
+
+const OrdenProductosSchema = z
+  .array(z.number().int().positive())
+  .min(1)
+  .max(1000)
+  .refine((ids) => new Set(ids).size === ids.length, "Hay productos repetidos.");
 
 const BulkInventorySchema = z.object({
   productos: z.array(InventoryUpdateSchema.extend({ id: z.number().int().positive() })).min(1).max(500),
@@ -229,5 +236,27 @@ export async function editInventoryMasiva(_previous: BulkInventoryState, formDat
     return { success: true, message: `${result.updated} producto(s) actualizado(s).`, updated: result.updated };
   } catch (error) {
     return { success: false, message: error instanceof Error ? error.message : "No se pudo guardar la edición masiva." };
+  }
+}
+
+export async function guardarOrdenProductos(ids: number[]): Promise<{ success: boolean; message: string }> {
+  await requireAdmin();
+  const parsed = OrdenProductosSchema.safeParse(ids);
+  if (!parsed.success) return { success: false, message: "El orden enviado no es válido. Recarga la página e inténtalo de nuevo." };
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      const actuales = await tx.producto.findMany({ orderBy: ORDEN_CATALOGO, select: { id: true } });
+      const posiciones = ordenFinal(parsed.data, actuales.map((producto) => producto.id)).map((id, index) => [id, index + 1] as const);
+      // Por id ascendente, para que dos guardados simultáneos bloqueen las filas en el mismo orden.
+      for (const [id, orden] of posiciones.sort((a, b) => a[0] - b[0])) {
+        await tx.producto.updateMany({ where: { id }, data: { orden } });
+      }
+    });
+    revalidatePath("/", "layout");
+    return { success: true, message: "Orden guardado. Todas las vistas ya lo muestran." };
+  } catch (error) {
+    console.error("Error al guardar el orden de los productos:", error);
+    return { success: false, message: "No se pudo guardar el orden. Intenta de nuevo." };
   }
 }

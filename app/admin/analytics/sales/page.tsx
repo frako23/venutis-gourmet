@@ -1,3 +1,4 @@
+import { ORDEN_CATALOGO } from "@/lib/catalog-order";
 import { AnalyticsDashboard } from "@/components/admin/analiticas/analyticsDashboard";
 import { AnalyticsFilters } from "@/components/admin/analiticas/analyticsFilters";
 import { consultarAnaliticas } from "@/lib/admin/analytics";
@@ -16,7 +17,7 @@ export default async function SalesAnalyticsPage({ searchParams }: { searchParam
   const productoId = Number(first(params.productoId) || 0) || undefined;
   const incluirPredictor = first(params.predictor) !== "0";
   const [products, result] = await Promise.all([
-    prisma.producto.findMany({ orderBy: { nombre: "asc" }, select: { id: true, nombre: true } }),
+    prisma.producto.findMany({ orderBy: ORDEN_CATALOGO, select: { id: true, nombre: true } }),
     consultarAnaliticas({ periodo, productoId, incluirPredictor }),
   ]);
 

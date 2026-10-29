@@ -1,3 +1,4 @@
+import { ORDEN_CATALOGO } from "@/lib/catalog-order";
 import { Download, FileSpreadsheet } from "lucide-react";
 import Link from "next/link";
 
@@ -28,7 +29,7 @@ export default async function TransactionsPage({ searchParams }: { searchParams?
     prisma.transaccion.count({ where }),
     prisma.transaccion.findMany({ where, orderBy: { fechaCompra: "desc" }, skip: (page - 1) * PAGE_SIZE, take: PAGE_SIZE, include: { cliente: true, detalles: { include: { producto: { select: { nombre: true } } } }, pagos: { orderBy: { createdAt: "desc" }, select: { metodoPago: true, referencia: true, montoBs: true, montoUsd: true, tasaCambio: true, esAbono: true, anuladoEn: true } } } }),
     prisma.cliente.findMany({ orderBy: [{ apellido: "asc" }, { nombre: "asc" }], select: { id: true, nombre: true, apellido: true, tipoCliente: true } }),
-    prisma.producto.findMany({ orderBy: { nombre: "asc" }, select: { id: true, nombre: true, precioDetal: true, precioMayorista: true, inventario: true } }),
+    prisma.producto.findMany({ orderBy: ORDEN_CATALOGO, select: { id: true, nombre: true, precioDetal: true, precioMayorista: true, inventario: true } }),
   ]);
   const rows: SalesRow[] = transactions.map((transaction) => ({
     ...(() => {

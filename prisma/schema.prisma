@@ -78,6 +78,8 @@ model Producto {
   descripcion     String?
   inventario      Float                @default(0)
   ubicacion       String?
+  // Posición en el catálogo (menor = antes); null = sin posición, va al final.
+  orden           Int?
   imagenes        Imagen[]
   detalles        DetalleCompra[]
   detallesNotas   DetalleNotaEntrega[]

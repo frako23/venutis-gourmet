@@ -1,3 +1,4 @@
+import { ORDEN_CATALOGO } from "@/lib/catalog-order";
 import { InventoryTable } from "@/components/admin/inventario/inventoryTable";
 import { prisma } from "@/lib/prisma";
 
@@ -19,7 +20,7 @@ export default async function InventoryManager({
   const [products, typeRows] = await Promise.all([
     prisma.producto.findMany({
       where,
-      orderBy: { createdAt: "desc" },
+      orderBy: ORDEN_CATALOGO,
       include: { imagenes: true },
     }),
     prisma.producto.findMany({

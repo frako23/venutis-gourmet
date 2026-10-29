@@ -1,5 +1,6 @@
 import type { Prisma, PrismaClient } from "@prisma/client";
 
+import { ORDEN_CATALOGO } from "../catalog-order.ts";
 import { normalizeSearchName } from "../client-rules.ts";
 import {
   clavesDeClientes,
@@ -26,7 +27,7 @@ export class CargaError extends Error {
 
 async function cargarContexto(db: Db, carga: CargaConstruida) {
   const [catalogo, clientes, equivalenciasProducto, equivalenciasCliente, pedidos] = await Promise.all([
-    db.producto.findMany({ orderBy: { nombre: "asc" }, select: { id: true, nombre: true, categoria: true, precioDetal: true, precioMayorista: true } }),
+    db.producto.findMany({ orderBy: ORDEN_CATALOGO, select: { id: true, nombre: true, categoria: true, precioDetal: true, precioMayorista: true } }),
     db.cliente.findMany({ select: { id: true, nombre: true, apellido: true, nombreBusqueda: true } }),
     db.equivalenciaProducto.findMany({ select: { clave: true, productoId: true } }),
     db.equivalenciaCliente.findMany({ select: { clave: true, clienteId: true } }),

@@ -1,6 +1,6 @@
 "use server";
 
-import { PRODUCT_ORDER } from "@/lib/constants/constants";
+import { ORDEN_CATALOGO } from "@/lib/catalog-order";
 import { unidadesDisponibles } from "@/lib/inventory";
 import { prisma } from "@/lib/prisma";
 import type { QuoteProduct } from "@/lib/cotizacion-rapida";
@@ -11,9 +11,6 @@ export type QuoteCatalogChange = {
   previous?: number;
   current?: number;
 };
-
-const orderForProduct = (name: string) =>
-  PRODUCT_ORDER[name.trim().toUpperCase()] ?? 999;
 
 function toQuoteProduct(product: {
   id: number;
@@ -43,6 +40,7 @@ export async function getCurrentQuoteCatalog(
 
   const currentRows = await prisma.producto.findMany({
     where: { id: { in: ids } },
+    orderBy: ORDEN_CATALOGO,
     select: {
       id: true,
       nombre: true,
@@ -52,9 +50,7 @@ export async function getCurrentQuoteCatalog(
       imagenes: { select: { url: true }, take: 1 },
     },
   });
-  const products = currentRows
-    .map(toQuoteProduct)
-    .sort((a, b) => orderForProduct(a.nombre) - orderForProduct(b.nombre));
+  const products = currentRows.map(toQuoteProduct);
   const currentById = new Map(products.map((product) => [product.id, product]));
   const changes: QuoteCatalogChange[] = [];
 

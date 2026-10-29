@@ -62,6 +62,7 @@ El alias `@/*` apunta a la raíz del proyecto y se utiliza para imports absoluto
 - `/admin-login`: acceso al panel administrativo.
 - `/admin/products`: gestión de productos.
 - `/admin/inventory`: inventario, precios e imágenes.
+- `/admin/inventory/sort`: ordenar manualmente el catálogo (arrastrar o elegir posición); el orden vale para todas las vistas.
 - `/admin/add-product`: alta de productos.
 - `/admin/edit-product/[id]`: edición de productos.
 - `/admin/transactions`: listado de transacciones.
@@ -88,7 +89,7 @@ La base de datos PostgreSQL está definida en `prisma/schema.prisma`.
 
 - `Cliente`: datos personales, tipo de cliente (`mayorista` o `detal`) y relaciones con direcciones, compras, fidelidad y reseñas.
 - `Direccion`: direcciones de entrega asociadas a un cliente.
-- `Producto`: nombre, precios detal/mayorista, categoría, descripción, inventario, ubicación e imágenes.
+- `Producto`: nombre, precios detal/mayorista, categoría, descripción, inventario, ubicación, `orden` (posición manual en el catálogo; nulo = sin posición, va al final) e imágenes.
 - `Imagen`: URLs de imágenes asociadas a productos; se eliminan en cascada con el producto.
 - `Transaccion`: número de orden, cliente, subtotal, descuento, total canónico en USD, tasa, estado y tipo de retiro (`envio` o `recogida`).
 - `DetalleCompra`: productos, cantidades (hasta 2 decimales), precio unitario y `tipoPrecio` (`detal`, `mayor`, `promo`; nulo en líneas anteriores) de cada transacción.
@@ -120,7 +121,7 @@ Las validaciones de formularios se realizan principalmente con esquemas Zod dent
 `lib/actions` contiene operaciones `use server` para:
 
 - clientes: alta, edición, eliminación y búsqueda por teléfono;
-- productos: alta, edición, eliminación y actualización de inventario/precios;
+- productos: alta, edición, eliminación, actualización de inventario/precios y `guardarOrdenProductos` (reescribe las posiciones `1..N` del catálogo en una transacción);
 - direcciones: alta, edición, eliminación y consulta por cliente;
 - checkout: creación atómica de pedidos, pagos e inventario;
 - reseñas: alta y eliminación.
@@ -176,6 +177,7 @@ El script `postinstall` ejecuta `prisma generate`. Las migraciones existentes es
 
 ## 11. Consideraciones técnicas observadas
 
+- El orden de los productos tiene una sola definición, `ORDEN_CATALOGO` (`lib/catalog-order.ts`), usada por toda consulta que liste productos; las vistas solo filtran. El orden inicial se migró desde el antiguo `PRODUCT_ORDER` de la tienda. Líneas de pedidos, notas de entrega, exportaciones y rankings no siguen este orden.
 - El checkout web y el registro manual administrativo escriben `Transaccion`; el punto de venta rápido actualmente solo prepara el pedido y lo envía por WhatsApp, por lo que no actualiza inventario ni crea una `Transaccion` por sí mismo.
 - La cotización rápida reutiliza la lectura del catálogo y la tasa vigente, pero es deliberadamente no persistida: la revalidación previa a la generación solo lee precio, inventario y existencia para evitar producir una imagen con datos obsoletos. Generar, descargar o compartir la imagen no representa una reserva, venta, pago ni cambio de inventario.
 - Existen dos representaciones de estado relacionadas con checkout: `store/appStore.ts` y `context/checkoutContext.tsx`. Conviene mantener una única fuente de verdad a futuro para reducir posibles divergencias.

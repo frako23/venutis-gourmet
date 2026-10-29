@@ -45,6 +45,8 @@ Tienda + panel administrativo + punto de venta para pastas/salsas gourmet. Next.
 
 **Catálogo unificado**: una sola experiencia para consumidores y mayoristas en `/productos/consumidores`; el contexto (`?contexto=consumidor|mayorista`) decide el precio (`precioDetal` / `precioMayorista`). `/productos/mayoristas` solo redirige.
 
+**Orden del catálogo**: `Producto.orden` (opcional; `null` va al final) es el único orden de las listas de productos. Toda consulta que liste productos usa `ORDEN_CATALOGO` (`lib/catalog-order.ts`) y ninguna vista reordena en memoria. Solo `guardarOrdenProductos` (`lib/actions/products.ts`) lo escribe, desde `/admin/inventory/sort`. Las líneas de pedidos, notas de entrega, exportaciones y rankings no siguen este orden.
+
 **Modelo de pedidos**: `Transaccion.total` es canónico en USD; el Bs sale de la tasa (`hooks/useDolar.ts`, `Pago.tasaCambio`). Estados operativos: `por_cobrar`, `en_pedido`, `pagado` y `cancelado`. `cancelado` es final: solo se aplica a pedidos no cobrados, devuelve el inventario en la misma transacción, guarda la razón opcional en `EstadoTransaccionHistorial.motivo` y no se ofrece en el editor masivo. `pendiente` (se muestra como "Por cobrar") se conserva por compatibilidad histórica. Los cambios de estado pasan por `order-status.ts`/`admin-orders.ts` y se registran en `EstadoTransaccionHistorial` (append-only). Las analíticas excluyen canceladas.
 
 **Cantidades e inventario**: `DetalleCompra.cantidad` y `Producto.inventario` admiten hasta 2 decimales. Todo cambio de inventario de ventas y cancelaciones pasa por `ajustarInventario` (`lib/inventory.ts`), que bloquea la fila y redondea. La tienda, la venta rápida y la cotización ven `unidadesDisponibles(inventario)` (enteros).

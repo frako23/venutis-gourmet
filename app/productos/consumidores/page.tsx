@@ -6,7 +6,7 @@ import {
   PurchaseContext,
 } from "@/lib/catalog-context";
 import { ProductCard } from "@/components/productos/productCard";
-import { PRODUCT_ORDER } from "@/lib/constants/constants";
+import { ORDEN_CATALOGO } from "@/lib/catalog-order";
 import { unidadesDisponibles } from "@/lib/inventory";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
@@ -25,19 +25,13 @@ export default async function Productos({
   const categoriaSeleccionada = params.categoria || "TODOS";
   const contexto = normalizePurchaseContext(params.contexto);
   const products = await prisma.producto.findMany({
-    orderBy: { createdAt: "desc" },
+    orderBy: ORDEN_CATALOGO,
     include: { imagenes: true },
   });
 
-  const sortedProducts = [...products].sort((a, b) => {
-    const orderA = PRODUCT_ORDER[a.nombre.toUpperCase()] || 999;
-    const orderB = PRODUCT_ORDER[b.nombre.toUpperCase()] || 999;
-    return orderA - orderB;
-  });
-
-  const wholesaleProducts = sortedProducts.filter(isWholesaleOffer);
+  const wholesaleProducts = products.filter(isWholesaleOffer);
   const contextProducts =
-    contexto === "mayorista" ? wholesaleProducts : sortedProducts;
+    contexto === "mayorista" ? wholesaleProducts : products;
   const filteredProducts =
     categoriaSeleccionada !== "TODOS"
       ? contextProducts.filter((product) => product.categoria === categoriaSeleccionada)

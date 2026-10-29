@@ -1,4 +1,4 @@
-import { PRODUCT_ORDER } from "@/lib/constants/constants";
+import { ORDEN_CATALOGO } from "@/lib/catalog-order";
 import { unidadesDisponibles } from "@/lib/inventory";
 import { prisma } from "@/lib/prisma";
 import type { QuoteProduct } from "@/lib/cotizacion-rapida";
@@ -11,7 +11,7 @@ export default async function CotizacionRapida() {
   try {
     const products = await prisma.producto.findMany({
       where: { inventario: { gte: 1 } },
-      orderBy: { createdAt: "desc" },
+      orderBy: ORDEN_CATALOGO,
       select: {
         id: true,
         nombre: true,
@@ -32,12 +32,7 @@ export default async function CotizacionRapida() {
         ...(product.imagenes[0]?.url
           ? { imagenUrl: product.imagenes[0].url }
           : {}),
-      }))
-      .sort(
-        (a, b) =>
-          (PRODUCT_ORDER[a.nombre.trim().toUpperCase()] ?? 999) -
-          (PRODUCT_ORDER[b.nombre.trim().toUpperCase()] ?? 999),
-      );
+      }));
   } catch (error) {
     console.error("No se pudo cargar el catálogo para la cotización rápida", error);
     catalogError = true;
