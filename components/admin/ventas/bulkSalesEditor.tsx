@@ -174,7 +174,7 @@ export function BulkSalesEditor({ rows: initialRows, clients, products, onClose 
       </div>
     </div>
     <div className="border-b border-[#ebe9e0] px-4 py-3 text-xs text-[#707970] md:px-5">
-      Las filas nuevas descuentan inventario al guardar. Las órdenes canceladas conservan su estado y no se pueden reabrir desde esta vista.
+      Las filas nuevas descuentan inventario al guardar. Las órdenes canceladas conservan su estado y no se pueden reabrir desde esta vista. Para cancelar un pedido usa el control de estado de la tabla.
     </div>
       <div
         aria-label="Tabla de edición masiva de ventas"

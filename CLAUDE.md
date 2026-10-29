@@ -44,7 +44,7 @@ Tienda + panel administrativo + punto de venta para pastas/salsas gourmet. Next.
 
 **Catálogo unificado**: una sola experiencia para consumidores y mayoristas en `/productos/consumidores`; el contexto (`?contexto=consumidor|mayorista`) decide el precio (`precioDetal` / `precioMayorista`). `/productos/mayoristas` solo redirige.
 
-**Modelo de pedidos**: `Transaccion.total` es canónico en USD; el Bs sale de la tasa (`hooks/useDolar.ts`, `Pago.tasaCambio`). Estados operativos: `por_cobrar`, `en_pedido`, `pagado`; `pendiente` (se muestra como "Por cobrar") y `cancelado` se conservan solo por compatibilidad histórica. Los cambios de estado pasan por `order-status.ts`/`admin-orders.ts` y se registran en `EstadoTransaccionHistorial` (append-only). Las analíticas excluyen canceladas.
+**Modelo de pedidos**: `Transaccion.total` es canónico en USD; el Bs sale de la tasa (`hooks/useDolar.ts`, `Pago.tasaCambio`). Estados operativos: `por_cobrar`, `en_pedido`, `pagado` y `cancelado`. `cancelado` es final: solo se aplica a pedidos no cobrados, devuelve el inventario en la misma transacción, guarda la razón opcional en `EstadoTransaccionHistorial.motivo` y no se ofrece en el editor masivo. `pendiente` (se muestra como "Por cobrar") se conserva por compatibilidad histórica. Los cambios de estado pasan por `order-status.ts`/`admin-orders.ts` y se registran en `EstadoTransaccionHistorial` (append-only). Las analíticas excluyen canceladas.
 
 **Notas de entrega** (mayoristas): guardan snapshots de líneas (`DetalleNotaEntrega`), no tocan inventario ni pagos, y el PDF se genera localmente con `pdf-lib`.
 

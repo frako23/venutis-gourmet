@@ -96,7 +96,7 @@ La base de datos PostgreSQL está definida en `prisma/schema.prisma`.
 - `Fidelidad`: movimientos de puntos por acumulación o redención.
 - `Resena`: valoración de 1 a 5 estrellas vinculada a cliente, producto y transacción.
 
-Los estados operativos son `por_cobrar`, `en_pedido` y `pagado`. Se conservan `pendiente` y `cancelado` para compatibilidad histórica; `pendiente` se presenta como “Por cobrar” y `cancelado` no se ofrece como estado nuevo. Los métodos de pago contemplados son transferencia en Bs, efectivo USD, Zelle, Pago Móvil y transferencia USD.
+Los estados operativos son `por_cobrar`, `en_pedido` y `pagado`. `cancelado` también es un estado operativo, final y solo aplicable a pedidos no cobrados: al cancelar se devuelve el inventario en la misma transacción y la razón opcional se guarda en `EstadoTransaccionHistorial.motivo`; el editor masivo no permite cancelar. Se conserva `pendiente` por compatibilidad histórica y se presenta como “Por cobrar”. Los métodos de pago contemplados son transferencia en Bs, efectivo USD, Zelle, Pago Móvil y transferencia USD.
 
 ## 6. Flujo de checkout
 

@@ -49,7 +49,7 @@ Patrones de uso frecuentes: `text-gold` (≈44 usos), `bg-gold` (≈32), `text-p
 
 ### 2.4 Estados
 
-Los estados de pedido (`por_cobrar`, `en_pedido`, `pagado`; `pendiente`/`cancelado` solo histórico) deben tener un color consistente en tienda y admin; hoy se resuelven por componente. Usar `--admin-danger` para cancelado/errores, `--admin-olive` para confirmado/pagado y `--admin-brass` para pendiente de acción.
+Los estados de pedido (`por_cobrar`, `en_pedido`, `pagado`; `cancelado` es operativo y final; `pendiente` solo histórico) deben tener un color consistente en tienda y admin; hoy se resuelven por componente. Usar `--admin-danger` para cancelado/errores, `--admin-olive` para confirmado/pagado y `--admin-brass` para pendiente de acción.
 
 ## 3. Tipografía
 

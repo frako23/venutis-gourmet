@@ -1,16 +1,16 @@
 "use server";
 
-import { EstadoTransaccion, MetodoPago } from "@prisma/client";
+import { MetodoPago } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { requireAdmin } from "@/lib/admin/auth";
-import { requiresExplicitPaymentConfirmation } from "@/lib/admin/status";
+import { aplicarCambioEstadoPedido } from "@/lib/admin/order-state-change";
 import { prisma } from "@/lib/prisma";
 
 const stateSchema = z.object({
   transaccionId: z.coerce.number().int().positive(),
-  estadoNuevo: z.enum(["por_cobrar", "en_pedido", "pagado"]),
+  estadoNuevo: z.enum(["por_cobrar", "en_pedido", "pagado", "cancelado"]),
   motivo: z.string().trim().max(240).optional(),
   confirmacionPago: z.boolean().default(false),
   pago: z.object({
@@ -41,24 +41,14 @@ export async function actualizarEstadoPedido(formData: FormData) {
 
   const input = parsed.data;
   try {
-    const result = await prisma.$transaction(async (tx) => {
-      const transaction = await tx.transaccion.findUnique({ where: { id: input.transaccionId }, include: { pagos: true } });
-      if (!transaction) throw new Error("La venta no existe.");
-      if (transaction.estado === "cancelado") throw new Error("Una venta cancelada no puede reabrirse desde este flujo.");
-
-      if (requiresExplicitPaymentConfirmation(transaction.estado, input.estadoNuevo as EstadoTransaccion, input.confirmacionPago)) throw new Error("Confirma explícitamente el cobro antes de marcar la venta como pagada.");
-      if (input.estadoNuevo === transaction.estado && !input.pago) return { previous: transaction.estado, current: transaction.estado, changedAt: transaction.createdAt };
-
-      await tx.transaccion.update({ where: { id: transaction.id }, data: { estado: input.estadoNuevo as EstadoTransaccion } });
-      if (input.pago) await tx.pago.create({ data: { transaccionId: transaction.id, montoBs: input.pago.montoBs ?? null, montoUsd: input.pago.montoUsd ?? null, metodoPago: input.pago.metodoPago, referencia: input.pago.referencia ?? null, fechaPago: input.pago.fechaPago ?? new Date(), tasaCambio: null } });
-      const history = await tx.estadoTransaccionHistorial.create({ data: { transaccionId: transaction.id, estadoAnterior: transaction.estado, estadoNuevo: input.estadoNuevo as EstadoTransaccion, actorId: actor.id, actorEmail: actor.email, motivo: input.motivo ?? null } });
-      return { previous: transaction.estado, current: input.estadoNuevo, changedAt: history.createdAt };
-    });
+    const result = await prisma.$transaction((tx) => aplicarCambioEstadoPedido(tx, input, actor));
 
     revalidatePath("/admin");
     revalidatePath("/admin/transactions");
     revalidatePath(`/admin/transactions/${input.transaccionId}`);
-    return { success: true as const, transactionId: input.transaccionId, estadoAnterior: result.previous, estadoNuevo: result.current, changedAt: result.changedAt, message: "Estado actualizado correctamente." };
+    const canceled = result.current === "cancelado";
+    if (canceled) revalidatePath("/admin/inventory");
+    return { success: true as const, transactionId: input.transaccionId, estadoAnterior: result.previous, estadoNuevo: result.current, changedAt: result.changedAt, message: canceled ? `Pedido ${result.numeroOrden} cancelado. El inventario se actualizó.` : "Estado actualizado correctamente." };
   } catch (error) {
     return { success: false as const, message: error instanceof Error ? error.message : "No se pudo actualizar el estado." };
   }

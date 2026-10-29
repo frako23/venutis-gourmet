@@ -219,6 +219,7 @@ export async function guardarEdicionMasivaVentas(_previous: BulkSalesState, form
         const transaction = existingTransactions.get(row.id);
         if (!transaction) throw new Error(`La venta ${row.numeroOrden} ya no existe.`);
         if (transaction.estado === "cancelado" && row.estado !== "cancelado") throw new Error(`La venta ${row.numeroOrden} está cancelada y no puede reabrirse desde el editor masivo.`);
+        if (row.estado === "cancelado" && transaction.estado !== "cancelado") throw new Error(`Cancela ${row.numeroOrden} desde la tabla o el detalle para registrar la razón y devolver el inventario.`);
 
         const totals = calculateSaleTotals(
           transaction.detalles.map((line) => ({ productoId: line.productoId, cantidad: line.cantidad, precioUnitarioUsd: line.precioUnitario })),
