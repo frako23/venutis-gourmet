@@ -1,4 +1,4 @@
-import type { EstadoTransaccion } from "@prisma/client";
+import type { EstadoTransaccion, TipoPrecio } from "@prisma/client";
 
 export const ACTIVE_ORDER_STATES = ["por_cobrar", "en_pedido", "pagado"] as const;
 
@@ -65,4 +65,21 @@ export function requiresExplicitPaymentConfirmation(
     nextState === "pagado" &&
     !confirmed
   );
+}
+
+const paymentLabels: Record<string, string> = {
+  TransferenciaBs: "Transferencia Bs",
+  EfectivoUsd: "Efectivo USD",
+  Zelle: "Zelle",
+  PagoMovil: "Pago móvil",
+  TransferenciaUsd: "Transferencia USD",
+  NoEspecificado: "No especificado",
+};
+
+export function getPaymentMethodLabel(method: string) {
+  return paymentLabels[method] ?? method;
+}
+
+export function getPriceTypeLabel(tipo: TipoPrecio | null) {
+  return tipo === "detal" ? "Detal" : tipo === "mayor" ? "Mayor" : tipo === "promo" ? "Promo" : "Sin especificar";
 }

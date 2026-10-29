@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { requireAdmin } from "@/lib/admin/auth";
+import { anularAbonoEnPedido, registrarAbonoEnPedido } from "@/lib/admin/abonos";
 import { aplicarCambioEstadoPedido } from "@/lib/admin/order-state-change";
 import { prisma } from "@/lib/prisma";
 
@@ -51,5 +52,63 @@ export async function actualizarEstadoPedido(formData: FormData) {
     return { success: true as const, transactionId: input.transaccionId, estadoAnterior: result.previous, estadoNuevo: result.current, changedAt: result.changedAt, message: canceled ? `Pedido ${result.numeroOrden} cancelado. El inventario se actualizó.` : "Estado actualizado correctamente." };
   } catch (error) {
     return { success: false as const, message: error instanceof Error ? error.message : "No se pudo actualizar el estado." };
+  }
+}
+
+const abonoSchema = z
+  .object({
+    transaccionId: z.coerce.number().int().positive(),
+    moneda: z.enum(["usd", "bs"]),
+    monto: z.coerce.number().positive().refine((value) => Math.abs(Math.round(value * 100) - value * 100) < 1e-6, "El monto admite como máximo 2 decimales."),
+    tasaCambio: z.coerce.number().positive().nullable().optional(),
+    metodoPago: z.nativeEnum(MetodoPago).refine((metodo) => metodo !== "NoEspecificado", "Elige el método de pago."),
+    referencia: z.string().trim().max(120).nullable().optional(),
+    fechaPago: z.coerce.date().refine((fecha) => fecha.getTime() <= Date.now() + 24 * 60 * 60 * 1000, "La fecha no puede ser posterior a hoy."),
+  })
+  .superRefine((value, ctx) => {
+    if (value.moneda === "bs" && !value.tasaCambio) ctx.addIssue({ code: "custom", path: ["tasaCambio"], message: "La tasa de cambio es obligatoria para abonos en bolívares." });
+  });
+
+function revalidarPedido(transaccionId: number) {
+  revalidatePath("/admin");
+  revalidatePath("/admin/transactions");
+  revalidatePath(`/admin/transactions/${transaccionId}`);
+}
+
+export async function registrarAbono(formData: FormData) {
+  const actor = await requireAdmin();
+  const tasa = formData.get("tasaCambio")?.toString().trim();
+  const parsed = abonoSchema.safeParse({
+    transaccionId: formData.get("transaccionId"),
+    moneda: formData.get("moneda"),
+    monto: formData.get("monto"),
+    tasaCambio: tasa ? tasa : null,
+    metodoPago: formData.get("metodoPago"),
+    referencia: formData.get("referencia")?.toString() || null,
+    fechaPago: formData.get("fechaPago") || new Date().toISOString(),
+  });
+  if (!parsed.success) return { success: false as const, message: "Revisa los datos del abono." };
+
+  try {
+    const result = await prisma.$transaction((tx) => registrarAbonoEnPedido(tx, parsed.data, actor));
+    revalidarPedido(parsed.data.transaccionId);
+    const message = result.estado === "pagado" ? `Abono registrado. El pedido ${result.numeroOrden} quedó pagado.` : `Abono registrado. Saldo pendiente: USD ${result.saldoUsd.toFixed(2)}.`;
+    return { success: true as const, message, abonadoUsd: result.abonadoUsd, saldoUsd: result.saldoUsd, estado: result.estado };
+  } catch (error) {
+    return { success: false as const, message: error instanceof Error ? error.message : "No se pudo registrar el abono." };
+  }
+}
+
+export async function anularAbono(formData: FormData) {
+  const actor = await requireAdmin();
+  const parsed = z.object({ pagoId: z.coerce.number().int().positive(), transaccionId: z.coerce.number().int().positive() }).safeParse({ pagoId: formData.get("pagoId"), transaccionId: formData.get("transaccionId") });
+  if (!parsed.success) return { success: false as const, message: "El abono no es válido." };
+
+  try {
+    const result = await prisma.$transaction((tx) => anularAbonoEnPedido(tx, parsed.data.pagoId, actor));
+    revalidarPedido(parsed.data.transaccionId);
+    return { success: true as const, message: `Abono anulado. Saldo pendiente: USD ${result.saldoUsd.toFixed(2)}.` };
+  } catch (error) {
+    return { success: false as const, message: error instanceof Error ? error.message : "No se pudo anular el abono." };
   }
 }

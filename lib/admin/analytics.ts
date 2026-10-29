@@ -1,6 +1,8 @@
+import { roundQuantity } from "@/lib/inventory";
 import { prisma } from "@/lib/prisma";
 import { calculateMovingAverageForecast, getCompletedPeriods } from "./forecast";
 import type { AnalyticsPeriod } from "./periods";
+import { resumirPorTipoPrecio } from "./sales-calculations";
 import type { AnalyticsResult } from "./types";
 
 export async function consultarAnaliticas({ periodo, productoId, incluirPredictor }: { periodo: AnalyticsPeriod; productoId?: number; incluirPredictor: boolean }): Promise<AnalyticsResult> {
@@ -14,7 +16,8 @@ export async function consultarAnaliticas({ periodo, productoId, incluirPredicto
     current.totalUsd += line.precioUnitario * line.cantidad;
     productMap.set(line.productoId, current);
   }
-  const porProducto = [...productMap.entries()].map(([id, product]) => ({ productoId: id, nombre: product.nombre, cantidadVendida: product.cantidadVendida, totalUsd: Math.round(product.totalUsd * 100) / 100, porcentajeDelTotal: totalUsd ? Math.round(product.totalUsd / totalUsd * 10000) / 100 : 0 })).sort((a, b) => b.totalUsd - a.totalUsd);
+  const porProducto = [...productMap.entries()].map(([id, product]) => ({ productoId: id, nombre: product.nombre, cantidadVendida: roundQuantity(product.cantidadVendida), totalUsd: Math.round(product.totalUsd * 100) / 100, porcentajeDelTotal: totalUsd ? Math.round(product.totalUsd / totalUsd * 10000) / 100 : 0 })).sort((a, b) => b.totalUsd - a.totalUsd);
+  const porTipoPrecio = resumirPorTipoPrecio(lines, totalUsd);
   let predictor: AnalyticsResult["predictor"] = null;
   if (incluirPredictor) {
     const periods = getCompletedPeriods(periodo.hasta, periodo.tipo, periodo.tipo === "semana" ? 4 : 3);
@@ -22,5 +25,5 @@ export async function consultarAnaliticas({ periodo, productoId, incluirPredicto
     for (const line of historicalLines) { const period = periods.find((candidate) => line.transaccion.fechaCompra >= candidate.inicio && line.transaccion.fechaCompra < candidate.fin); if (period) period.totalUsd += line.cantidad * line.precioUnitario; }
     predictor = calculateMovingAverageForecast(periods, periodo.tipo);
   }
-  return { periodo, totalUsd, cantidadVentas: new Set(lines.map((line) => line.transaccion.id)).size, porProducto, predictor };
+  return { periodo, totalUsd, cantidadVentas: new Set(lines.map((line) => line.transaccion.id)).size, porProducto, porTipoPrecio, predictor };
 }

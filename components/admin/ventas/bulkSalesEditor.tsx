@@ -38,10 +38,11 @@ type NewRow = SharedRow & {
   productoId: number | "";
   cantidad: number;
   precioUnitarioUsd: number | "";
+  tipoPrecio: "detal" | "mayor" | "promo";
 };
 
 type EditorRow = ExistingRow | NewRow;
-type RowPatch = Partial<SharedRow> & Partial<Pick<NewRow, "productoId" | "cantidad" | "precioUnitarioUsd">>;
+type RowPatch = Partial<SharedRow> & Partial<Pick<NewRow, "productoId" | "cantidad" | "precioUnitarioUsd" | "tipoPrecio">>;
 
 const initialState: BulkSalesState = { success: false, message: "" };
 
@@ -50,11 +51,15 @@ function localDateInput(date = new Date()) {
   return new Date(date.getTime() - offset * 60_000).toISOString().slice(0, 16);
 }
 
-function priceFor(clientId: number | "", productId: number | "", clients: EditorClient[], products: EditorProduct[]) {
-  const client = clients.find((item) => item.id === clientId);
+function proposedType(clientId: number | "", clients: EditorClient[]): "detal" | "mayor" {
+  return clients.find((item) => item.id === clientId)?.tipoCliente === "mayorista" ? "mayor" : "detal";
+}
+
+/** Precio de catálogo para el tipo; 0 (vacío) para Promo, que se escribe a mano. */
+function priceFor(productId: number | "", products: EditorProduct[], tipo: "detal" | "mayor" | "promo") {
   const product = products.find((item) => item.id === productId);
-  if (!product) return 0;
-  return client?.tipoCliente === "mayorista" ? product.precioMayorista : product.precioDetal;
+  if (!product || tipo === "promo") return 0;
+  return tipo === "mayor" ? product.precioMayorista : product.precioDetal;
 }
 
 function clientLabel(client: EditorClient) {
@@ -82,7 +87,8 @@ function rowFromSale(row: SalesRow): ExistingRow {
 function newRow(key: string, clients: EditorClient[], products: EditorProduct[]): NewRow {
   const clientId = clients[0]?.id ?? "";
   const productoId = products[0]?.id ?? "";
-  const price = priceFor(clientId, productoId, clients, products);
+  const tipoPrecio = proposedType(clientId, clients);
+  const price = priceFor(productoId, products, tipoPrecio);
   return {
     key,
     id: null,
@@ -100,6 +106,7 @@ function newRow(key: string, clients: EditorClient[], products: EditorProduct[])
     productoId,
     cantidad: 1,
     precioUnitarioUsd: price,
+    tipoPrecio,
   };
 }
 
@@ -146,8 +153,10 @@ export function BulkSalesEditor({ rows: initialRows, clients, products, onClose 
   function updateClient(row: EditorRow, clientId: number | "") {
     const patch: RowPatch = { clienteId: clientId };
     if (row.esNueva) {
-      const price = priceFor(clientId, row.productoId, clients, products);
-      patch.precioUnitarioUsd = price;
+      const tipoPrecio = row.tipoPrecio === "promo" ? "promo" : proposedType(clientId, clients);
+      const price = tipoPrecio === "promo" ? Number(row.precioUnitarioUsd) || 0 : priceFor(row.productoId, products, tipoPrecio);
+      patch.tipoPrecio = tipoPrecio;
+      patch.precioUnitarioUsd = price || "";
       patch.subtotalUsd = price * row.cantidad;
       patch.totalUsd = price * row.cantidad;
     }
@@ -155,9 +164,16 @@ export function BulkSalesEditor({ rows: initialRows, clients, products, onClose 
   }
 
   function updateProduct(row: NewRow, productoId: number | "") {
-    const price = priceFor(row.clienteId, productoId, clients, products);
-    updateRow(row.key, { productoId, precioUnitarioUsd: price, subtotalUsd: price * row.cantidad, totalUsd: price * row.cantidad });
+    const price = priceFor(productoId, products, row.tipoPrecio);
+    updateRow(row.key, { productoId, precioUnitarioUsd: price || "", subtotalUsd: price * row.cantidad, totalUsd: price * row.cantidad });
   }
+
+  function updateType(row: NewRow, tipoPrecio: "detal" | "mayor" | "promo") {
+    const price = priceFor(row.productoId, products, tipoPrecio);
+    updateRow(row.key, { tipoPrecio, precioUnitarioUsd: price || "", subtotalUsd: price * row.cantidad, totalUsd: price * row.cantidad });
+  }
+
+  const hasEmptyNewPrice = rows.some((row) => row.esNueva && !(Number(row.precioUnitarioUsd) > 0));
 
   return <section className="admin-panel overflow-hidden">
     <form id="bulk-sales-form" onSubmit={handleSubmit}>
@@ -169,7 +185,7 @@ export function BulkSalesEditor({ rows: initialRows, clients, products, onClose 
       </div>
       <div className="flex flex-wrap gap-2">
         <button type="button" onClick={() => setRows((current) => [...current, newRow(`new-${Date.now()}`, clients, products)])} disabled={clients.length === 0 || products.length === 0} className="admin-button-primary admin-button-brass"><Plus size={16} /> Agregar fila siguiente</button>
-        <button type="submit" disabled={isPending || rows.length === 0} className="admin-button-primary admin-button-brass"><Save size={16} /> {isPending ? "Guardando..." : "Guardar cambios"}</button>
+        <button type="submit" disabled={isPending || rows.length === 0 || hasEmptyNewPrice} className="admin-button-primary admin-button-brass"><Save size={16} /> {isPending ? "Guardando..." : "Guardar cambios"}</button>
         <button type="button" onClick={onClose} className="admin-button-secondary"><X size={16} /> Cerrar</button>
       </div>
     </div>
@@ -183,15 +199,16 @@ export function BulkSalesEditor({ rows: initialRows, clients, products, onClose 
         tabIndex={0}
       >
         <table className="admin-table admin-sheet w-max min-w-[1420px] text-left text-sm">
-          <thead><tr><th>Orden</th><th>Fecha</th><th>Cliente</th><th>Producto / línea</th><th>Cantidad</th><th>Precio USD</th><th>Descuento</th><th>Estado</th><th>Entrega</th><th>Subtotal</th><th>Total</th><th aria-label="Acciones" /></tr></thead>
+          <thead><tr><th>Orden</th><th>Fecha</th><th>Cliente</th><th>Producto / línea</th><th>Tipo</th><th>Cantidad</th><th>Precio USD</th><th>Descuento</th><th>Estado</th><th>Entrega</th><th>Subtotal</th><th>Total</th><th aria-label="Acciones" /></tr></thead>
           <tbody>
             {rows.map((row) => <tr key={row.key} className={row.esNueva ? "bg-[#fffaf0]" : undefined}>
               <td><input aria-label={`Orden ${row.key}`} value={row.numeroOrden} onChange={(event) => updateRow(row.key, { numeroOrden: event.target.value })} placeholder="Se genera" className="admin-sheet-input w-32 admin-mono" /></td>
               <td><input aria-label={`Fecha ${row.key}`} type="datetime-local" value={row.fechaCompra} onChange={(event) => updateRow(row.key, { fechaCompra: event.target.value })} className="admin-sheet-input w-44 admin-mono" /></td>
               <td><select aria-label={`Cliente ${row.key}`} value={row.clienteId} onChange={(event) => updateClient(row, event.target.value ? Number(event.target.value) : "")} className="admin-sheet-input w-56"><option value="">Selecciona</option>{clients.map((client) => <option key={client.id} value={client.id}>{clientLabel(client)}</option>)}</select></td>
               <td>{row.esNueva ? <select aria-label={`Producto ${row.key}`} value={row.productoId} onChange={(event) => updateProduct(row, event.target.value ? Number(event.target.value) : "")} className="admin-sheet-input w-60"><option value="">Selecciona</option>{products.map((product) => <option key={product.id} value={product.id}>{product.nombre} · stock {product.inventario}</option>)}</select> : <span className="inline-flex min-h-10 items-center px-2 text-xs text-[#707970]">Líneas conservadas</span>}</td>
-              <td>{row.esNueva ? <input aria-label={`Cantidad ${row.key}`} type="number" min="1" step="1" value={row.cantidad} onChange={(event) => { const cantidad = Number(event.target.value); const price = Number(row.precioUnitarioUsd) || 0; updateRow(row.key, { cantidad, subtotalUsd: cantidad * price, totalUsd: cantidad * price }); }} className="admin-sheet-input w-20 admin-mono" /> : <span className="admin-mono px-2 text-[#707970]">—</span>}</td>
-              <td>{row.esNueva ? <input aria-label={`Precio ${row.key}`} type="number" min="0.01" step="0.01" value={row.precioUnitarioUsd} onChange={(event) => { const price = Number(event.target.value); updateRow(row.key, { precioUnitarioUsd: price, subtotalUsd: price * row.cantidad, totalUsd: price * row.cantidad }); }} className="admin-sheet-input w-28 admin-mono" /> : <span className="admin-mono px-2 text-[#707970]">—</span>}</td>
+              <td>{row.esNueva ? <select aria-label={`Tipo de precio ${row.key}`} value={row.tipoPrecio} onChange={(event) => updateType(row, event.target.value as "detal" | "mayor" | "promo")} className="admin-sheet-input w-24"><option value="detal">Detal</option><option value="mayor">Mayor</option><option value="promo">Promo</option></select> : <span className="admin-mono px-2 text-[#707970]">—</span>}</td>
+              <td>{row.esNueva ? <input aria-label={`Cantidad ${row.key}`} type="number" min="0.01" step="0.01" value={row.cantidad} onChange={(event) => { const cantidad = Number(event.target.value); const price = Number(row.precioUnitarioUsd) || 0; updateRow(row.key, { cantidad, subtotalUsd: cantidad * price, totalUsd: cantidad * price }); }} className="admin-sheet-input w-20 admin-mono" /> : <span className="admin-mono px-2 text-[#707970]">—</span>}</td>
+              <td>{row.esNueva ? <input aria-label={`Precio ${row.key}`} type="number" min="0.01" step="0.01" placeholder={row.tipoPrecio === "promo" ? "Promoción" : undefined} value={row.precioUnitarioUsd} onChange={(event) => { const price = Number(event.target.value); updateRow(row.key, { precioUnitarioUsd: event.target.value === "" ? "" : price, subtotalUsd: price * row.cantidad, totalUsd: price * row.cantidad }); }} className="admin-sheet-input w-28 admin-mono" /> : <span className="admin-mono px-2 text-[#707970]">—</span>}</td>
               <td><div className="flex min-w-[190px] gap-1"><select aria-label={`Tipo de descuento ${row.key}`} value={row.tipoDescuento} onChange={(event) => updateRow(row.key, { tipoDescuento: event.target.value as TipoDescuento | "", valorDescuento: event.target.value ? row.valorDescuento : "" })} className="admin-sheet-input w-28"><option value="">Sin descuento</option><option value="porcentaje">%</option><option value="usd">USD</option></select><input aria-label={`Valor de descuento ${row.key}`} type="number" min="0" step="0.01" value={row.valorDescuento} disabled={!row.tipoDescuento} onChange={(event) => updateRow(row.key, { valorDescuento: event.target.value === "" ? "" : Number(event.target.value) })} className="admin-sheet-input w-20 admin-mono disabled:cursor-not-allowed disabled:bg-[#f0eee5]" /></div></td>
               <td><select aria-label={`Estado ${row.key}`} value={row.estado} disabled={row.estado === "cancelado"} onChange={(event) => updateRow(row.key, { estado: event.target.value as EstadoTransaccion })} className="admin-sheet-input w-32"><option value="por_cobrar">Por cobrar</option><option value="en_pedido">En pedido</option><option value="pagado">Pagado</option>{row.estado === "pendiente" && <option value="pendiente">Histórico: pendiente</option>}{row.estado === "cancelado" && <option value="cancelado">Cancelado</option>}</select></td>
               <td><select aria-label={`Entrega ${row.key}`} value={row.tipodeRetiro} onChange={(event) => updateRow(row.key, { tipodeRetiro: event.target.value as TipoRetiro })} className="admin-sheet-input w-28"><option value="envio">Envío</option><option value="recogida">Recogida</option></select></td>
@@ -208,7 +225,7 @@ export function BulkSalesEditor({ rows: initialRows, clients, products, onClose 
         <span className="text-xs text-[#707970]">{rows.length} fila(s) · {newCount} nueva(s)</span>
       </div>
       <input type="hidden" name="confirmarPagos" value={confirmarPagos ? "true" : "false"} />
-      <input type="hidden" name="ventasMasivas" value={JSON.stringify({ existentes: rows.filter((row): row is ExistingRow => !row.esNueva).map((row) => ({ id: row.id, numeroOrden: row.numeroOrden, clienteId: row.clienteId, fechaCompra: row.fechaCompra, estado: row.estado, tipodeRetiro: row.tipodeRetiro, tipoDescuento: row.tipoDescuento || null, valorDescuento: row.tipoDescuento && row.valorDescuento !== "" ? row.valorDescuento : null })), nuevas: rows.filter((row): row is NewRow => row.esNueva).map((row) => ({ numeroOrden: row.numeroOrden, clienteId: row.clienteId, fechaCompra: row.fechaCompra, estado: row.estado, tipodeRetiro: row.tipodeRetiro, productoId: row.productoId, cantidad: row.cantidad, precioUnitarioUsd: row.precioUnitarioUsd, tipoDescuento: row.tipoDescuento || null, valorDescuento: row.tipoDescuento && row.valorDescuento !== "" ? row.valorDescuento : null })), confirmarPagos })} />
+      <input type="hidden" name="ventasMasivas" value={JSON.stringify({ existentes: rows.filter((row): row is ExistingRow => !row.esNueva).map((row) => ({ id: row.id, numeroOrden: row.numeroOrden, clienteId: row.clienteId, fechaCompra: row.fechaCompra, estado: row.estado, tipodeRetiro: row.tipodeRetiro, tipoDescuento: row.tipoDescuento || null, valorDescuento: row.tipoDescuento && row.valorDescuento !== "" ? row.valorDescuento : null })), nuevas: rows.filter((row): row is NewRow => row.esNueva).map((row) => ({ numeroOrden: row.numeroOrden, clienteId: row.clienteId, fechaCompra: row.fechaCompra, estado: row.estado, tipodeRetiro: row.tipodeRetiro, productoId: row.productoId, cantidad: row.cantidad, precioUnitarioUsd: row.precioUnitarioUsd, tipoPrecio: row.tipoPrecio, tipoDescuento: row.tipoDescuento || null, valorDescuento: row.tipoDescuento && row.valorDescuento !== "" ? row.valorDescuento : null })), confirmarPagos })} />
     </form>
   </section>;
 }

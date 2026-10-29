@@ -38,6 +38,7 @@ Tienda + panel administrativo + punto de venta para pastas/salsas gourmet. Next.
 - Checkout web (`procesarCompra` en `lib/actions/checkout.ts`): una sola transacción Prisma que valida/descuenta inventario, crea `Transaccion` + `DetalleCompra`, registra `Pago` y acumula `Fidelidad`.
 - Venta manual admin (`lib/actions/admin-sales.ts`): también escribe `Transaccion` de forma atómica con descuentos (porcentaje o USD).
 - `/venta-rapida`: solo arma el pedido y lo envía por WhatsApp; **no** crea `Transaccion` ni descuenta inventario (aunque existe un flujo de pedido directo desde checkout).
+- Carga de Excel (`/admin/transactions/import`, `lib/actions/sales-import.ts`): convierte el "Control de ventas" de la dueña en pedidos (nota de entrega = `numeroOrden`, único, así que recargar no duplica). Es atómica, marca `Transaccion.importada` y **no toca inventario ni fidelidad**; cancelar un pedido importado tampoco devuelve stock. Lee `.xlsx` con `lib/admin/xlsx-reader.ts` (sin dependencias) y recuerda las decisiones de productos y clientes en `EquivalenciaProducto`/`EquivalenciaCliente`. La exportación `/admin/transactions/export?formato=control` genera el mismo formato.
 - `/cotizacion-rapida`: deliberadamente no persistida; genera un PNG en el navegador y solo relee precio/inventario para no emitir datos obsoletos.
 
 **Estado cliente duplicado**: el estado del carrito/checkout vive en `store/appStore.ts` (Zustand persistido) y también en `context/checkoutContext.tsx`. Tenerlo en cuenta al modificar el checkout para no divergir.
@@ -45,6 +46,10 @@ Tienda + panel administrativo + punto de venta para pastas/salsas gourmet. Next.
 **Catálogo unificado**: una sola experiencia para consumidores y mayoristas en `/productos/consumidores`; el contexto (`?contexto=consumidor|mayorista`) decide el precio (`precioDetal` / `precioMayorista`). `/productos/mayoristas` solo redirige.
 
 **Modelo de pedidos**: `Transaccion.total` es canónico en USD; el Bs sale de la tasa (`hooks/useDolar.ts`, `Pago.tasaCambio`). Estados operativos: `por_cobrar`, `en_pedido`, `pagado` y `cancelado`. `cancelado` es final: solo se aplica a pedidos no cobrados, devuelve el inventario en la misma transacción, guarda la razón opcional en `EstadoTransaccionHistorial.motivo` y no se ofrece en el editor masivo. `pendiente` (se muestra como "Por cobrar") se conserva por compatibilidad histórica. Los cambios de estado pasan por `order-status.ts`/`admin-orders.ts` y se registran en `EstadoTransaccionHistorial` (append-only). Las analíticas excluyen canceladas.
+
+**Cantidades e inventario**: `DetalleCompra.cantidad` y `Producto.inventario` admiten hasta 2 decimales. Todo cambio de inventario de ventas y cancelaciones pasa por `ajustarInventario` (`lib/inventory.ts`), que bloquea la fila y redondea. La tienda, la venta rápida y la cotización ven `unidadesDisponibles(inventario)` (enteros).
+
+**Tipo de precio y abonos**: cada línea nueva guarda `DetalleCompra.tipoPrecio` (`detal`/`mayor`/`promo`; `null` = anterior a la función). `Pago.esAbono = true` es un cobro recibido; los demás `Pago` son pagos *declarados*. El saldo no se guarda: `calcularSaldo` (`lib/admin/abonos.ts`) = total − abonos vigentes (0 si está pagado). Un abono que salda pasa el pedido a `pagado` ("Saldado con abonos"). Los clientes creados desde una carga pueden no tener `celular`.
 
 **Notas de entrega** (mayoristas): guardan snapshots de líneas (`DetalleNotaEntrega`), no tocan inventario ni pagos, y el PDF se genera localmente con `pdf-lib`.
 

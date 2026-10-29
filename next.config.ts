@@ -2,6 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
+  experimental: {
+    // Cargas de Excel de hasta 5 MB (FR-002); el valor por defecto es 1 MB.
+    serverActions: { bodySizeLimit: "6mb" },
+  },
   images: {
     remotePatterns: [
       {

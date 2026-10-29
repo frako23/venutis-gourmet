@@ -1,5 +1,6 @@
 import type { ProductoVentaRapida } from "@/components/venta-rapida/puntoDeVenta";
 import PuntoDeVenta from "@/components/venta-rapida/puntoDeVenta";
+import { unidadesDisponibles } from "@/lib/inventory";
 import { PrismaClient } from "@prisma/client";
 
 const normalizeProductName = (name: string) =>
@@ -73,7 +74,7 @@ export default async function VentaRapida({
     return orderA - orderB;
   });
 
-  const availableProducts = sortedProducts.filter((p) => p.inventario > 0);
+  const availableProducts = sortedProducts.filter((p) => unidadesDisponibles(p.inventario) > 0);
 
   const productos: ProductoVentaRapida[] = availableProducts.map((p) => ({
     id: String(p.id),
@@ -81,7 +82,7 @@ export default async function VentaRapida({
     precioUsd: p.precioDetal,
     categoria: p.categoria,
     imagenes: p.imagenes,
-    inventario: p.inventario,
+    inventario: unidadesDisponibles(p.inventario),
   }));
 
   return (

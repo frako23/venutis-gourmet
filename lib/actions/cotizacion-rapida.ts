@@ -1,6 +1,7 @@
 "use server";
 
 import { PRODUCT_ORDER } from "@/lib/constants/constants";
+import { unidadesDisponibles } from "@/lib/inventory";
 import { prisma } from "@/lib/prisma";
 import type { QuoteProduct } from "@/lib/cotizacion-rapida";
 
@@ -27,7 +28,7 @@ function toQuoteProduct(product: {
     nombre: product.nombre,
     categoria: product.categoria,
     precioUsd: product.precioDetal,
-    inventario: product.inventario,
+    inventario: unidadesDisponibles(product.inventario),
     ...(product.imagenes[0]?.url
       ? { imagenUrl: product.imagenes[0].url }
       : {}),

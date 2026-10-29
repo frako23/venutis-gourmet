@@ -13,6 +13,11 @@ export function normalizePurchaseContext(value: unknown): PurchaseContext {
   return value === "mayorista" ? "mayorista" : DEFAULT_PURCHASE_CONTEXT;
 }
 
+/** Tipo de precio que se registra en las líneas según el contexto de compra de la tienda. */
+export function getPriceTypeForContext(context: PurchaseContext): "detal" | "mayor" {
+  return context === "mayorista" ? "mayor" : "detal";
+}
+
 export function getPurchaseContextLabel(context: PurchaseContext) {
   return context === "mayorista" ? "Mayorista" : "Consumidor";
 }

@@ -49,7 +49,7 @@ type ClientValues = {
   nombre: string;
   apellido: string;
   rif: string | null;
-  celular: string;
+  celular: string | null;
   email: string | null;
 };
 
@@ -176,7 +176,7 @@ export async function crearClienteAdministrativo(_previous: ClientCreateState, f
 
   try {
     const [phoneConflict, emailConflict, rifConflict] = await Promise.all([
-      prisma.cliente.findUnique({ where: { celular: normalized.values.celular }, select: { id: true } }),
+      normalized.values.celular ? prisma.cliente.findUnique({ where: { celular: normalized.values.celular }, select: { id: true } }) : null,
       normalized.values.email ? prisma.cliente.findUnique({ where: { email: normalized.values.email }, select: { id: true } }) : null,
       normalized.values.rif ? prisma.cliente.findUnique({ where: { rif: normalized.values.rif }, select: { id: true } }) : null,
     ]);

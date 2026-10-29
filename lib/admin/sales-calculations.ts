@@ -1,3 +1,6 @@
+import { isValidQuantity, roundQuantity } from "../inventory.ts";
+import { getPriceTypeLabel } from "./status.ts";
+
 export type SaleLineInput = {
   productoId: number;
   cantidad: number;
@@ -41,8 +44,8 @@ export function calculateSubtotal(lines: SaleLineInput[]) {
 
   return roundMoney(
     lines.reduce((total, line) => {
-      if (!Number.isInteger(line.cantidad) || line.cantidad <= 0) {
-        throw new Error("La cantidad debe ser un entero mayor que cero");
+      if (!isValidQuantity(line.cantidad)) {
+        throw new Error("La cantidad debe ser mayor que cero y tener como máximo 2 decimales");
       }
 
       if (!Number.isFinite(line.precioUnitarioUsd) || line.precioUnitarioUsd <= 0) {
@@ -92,4 +95,26 @@ export function calculateSaleTotals(
     totalBs: resolvedRate ? convertUsdToBs(totalUsd, resolvedRate) : null,
     tasaCambio: resolvedRate,
   };
+}
+
+type TipoPrecioLinea = "detal" | "mayor" | "promo" | null;
+
+/** Desglose de líneas por tipo de precio; `null` se presenta como "Sin especificar". */
+export function resumirPorTipoPrecio(lines: Array<{ tipoPrecio: TipoPrecioLinea; cantidad: number; precioUnitario: number }>, totalUsd: number) {
+  const porTipo = new Map<TipoPrecioLinea, { cantidadVendida: number; totalUsd: number }>();
+  for (const line of lines) {
+    const actual = porTipo.get(line.tipoPrecio) ?? { cantidadVendida: 0, totalUsd: 0 };
+    actual.cantidadVendida += line.cantidad;
+    actual.totalUsd += line.precioUnitario * line.cantidad;
+    porTipo.set(line.tipoPrecio, actual);
+  }
+  return [...porTipo.entries()]
+    .map(([tipoPrecio, valor]) => ({
+      tipoPrecio,
+      etiqueta: getPriceTypeLabel(tipoPrecio),
+      cantidadVendida: roundQuantity(valor.cantidadVendida),
+      totalUsd: roundMoney(valor.totalUsd),
+      porcentajeDelTotal: totalUsd ? Math.round((valor.totalUsd / totalUsd) * 10000) / 100 : 0,
+    }))
+    .sort((a, b) => b.totalUsd - a.totalUsd);
 }

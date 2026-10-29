@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireAdmin } from "../admin/auth";
+import { isValidQuantity, roundQuantity } from "../inventory";
 import { prisma } from "../prisma";
 
 interface ProductActionState {
@@ -20,14 +21,14 @@ const ProductSchema = z.object({
   categoria: z.string().min(1, "Selecciona una categoría"),
   inventario: z.coerce
     .number()
-    .int()
-    .positive("El inventario debe ser mayor a 0"),
+    .refine((value) => isValidQuantity(value), "El inventario debe ser mayor a 0 y tener como máximo 2 decimales")
+    .transform(roundQuantity),
   ubicacion: z.string().min(1, "La ubicación es requerida"),
   descripcion: z.string().optional().or(z.literal("")),
 });
 
 const InventoryUpdateSchema = z.object({
-  inventario: z.number().int().nonnegative("El inventario no puede ser negativo"),
+  inventario: z.number().refine((value) => value === 0 || isValidQuantity(value), "El inventario no puede ser negativo y admite como máximo 2 decimales").transform(roundQuantity),
   precioDetal: z.number().finite().nonnegative("El precio detal no puede ser negativo"),
   precioMayorista: z.number().finite().nonnegative("El precio mayorista no puede ser negativo"),
 });

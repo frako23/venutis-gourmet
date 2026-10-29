@@ -49,6 +49,8 @@ export type SalesRow = MoneyFields & {
   productos: Array<{ nombre: string; cantidad: number }>;
   pagos: Array<{ metodoPago: string; referencia: string | null }>;
   montoBsPagado: number;
+  abonadoUsd: number;
+  saldoUsd: number;
   estado: EstadoTransaccion;
   tipoDescuento: TipoDescuento | null;
   valorDescuento: number | null;
@@ -75,11 +77,20 @@ export type AnalyticsProductRow = {
   porcentajeDelTotal: number;
 };
 
+export type AnalyticsPriceTypeRow = {
+  tipoPrecio: "detal" | "mayor" | "promo" | null;
+  etiqueta: string;
+  cantidadVendida: number;
+  totalUsd: number;
+  porcentajeDelTotal: number;
+};
+
 export type AnalyticsResult = {
   periodo: AnalyticsPeriod;
   totalUsd: number;
   cantidadVentas: number;
   porProducto: AnalyticsProductRow[];
+  porTipoPrecio: AnalyticsPriceTypeRow[];
   predictor: {
     valorUsd: number;
     periodoObjetivo: string;
@@ -122,7 +133,7 @@ export type ClientRow = {
   nombre: string;
   apellido: string;
   rif: string | null;
-  celular: string;
+  celular: string | null;
   email: string | null;
   direcciones: ClientAddressRow[];
   cantidadTransacciones: number;
@@ -134,7 +145,7 @@ export type ClientRow = {
 export type ClientPatch = {
   id: number;
   updatedAt: string;
-  changes: Partial<Pick<ClientRow, "tipoCliente" | "nombre" | "apellido" | "rif" | "celular" | "email">>;
+  changes: Partial<Pick<ClientRow, "tipoCliente" | "nombre" | "apellido" | "rif" | "email">> & { celular?: string };
 };
 
 export type BulkClientsState =
@@ -195,3 +206,82 @@ export type WebsiteVisitsResult = {
   };
   message: string;
 };
+
+export type ProblemaCarga = {
+  fila: number | null;
+  columna: string | null;
+  nivel: "error" | "advertencia";
+  mensaje: string;
+  nota: string | null;
+};
+
+export type VistaPreviaCarga = {
+  archivo: { nombre: string; hoja: string; filaEncabezados: number };
+  resumen: {
+    notasNuevas: number;
+    notasYaRegistradas: number;
+    notasConError: number;
+    lineas: number;
+    totalUsd: number;
+    porCobrarUsd: number;
+  };
+  notas: Array<{
+    numero: string;
+    fecha: string;
+    claveCliente: string;
+    textoCliente: string;
+    totalUsd: number;
+    abonadoUsd: number;
+    saldoUsd: number;
+    estadoResultante: "pagado" | "por_cobrar";
+    situacion: "nueva" | "ya_registrada" | "conflicto" | "con_error";
+    pedidoExistente: { id: number; cliente: string; fecha: string; totalUsd: number } | null;
+    lineas: Array<{
+      fila: number;
+      claveProducto: string;
+      descripcion: string;
+      cantidad: number;
+      tipoPrecio: "detal" | "mayor" | "promo" | null;
+      precioUnitarioUsd: number;
+      importeUsd: number;
+      abonadoUsd: number;
+    }>;
+  }>;
+  productos: Array<{
+    clave: string;
+    grupo: string | null;
+    producto: string;
+    sabor: string | null;
+    gramos: number | null;
+    lineas: number;
+    resolucion:
+      | { tipo: "equivalencia" | "exacta"; productoId: number; nombre: string }
+      | { tipo: "sugerida"; productoId: number; nombre: string }
+      | { tipo: "pendiente" };
+    preciosCatalogo: { detal: number; mayor: number } | null;
+  }>;
+  clientes: Array<{
+    clave: string;
+    texto: string;
+    tipoPropuesto: "mayorista" | "detal";
+    resolucion:
+      | { tipo: "equivalencia" | "exacta"; clienteId: number; nombre: string }
+      | { tipo: "pendiente"; coincidencias: Array<{ clienteId: number; nombre: string }> };
+  }>;
+  catalogo: Array<{ id: number; nombre: string; categoria: string; precioDetal: number; precioMayorista: number }>;
+  problemas: ProblemaCarga[];
+  puedeConfirmar: boolean;
+};
+
+export type ResolucionesCarga = {
+  productos: Record<string, number>;
+  clientes: Record<string, { accion: "vincular"; clienteId: number } | { accion: "crear"; tipoCliente: "mayorista" | "detal" }>;
+};
+
+export type PrevisualizacionState =
+  | { success: true; message: string; vista: VistaPreviaCarga }
+  | { success: false; message: string };
+
+export type ConfirmacionState =
+  | { success: true; message: string; creados: number; omitidos: number; totalUsd: number; desde: string; hasta: string }
+  | { success: false; message: string; problemas?: ProblemaCarga[] };

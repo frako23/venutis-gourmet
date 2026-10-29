@@ -5,16 +5,19 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { requireAdmin } from "@/lib/admin/auth";
+import { calcularAbonado, validarTotalContraAbonado } from "@/lib/admin/abonos";
 import { calculateSaleTotals, type DiscountInput, type SaleLineInput } from "@/lib/admin/sales-calculations";
 import { requiresPaymentConfirmation } from "@/lib/admin/status";
 import type { BulkSalesState, ManualSaleState } from "@/lib/admin/types";
+import { ajustarInventario, isValidQuantity } from "@/lib/inventory";
 import { nextOrderNumber } from "@/lib/order-number";
 import { prisma } from "@/lib/prisma";
 
 const lineSchema = z.object({
   productoId: z.coerce.number().int().positive(),
-  cantidad: z.coerce.number().int().positive(),
+  cantidad: z.coerce.number().refine(isValidQuantity, "La cantidad debe ser mayor que cero y tener como máximo 2 decimales."),
   precioUnitarioUsd: z.coerce.number().finite().positive(),
+  tipoPrecio: z.enum(["detal", "mayor", "promo"]),
 });
 
 const discountSchema = z.object({
@@ -92,11 +95,8 @@ export async function registrarVentaManual(_previous: ManualSaleState, formData:
       const client = await tx.cliente.findUnique({ where: { id: input.clienteId }, select: { id: true } });
       if (!client) throw new Error("El cliente seleccionado no existe.");
 
-      for (const [productoId, cantidad] of uniqueQuantities) {
-        const product = await tx.producto.findUnique({ where: { id: productoId }, select: { id: true, nombre: true } });
-        if (!product) throw new Error("Uno de los productos seleccionados no existe.");
-        const updated = await tx.producto.updateMany({ where: { id: productoId, inventario: { gte: cantidad } }, data: { inventario: { decrement: cantidad } } });
-        if (updated.count !== 1) throw new Error(`Stock insuficiente para ${product.nombre}.`);
+      for (const [productoId, cantidad] of [...uniqueQuantities].sort((a, b) => a[0] - b[0])) {
+        await ajustarInventario(tx, productoId, -cantidad, { exigirStock: true });
       }
 
       const orderNumber = input.numeroOrden || await nextOrderNumber(tx);
@@ -115,7 +115,7 @@ export async function registrarVentaManual(_previous: ManualSaleState, formData:
           tipodeRetiro: input.tipodeRetiro as TipoRetiro,
         },
       });
-      await tx.detalleCompra.createMany({ data: input.lineas.map((line) => ({ transaccionId: transaction.id, productoId: line.productoId, cantidad: line.cantidad, precioUnitario: line.precioUnitarioUsd })) });
+      await tx.detalleCompra.createMany({ data: input.lineas.map((line) => ({ transaccionId: transaction.id, productoId: line.productoId, cantidad: line.cantidad, precioUnitario: line.precioUnitarioUsd, tipoPrecio: line.tipoPrecio })) });
       await tx.estadoTransaccionHistorial.create({ data: { transaccionId: transaction.id, estadoNuevo: input.estadoInicial as EstadoTransaccion, actorId: actor.id, actorEmail: actor.email, motivo: "Venta registrada manualmente" } });
       if (input.pago) await tx.pago.create({ data: { transaccionId: transaction.id, montoBs: input.pago.montoBs ?? null, montoUsd: input.pago.montoUsd ?? totals.totalUsd, metodoPago: input.pago.metodoPago, referencia: input.pago.referencia ?? null, fechaPago: input.pago.fechaPago ?? input.fechaCompra, tasaCambio: totals.tasaCambio } });
       return { id: transaction.id, numeroOrden: transaction.numeroOrden };
@@ -135,9 +135,10 @@ export async function actualizarDescuentoVenta(formData: FormData) {
   const parsed = z.object({ transactionId: z.coerce.number().int().positive(), tipo: z.enum(["porcentaje", "usd"]), valor: z.coerce.number().finite().nonnegative() }).safeParse({ transactionId: formData.get("transactionId"), tipo: formData.get("tipo"), valor: formData.get("valor") });
   if (!parsed.success) return { success: false as const, message: "El descuento no es válido." };
   try {
-    const transaction = await prisma.transaccion.findUnique({ where: { id: parsed.data.transactionId }, include: { detalles: true } });
+    const transaction = await prisma.transaccion.findUnique({ where: { id: parsed.data.transactionId }, include: { detalles: true, pagos: true } });
     if (!transaction) return { success: false as const, message: "La venta no existe." };
     const totals = calculateSaleTotals(transaction.detalles.map((line) => ({ productoId: line.productoId, cantidad: line.cantidad, precioUnitarioUsd: line.precioUnitario })), { tipo: parsed.data.tipo, valor: parsed.data.valor }, transaction.tasaCambio);
+    validarTotalContraAbonado(totals.totalUsd, calcularAbonado(transaction.pagos));
     await prisma.transaccion.update({ where: { id: transaction.id }, data: { montoSubtotal: totals.subtotalUsd, montoDescuento: totals.descuentoUsd, valorDescuento: parsed.data.valor, tipoDescuento: parsed.data.tipo, montoTotal: totals.totalUsd } });
     revalidatePath("/admin/transactions");
     revalidatePath(`/admin/transactions/${transaction.id}`);
@@ -165,8 +166,9 @@ const bulkNewRowSchema = z.object({
   estado: z.enum(["por_cobrar", "en_pedido", "pagado"]),
   tipodeRetiro: z.enum(["envio", "recogida"]),
   productoId: z.number().int().positive(),
-  cantidad: z.number().int().positive(),
+  cantidad: z.number().refine(isValidQuantity, "La cantidad debe ser mayor que cero y tener como máximo 2 decimales."),
   precioUnitarioUsd: z.number().finite().positive(),
+  tipoPrecio: z.enum(["detal", "mayor", "promo"]),
   tipoDescuento: z.enum(["porcentaje", "usd"]).nullable(),
   valorDescuento: z.number().finite().nonnegative().nullable(),
 });
@@ -269,8 +271,7 @@ export async function guardarEdicionMasivaVentas(_previous: BulkSalesState, form
         );
         if (row.estado === "pagado" && !input.confirmarPagos) throw new Error("Confirma el cobro de las filas nuevas marcadas como pagadas.");
 
-        const stock = await tx.producto.updateMany({ where: { id: row.productoId, inventario: { gte: row.cantidad } }, data: { inventario: { decrement: row.cantidad } } });
-        if (stock.count !== 1) throw new Error(`Stock insuficiente para ${product.nombre}.`);
+        await ajustarInventario(tx, row.productoId, -row.cantidad, { exigirStock: true });
 
         const numeroOrden = row.numeroOrden || await nextOrderNumber(tx);
         const transaction = await tx.transaccion.create({
@@ -287,7 +288,7 @@ export async function guardarEdicionMasivaVentas(_previous: BulkSalesState, form
             tipodeRetiro: row.tipodeRetiro as TipoRetiro,
           },
         });
-        await tx.detalleCompra.create({ data: { transaccionId: transaction.id, productoId: row.productoId, cantidad: row.cantidad, precioUnitario: row.precioUnitarioUsd } });
+        await tx.detalleCompra.create({ data: { transaccionId: transaction.id, productoId: row.productoId, cantidad: row.cantidad, precioUnitario: row.precioUnitarioUsd, tipoPrecio: row.tipoPrecio } });
         await tx.estadoTransaccionHistorial.create({ data: { transaccionId: transaction.id, estadoNuevo: row.estado as EstadoTransaccion, actorId: actor.id, actorEmail: actor.email, motivo: "Pedido cargado desde el editor masivo" } });
         created += 1;
       }

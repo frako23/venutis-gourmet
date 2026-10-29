@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
+import { getPriceTypeForContext } from "../../lib/catalog-context.js";
 import {
   calculateCheckoutTotals,
   getInitialOrderState,
@@ -10,6 +11,11 @@ import {
 } from "../../lib/checkout-rules.js";
 
 describe("reglas de checkout directo", () => {
+  it("asigna el tipo de precio según el contexto de compra", () => {
+    assert.equal(getPriceTypeForContext("consumidor"), "detal");
+    assert.equal(getPriceTypeForContext("mayorista"), "mayor");
+  });
+
   it("calcula subtotal, delivery y total con redondeo monetario", () => {
     assert.deepEqual(
       calculateCheckoutTotals(

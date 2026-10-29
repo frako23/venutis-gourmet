@@ -7,6 +7,7 @@ import {
 } from "@/lib/catalog-context";
 import { ProductCard } from "@/components/productos/productCard";
 import { PRODUCT_ORDER } from "@/lib/constants/constants";
+import { unidadesDisponibles } from "@/lib/inventory";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 
@@ -110,7 +111,7 @@ export default async function Productos({
               precioMayorista={product.precioMayorista}
               contexto={contexto}
               desc={product.descripcion || ""}
-              inventario={product.inventario}
+              inventario={unidadesDisponibles(product.inventario)}
             />
           ))}
         </div>

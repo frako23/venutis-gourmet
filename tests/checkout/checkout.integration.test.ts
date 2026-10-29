@@ -77,6 +77,7 @@ test("checkout directo crea venta, snapshot, pago, historial, puntos y descuenta
     assert.equal(transaction?.zonaEntrega, "Altamira");
     assert.equal(transaction?.direccionEntrega, "Calle principal");
     assert.equal(transaction?.detalles[0]?.precioUnitario, 10);
+    assert.equal(transaction?.detalles[0]?.tipoPrecio, "detal");
     assert.equal(transaction?.pagos[0]?.referencia, "REF-CHECKOUT");
     assert.equal(transaction?.historialEstados[0]?.estadoNuevo, "en_pedido");
     assert.equal(transaction?.fidelidades[0]?.puntos, 13);

@@ -64,7 +64,7 @@ export function BulkInventoryEditor({
             {products.map((product) => <tr key={product.id}>
               <td><div className="px-2"><strong className="text-[#18211d]">{product.nombre}</strong><span className="admin-mono mt-1 block text-xs text-[#8f988f]">#{product.id}</span></div></td>
               <td className="px-2 text-[#707970]">{product.categoria}</td>
-              <td><input aria-label={`Existencias de ${product.nombre}`} type="number" min="0" step="1" value={product.inventario} onChange={(event) => updateProduct(product.id, { inventario: Number(event.target.value) })} className="admin-sheet-input w-24 admin-mono" /></td>
+              <td><input aria-label={`Existencias de ${product.nombre}`} type="number" min="0" step="0.01" value={product.inventario} onChange={(event) => updateProduct(product.id, { inventario: Number(event.target.value) })} className="admin-sheet-input w-24 admin-mono" /></td>
               <td><input aria-label={`Precio detal de ${product.nombre}`} type="number" min="0" step="0.01" value={product.precioDetal} onChange={(event) => updateProduct(product.id, { precioDetal: Number(event.target.value) })} className="admin-sheet-input w-28 admin-mono" /></td>
               <td><input aria-label={`Precio mayorista de ${product.nombre}`} type="number" min="0" step="0.01" value={product.precioMayorista} onChange={(event) => updateProduct(product.id, { precioMayorista: Number(event.target.value) })} className="admin-sheet-input w-28 admin-mono" /></td>
             </tr>)}

@@ -29,12 +29,14 @@ async function withFixture(
     const stock = async (id: number) => (await prisma.producto.findUnique({ where: { id }, select: { inventario: true } }))?.inventario;
     await run({ prisma, products: [a.id, b.id], orderId, change, stock });
   } finally {
-    await prisma.estadoTransaccionHistorial.deleteMany({ where: { transaccion: { clienteId } } });
-    await prisma.pago.deleteMany({ where: { transaccion: { clienteId } } });
-    await prisma.detalleCompra.deleteMany({ where: { productoId: { in: productIds } } });
-    await prisma.transaccion.deleteMany({ where: { clienteId } });
-    await prisma.producto.deleteMany({ where: { id: { in: productIds } } });
-    if (clientId) await prisma.cliente.delete({ where: { id: clientId } });
+    if (clientId !== undefined) {
+      await prisma.estadoTransaccionHistorial.deleteMany({ where: { transaccion: { clienteId: clientId } } });
+      await prisma.pago.deleteMany({ where: { transaccion: { clienteId: clientId } } });
+      await prisma.detalleCompra.deleteMany({ where: { transaccion: { clienteId: clientId } } });
+      await prisma.transaccion.deleteMany({ where: { clienteId: clientId } });
+    }
+    if (productIds.length > 0) await prisma.producto.deleteMany({ where: { id: { in: productIds } } });
+    if (clientId !== undefined) await prisma.cliente.delete({ where: { id: clientId } });
     await prisma.$disconnect();
   }
 }
@@ -111,5 +113,27 @@ test("no se cancela un pedido pagado ni se acepta un pago al cancelar", { skip: 
     const open = await orderId("por_cobrar");
     await assert.rejects(() => change(open, { estadoNuevo: "cancelado", confirmacionPago: false, pago: { metodoPago: "EfectivoUsd", montoUsd: 5 } }), /No se puede registrar un pago al cancelar/);
     assert.equal(await stock(products[0]), 10);
+  });
+});
+
+test("cancelar un pedido importado no devuelve inventario y registra el historial", { skip: !integrationEnabled }, async () => {
+  await withFixture(async ({ prisma, products, orderId, change, stock }) => {
+    const id = await orderId("por_cobrar");
+    await prisma.transaccion.update({ where: { id }, data: { importada: true } });
+    await change(id, { estadoNuevo: "cancelado", confirmacionPago: false });
+    assert.equal(await stock(products[0]), 10);
+    assert.equal(await stock(products[1]), 20);
+    const history = await prisma.estadoTransaccionHistorial.findFirstOrThrow({ where: { transaccionId: id } });
+    assert.equal(history.estadoNuevo, "cancelado");
+  });
+});
+
+test("cancelar una venta con cantidad decimal devuelve exactamente esa cantidad", { skip: !integrationEnabled }, async () => {
+  await withFixture(async ({ prisma, products, orderId, change, stock }) => {
+    const id = await orderId("por_cobrar");
+    await prisma.detalleCompra.updateMany({ where: { transaccionId: id, productoId: products[0] }, data: { cantidad: 16.5 } });
+    await prisma.producto.update({ where: { id: products[0] }, data: { inventario: 3.3 } });
+    await change(id, { estadoNuevo: "cancelado", confirmacionPago: false });
+    assert.equal(await stock(products[0]), 19.8);
   });
 });

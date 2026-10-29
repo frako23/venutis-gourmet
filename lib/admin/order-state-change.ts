@@ -1,5 +1,6 @@
 import type { EstadoTransaccion, MetodoPago, Prisma } from "@prisma/client";
 
+import { ajustarInventario } from "../inventory.ts";
 import { canCancelOrder, getRestockQuantities, normalizeStateReason, requiresExplicitPaymentConfirmation } from "./status.ts";
 
 export type OrderStateChangeInput = {
@@ -47,9 +48,10 @@ export async function aplicarCambioEstadoPedido(
   if (input.pago) {
     await tx.pago.create({ data: { transaccionId: transaction.id, montoBs: input.pago.montoBs ?? null, montoUsd: input.pago.montoUsd ?? null, metodoPago: input.pago.metodoPago, referencia: input.pago.referencia ?? null, fechaPago: input.pago.fechaPago ?? new Date(), tasaCambio: null } });
   }
-  if (isCancellation) {
-    for (const { productoId, cantidad } of getRestockQuantities(transaction.detalles)) {
-      await tx.producto.update({ where: { id: productoId }, data: { inventario: { increment: cantidad } } });
+  if (isCancellation && !transaction.importada) {
+    const restock = getRestockQuantities(transaction.detalles).sort((a, b) => a.productoId - b.productoId);
+    for (const { productoId, cantidad } of restock) {
+      await ajustarInventario(tx, productoId, cantidad, { exigirStock: false });
     }
   }
   const history = await tx.estadoTransaccionHistorial.create({

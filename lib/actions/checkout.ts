@@ -2,6 +2,7 @@
 
 import { EstadoTransaccion, MetodoPago, TipoRetiro } from "@prisma/client";
 import {
+  getPriceTypeForContext,
   getProductPrice,
   hasValidPrice,
   normalizePurchaseContext,
@@ -16,6 +17,7 @@ import {
   validateDeliveryInput,
   validatePaymentInput,
 } from "@/lib/checkout-rules";
+import { ajustarInventario, StockInsuficienteError } from "../inventory";
 import { nextOrderNumber } from "../order-number";
 import { prisma } from "../prisma";
 
@@ -159,7 +161,7 @@ export async function procesarCompra(
 
       const normalizedContext = normalizePurchaseContext(datos.contexto);
       const seenProducts = new Set<number>();
-      const validatedLines: Array<{ productoId: number; cantidad: number; precioUnitario: number }> = [];
+      const validatedLines: Array<{ productoId: number; cantidad: number; precioUnitario: number; tipoPrecio: "detal" | "mayor" }> = [];
       for (const line of datos.carrito) {
         if (!Number.isInteger(line.productoId) || line.productoId <= 0 || !Number.isInteger(line.cantidad) || line.cantidad <= 0) {
           throw new CheckoutError("EMPTY_CART", "Una línea del pedido no es válida.");
@@ -178,7 +180,7 @@ export async function procesarCompra(
         if (!hasValidPrice(precioUnitario) || !Number.isFinite(line.precio) || Math.abs(line.precio - precioUnitario) > 0.01) {
           throw new CheckoutError("PRICE_CHANGED", `El precio de ${producto.nombre} cambió. Actualiza el carrito antes de confirmar.`);
         }
-        validatedLines.push({ productoId: line.productoId, cantidad: line.cantidad, precioUnitario });
+        validatedLines.push({ productoId: line.productoId, cantidad: line.cantidad, precioUnitario, tipoPrecio: getPriceTypeForContext(normalizedContext) });
       }
 
       const totals = calculateCheckoutTotals(
@@ -211,13 +213,14 @@ export async function procesarCompra(
       await tx.detalleCompra.createMany({
         data: validatedLines.map((line) => ({ ...line, transaccionId: transaccion.id })),
       });
-      for (const line of validatedLines) {
-        const stockUpdate = await tx.producto.updateMany({
-          where: { id: line.productoId, inventario: { gte: line.cantidad } },
-          data: { inventario: { decrement: line.cantidad } },
-        });
-        if (stockUpdate.count !== 1) {
-          throw new CheckoutError("STOCK_INSUFFICIENT", "El inventario cambió. Revisa el carrito e inténtalo nuevamente.");
+      for (const line of [...validatedLines].sort((a, b) => a.productoId - b.productoId)) {
+        try {
+          await ajustarInventario(tx, line.productoId, -line.cantidad, { exigirStock: true });
+        } catch (error) {
+          if (error instanceof StockInsuficienteError) {
+            throw new CheckoutError("STOCK_INSUFFICIENT", "El inventario cambió. Revisa el carrito e inténtalo nuevamente.");
+          }
+          throw error;
         }
       }
       await tx.pago.create({

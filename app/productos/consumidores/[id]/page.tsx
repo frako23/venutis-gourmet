@@ -8,6 +8,7 @@ import {
   isWholesaleOffer,
   normalizePurchaseContext,
 } from "@/lib/catalog-context";
+import { unidadesDisponibles } from "@/lib/inventory";
 import { prisma } from "@/lib/prisma";
 import { BadgeCheck, MessageSquare, Star, ThumbsUp } from "lucide-react";
 import { notFound } from "next/navigation";
@@ -101,7 +102,7 @@ export default async function ProductDetail({ params, searchParams }: Props) {
                 )}
               </div>
 
-              {producto.inventario === 0 && (
+              {unidadesDisponibles(producto.inventario) === 0 && (
                 <p className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
                   Producto agotado
                 </p>
@@ -115,7 +116,7 @@ export default async function ProductDetail({ params, searchParams }: Props) {
               />
 
               {/* Add to Cart Block */}
-              <AddToCartBlock producto={producto} contexto={contexto} />
+              <AddToCartBlock producto={{ ...producto, inventario: unidadesDisponibles(producto.inventario) }} contexto={contexto} />
             </div>
           </div>
         </section>

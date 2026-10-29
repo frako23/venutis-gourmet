@@ -6,7 +6,7 @@ type NoteForPdf = {
   direccionEntrega: string | null;
   personaRecibe: string | null;
   observaciones: string | null;
-  cliente: { nombre: string; apellido: string; celular: string; email: string | null };
+  cliente: { nombre: string; apellido: string; celular: string | null; email: string | null };
   detalles: { productoNombre: string; cantidad: number; precioUnitarioUsd: number | null; subtotalUsd: number | null }[];
 };
 
@@ -52,7 +52,7 @@ export async function buildDeliveryNotePdf(note: NoteForPdf) {
   page.drawRectangle({ x: margin, y: y - 72, width: PAGE_WIDTH - margin * 2, height: 72, color: colors.pale });
   text(page, "CLIENTE MAYORISTA", margin + 14, y - 20, bold, 8, colors.gold);
   text(page, `${note.cliente.nombre} ${note.cliente.apellido}`, margin + 14, y - 38, bold, 12);
-  text(page, `${note.cliente.celular}${note.cliente.email ? ` · ${note.cliente.email}` : ""}`, margin + 14, y - 55, regular, 9, colors.muted);
+  text(page, [note.cliente.celular, note.cliente.email].filter(Boolean).join(" · "), margin + 14, y - 55, regular, 9, colors.muted);
   text(page, `Entrega: ${note.direccionEntrega || "No especificada"}`, PAGE_WIDTH / 2 + 10, y - 38, regular, 9, colors.ink);
   text(page, `Recibe: ${note.personaRecibe || "No especificado"}`, PAGE_WIDTH / 2 + 10, y - 55, regular, 9, colors.ink);
   y -= 100;

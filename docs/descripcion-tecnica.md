@@ -67,6 +67,8 @@ El alias `@/*` apunta a la raíz del proyecto y se utiliza para imports absoluto
 - `/admin/transactions`: listado de transacciones.
 - `/admin/transactions/[id]`: detalle de una transacción.
 - `/admin/add-transaction`: alta de transacciones desde administración.
+- `/admin/transactions/import`: carga masiva de ventas desde el Excel "Control de ventas" (vista previa, conciliación de productos y clientes, confirmación atómica).
+- `/admin/transactions/export?formato=control`: descarga del control de ventas con las columnas del Excel.
 - `/admin`: dashboard operativo con ventas del periodo, pedidos abiertos y alertas.
 - `/admin/analytics`: agregados semanales/mensuales, productos y predictor explicable.
 - `/admin/delivery-notes`: listado y descarga de notas para mayoristas.
@@ -89,8 +91,9 @@ La base de datos PostgreSQL está definida en `prisma/schema.prisma`.
 - `Producto`: nombre, precios detal/mayorista, categoría, descripción, inventario, ubicación e imágenes.
 - `Imagen`: URLs de imágenes asociadas a productos; se eliminan en cascada con el producto.
 - `Transaccion`: número de orden, cliente, subtotal, descuento, total canónico en USD, tasa, estado y tipo de retiro (`envio` o `recogida`).
-- `DetalleCompra`: productos, cantidades y precio unitario de cada transacción.
-- `Pago`: montos en bolívares/dólares, tasa de cambio, método y referencia.
+- `DetalleCompra`: productos, cantidades (hasta 2 decimales), precio unitario y `tipoPrecio` (`detal`, `mayor`, `promo`; nulo en líneas anteriores) de cada transacción.
+- `Pago`: montos en bolívares/dólares, tasa de cambio, método y referencia. `esAbono` distingue un cobro recibido (con `actorEmail` y `anuladoEn` si se anuló) de un pago declarado en el checkout; el método `NoEspecificado` es exclusivo de las cargas de Excel.
+- `EquivalenciaProducto` / `EquivalenciaCliente`: decisiones recordadas al conciliar una carga (texto del Excel → producto o cliente).
 - `EstadoTransaccionHistorial`: estado anterior/nuevo, actor, fecha y motivo.
 - `NotaEntrega` / `DetalleNotaEntrega`: nota mayorista y snapshot de líneas, sin mutar inventario ni pagos.
 - `Fidelidad`: movimientos de puntos por acumulación o redención.
@@ -122,10 +125,19 @@ Las validaciones de formularios se realizan principalmente con esquemas Zod dent
 - checkout: creación atómica de pedidos, pagos e inventario;
 - reseñas: alta y eliminación.
 - admin-sales: venta manual atómica, descuento y stock.
-- admin-orders / order-status: estado operativo e historial append-only.
+- admin-orders / order-status: estado operativo e historial append-only; `registrarAbono` y `anularAbono` (abonos y saldo).
+- sales-import: `previsualizarCargaVentas` (no escribe) y `confirmarCargaVentas` (vuelve a leer el archivo y crea los pedidos en una transacción; no toca inventario).
 - delivery-notes: validación mayorista, snapshots y consultas para PDF.
 
 Las acciones de productos y direcciones utilizan revalidación o redirecciones para actualizar las vistas administrativas después de una mutación.
+
+### Control de ventas desde Excel
+
+- `lib/admin/xlsx-reader.ts` lee el `.xlsx` (ZIP + XML, `node:zlib`) con límites de tamaño; no hay librería de hojas de cálculo.
+- `lib/admin/sales-import-core.ts` es puro: localiza la tabla por nombre de columna, valida cada línea, agrupa por nota y reconoce productos y clientes (equivalencia guardada, coincidencia exacta o sugerencia).
+- `lib/admin/sales-import.ts` hace la vista previa y la creación de pedidos (`aplicarCargaVentas(tx, …)`). Las fechas se guardan a las 12:00 de Caracas y, si una nota es mayor o igual a 1300, avanza `orden_correlativo_seq`.
+- Las cantidades e inventario usan `lib/inventory.ts`; el saldo y los abonos, `lib/admin/abonos.ts`.
+- `experimental.serverActions.bodySizeLimit` es 6 MB para permitir archivos de hasta 5 MB.
 
 ## 8. Imágenes y presentación
 

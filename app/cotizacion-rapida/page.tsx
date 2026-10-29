@@ -1,4 +1,5 @@
 import { PRODUCT_ORDER } from "@/lib/constants/constants";
+import { unidadesDisponibles } from "@/lib/inventory";
 import { prisma } from "@/lib/prisma";
 import type { QuoteProduct } from "@/lib/cotizacion-rapida";
 import QuickQuote from "@/components/cotizacion-rapida/quickQuote";
@@ -9,7 +10,7 @@ export default async function CotizacionRapida() {
 
   try {
     const products = await prisma.producto.findMany({
-      where: { inventario: { gt: 0 } },
+      where: { inventario: { gte: 1 } },
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
@@ -27,7 +28,7 @@ export default async function CotizacionRapida() {
         nombre: product.nombre,
         categoria: product.categoria,
         precioUsd: product.precioDetal,
-        inventario: product.inventario,
+        inventario: unidadesDisponibles(product.inventario),
         ...(product.imagenes[0]?.url
           ? { imagenUrl: product.imagenes[0].url }
           : {}),
