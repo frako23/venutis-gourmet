@@ -56,6 +56,7 @@ El alias `@/*` apunta a la raíz del proyecto y se utiliza para imports absoluto
 - `/productos/mayoristas`: catálogo para clientes mayoristas.
 - `/finalizar-compra`: checkout por pasos.
 - `/confirmacion`: confirmación posterior a la compra.
+- `/mi-cuenta`: cuenta del cliente (registro, puntos, deuda, saldo a favor y pedidos).
 
 ### Administración
 
@@ -76,7 +77,7 @@ El alias `@/*` apunta a la raíz del proyecto y se utiliza para imports absoluto
 - `/admin/delivery-notes/new`: formulario con vista previa.
 - `/admin/delivery-notes/[id]/pdf`: descarga PDF protegida.
 
-El layout de `/admin` valida que exista un usuario autenticado y, si está definido `ALLOWED_EMAILS`, que su correo pertenezca a la lista autorizada.
+El layout de `/admin` valida que exista un usuario autenticado y que su correo pertenezca a `ALLOWED_EMAILS`. La regla (`esCorreoAdministrador`, en `lib/admin/auth-rules.ts`) falla cerrado: sin lista configurada, nadie es administrador. La sección de clientes enlaza a la ficha (`/admin/clients/[id]`) y al catálogo de premios (`/admin/clients/rewards`).
 
 ### Operación rápida
 
@@ -87,17 +88,20 @@ El layout de `/admin` valida que exista un usuario autenticado y, si está defin
 
 La base de datos PostgreSQL está definida en `prisma/schema.prisma`.
 
-- `Cliente`: datos personales, tipo de cliente (`mayorista` o `detal`) y relaciones con direcciones, compras, fidelidad y reseñas.
+- `Cliente`: datos personales, tipo de cliente (`mayorista` o `detal`), `notasInternas`, crédito (`creditoHabilitado`, `limiteCreditoUsd`) y relaciones con direcciones, compras, fidelidad, saldo a favor, cuenta web y reseñas. La deuda no se guarda: es la suma de los saldos pendientes de sus pedidos (`consultarDeudaCliente`, la misma regla de las cuentas por cobrar).
+- `CuentaCliente`: vincula un usuario de Stack Auth (`stackUserId`) con un solo `Cliente` (`vinculada` o `pendiente`). Solo el correo verificado vincula solo; el teléfono deja la vinculación pendiente de confirmar.
+- `MovimientoSaldo`: libro del saldo a favor en USD (sobrepago, pago a cuenta, pedido cancelado, aplicación a pedido, anulación y ajuste). Solo se insertan filas; el saldo es la suma de `montoUsd`.
+- `Premio`: descuento fijo en USD o producto gratis, con costo en puntos y estado activo/inactivo.
 - `Direccion`: direcciones de entrega asociadas a un cliente.
 - `Producto`: nombre, precios detal/mayorista, categoría, descripción, inventario, ubicación, `orden` (posición manual en el catálogo; nulo = sin posición, va al final) e imágenes.
 - `Imagen`: URLs de imágenes asociadas a productos; se eliminan en cascada con el producto.
-- `Transaccion`: número de orden, cliente, subtotal, descuento, total canónico en USD, tasa, estado y tipo de retiro (`envio` o `recogida`).
+- `Transaccion`: número de orden, cliente, subtotal, descuento, `montoDescuentoPuntos` (descuento por premios canjeados), total canónico en USD, tasa, estado y tipo de retiro (`envio` o `recogida`).
 - `DetalleCompra`: productos, cantidades (hasta 2 decimales), precio unitario y `tipoPrecio` (`detal`, `mayor`, `promo`; nulo en líneas anteriores) de cada transacción.
 - `Pago`: montos en bolívares/dólares, tasa de cambio, método y referencia. `esAbono` distingue un cobro recibido (con `actorEmail` y `anuladoEn` si se anuló) de un pago declarado en el checkout; el método `NoEspecificado` es exclusivo de las cargas de Excel.
 - `EquivalenciaProducto` / `EquivalenciaCliente`: decisiones recordadas al conciliar una carga (texto del Excel → producto o cliente).
 - `EstadoTransaccionHistorial`: estado anterior/nuevo, actor, fecha y motivo.
 - `NotaEntrega` / `DetalleNotaEntrega`: nota mayorista y snapshot de líneas, sin mutar inventario ni pagos.
-- `Fidelidad`: movimientos de puntos por acumulación o redención.
+- `Fidelidad`: libro de puntos con signo (`acumulacion`, `redencion`, `devolucion`, `reversion`, `ajuste`). `acreditarPuntosPorPago` acredita 1 punto por USD entero de productos cuando el pedido queda `pagado`: solo clientes `detal`, solo una vez por pedido y nunca en cargas de Excel.
 - `Resena`: valoración de 1 a 5 estrellas vinculada a cliente, producto y transacción.
 
 Los estados operativos son `por_cobrar`, `en_pedido` y `pagado`. `cancelado` también es un estado operativo, final y solo aplicable a pedidos no cobrados: al cancelar se devuelve el inventario en la misma transacción y la razón opcional se guarda en `EstadoTransaccionHistorial.motivo`; el editor masivo no permite cancelar. Se conserva `pendiente` por compatibilidad histórica y se presenta como “Por cobrar”. Los métodos de pago contemplados son transferencia en Bs, efectivo USD, Zelle, Pago Móvil y transferencia USD.
@@ -107,11 +111,13 @@ Los estados operativos son `por_cobrar`, `en_pedido` y `pagado`. `cancelado` tam
 1. El carrito se administra con Zustand y se conserva en el almacenamiento local del navegador.
 2. El cliente se identifica o registra mediante las acciones de clientes.
 3. Se selecciona envío o recogida y, según la configuración, se muestra el paso de pago.
-4. `procesarCompra` ejecuta una transacción Prisma que:
+4. `procesarCompra` resuelve la sesión del cliente y delega en `registrarCompraWeb` (`lib/checkout-core.ts`), que ejecuta una transacción Prisma que:
+   - usa siempre el cliente de la sesión vinculada (ignora el `clientId` del navegador) y bloquea su fila;
+   - revalida premios, puntos, saldo a favor y existencia, y valida el pago solo por lo que falta pagar;
    - valida y descuenta inventario;
    - crea la transacción y sus detalles;
-   - registra el pago;
-   - acumula puntos de fidelidad según el total.
+   - registra el pago declarado, canjea los premios y aplica el saldo a favor como abono. Si el saldo cubre todo el pedido, nace `pagado`.
+   Los puntos se acreditan cuando el pedido queda pagado, no al crearlo.
 5. Si cualquier operación falla, la transacción de base de datos se revierte.
 
 Las validaciones de formularios se realizan principalmente con esquemas Zod dentro de `lib/actions`.
@@ -120,7 +126,11 @@ Las validaciones de formularios se realizan principalmente con esquemas Zod dent
 
 `lib/actions` contiene operaciones `use server` para:
 
-- clientes: alta, edición, eliminación y búsqueda por teléfono;
+- clientes: alta, edición, eliminación y búsqueda por teléfono (la tienda nunca recibe notas internas ni crédito);
+- cuenta-cliente: registro y vinculación de la cuenta web, y beneficios del checkout (siempre derivados de la sesión);
+- admin-clients: además del alta y la edición masiva, notas internas, crédito, y confirmar/desvincular cuentas web;
+- admin-cuenta-corriente: pago a cuenta, aplicación y ajuste del saldo a favor;
+- admin-fidelidad: premios, ajuste de puntos y canje en un pedido;
 - productos: alta, edición, eliminación, actualización de inventario/precios y `guardarOrdenProductos` (reescribe las posiciones `1..N` del catálogo en una transacción);
 - direcciones: alta, edición, eliminación y consulta por cliente;
 - checkout: creación atómica de pedidos, pagos e inventario;
@@ -184,6 +194,8 @@ El script `postinstall` ejecuta `prisma generate`. Las migraciones existentes es
 - Las lecturas administrativas de esta feature reutilizan la instancia singleton de `lib/prisma.ts` para evitar conexiones duplicadas.
 - Las analíticas excluyen transacciones canceladas antes de agregar. El predictor es una media móvil de cuatro semanas completas o tres meses completos y declara insuficiencia cuando no hay historia mínima.
 - El PDF se genera localmente con snapshots guardados, requiere autorización administrativa en cada descarga y no es una factura fiscal.
-- La autorización administrativa depende de `ALLOWED_EMAILS`; si la variable no está definida, el layout valida autenticación pero no aplica una lista adicional de correos.
+- La autorización administrativa depende de `ALLOWED_EMAILS` y falla cerrado: si la variable no está definida en producción, nadie accede al panel (los clientes comparten el proveedor de identidad y no deben entrar).
+- Concurrencia: toda operación que mueve saldo a favor, puntos o crédito bloquea primero la fila del cliente y después la del pedido (`bloquearCliente`, `lib/cliente-lock.ts`), para serializar operaciones y evitar interbloqueos.
+- Riesgo existente fuera de alcance: `/confirmacion?id=` muestra cualquier pedido a quien conozca su id.
 - Las migraciones constituyen la fuente de historial de cambios del modelo; cualquier modificación del esquema debe acompañarse de una migración y de la regeneración del cliente Prisma.
 

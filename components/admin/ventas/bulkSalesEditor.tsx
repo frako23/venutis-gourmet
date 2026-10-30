@@ -125,6 +125,7 @@ export function BulkSalesEditor({ rows: initialRows, clients, products, onClose 
   const router = useRouter();
   const [rows, setRows] = useState<EditorRow[]>(() => initialRows.map(rowFromSale));
   const [confirmarPagos, setConfirmarPagos] = useState(false);
+  const [autorizarCredito, setAutorizarCredito] = useState(false);
   const [state, formAction, isActionPending] = useActionState(guardarEdicionMasivaVentas, initialState);
   const [isTransitionPending, startTransition] = useTransition();
   const isPending = isActionPending || isTransitionPending;
@@ -222,10 +223,11 @@ export function BulkSalesEditor({ rows: initialRows, clients, products, onClose 
       </div>
       <div className="flex flex-wrap items-center justify-between gap-4 border-t border-[#ebe9e0] bg-[#f8f6ef] p-4 md:p-5">
         <label className="flex max-w-xl items-start gap-2 text-xs leading-relaxed text-[#707970]"><input type="checkbox" checked={confirmarPagos} onChange={(event) => setConfirmarPagos(event.target.checked)} className="mt-0.5 size-4 accent-[#66735f]" /> Confirmo los cobros de las filas que queden en estado Pagado.</label>
+        <label className="flex max-w-xl items-start gap-2 text-xs leading-relaxed text-[#707970]"><input type="checkbox" checked={autorizarCredito} onChange={(event) => setAutorizarCredito(event.target.checked)} className="mt-0.5 size-4 accent-[#66735f]" /> Autorizo las ventas que exceden el crédito.</label>
         <span className="text-xs text-[#707970]">{rows.length} fila(s) · {newCount} nueva(s)</span>
       </div>
       <input type="hidden" name="confirmarPagos" value={confirmarPagos ? "true" : "false"} />
-      <input type="hidden" name="ventasMasivas" value={JSON.stringify({ existentes: rows.filter((row): row is ExistingRow => !row.esNueva).map((row) => ({ id: row.id, numeroOrden: row.numeroOrden, clienteId: row.clienteId, fechaCompra: row.fechaCompra, estado: row.estado, tipodeRetiro: row.tipodeRetiro, tipoDescuento: row.tipoDescuento || null, valorDescuento: row.tipoDescuento && row.valorDescuento !== "" ? row.valorDescuento : null })), nuevas: rows.filter((row): row is NewRow => row.esNueva).map((row) => ({ numeroOrden: row.numeroOrden, clienteId: row.clienteId, fechaCompra: row.fechaCompra, estado: row.estado, tipodeRetiro: row.tipodeRetiro, productoId: row.productoId, cantidad: row.cantidad, precioUnitarioUsd: row.precioUnitarioUsd, tipoPrecio: row.tipoPrecio, tipoDescuento: row.tipoDescuento || null, valorDescuento: row.tipoDescuento && row.valorDescuento !== "" ? row.valorDescuento : null })), confirmarPagos })} />
+      <input type="hidden" name="ventasMasivas" value={JSON.stringify({ existentes: rows.filter((row): row is ExistingRow => !row.esNueva).map((row) => ({ id: row.id, numeroOrden: row.numeroOrden, clienteId: row.clienteId, fechaCompra: row.fechaCompra, estado: row.estado, tipodeRetiro: row.tipodeRetiro, tipoDescuento: row.tipoDescuento || null, valorDescuento: row.tipoDescuento && row.valorDescuento !== "" ? row.valorDescuento : null })), nuevas: rows.filter((row): row is NewRow => row.esNueva).map((row) => ({ numeroOrden: row.numeroOrden, clienteId: row.clienteId, fechaCompra: row.fechaCompra, estado: row.estado, tipodeRetiro: row.tipodeRetiro, productoId: row.productoId, cantidad: row.cantidad, precioUnitarioUsd: row.precioUnitarioUsd, tipoPrecio: row.tipoPrecio, tipoDescuento: row.tipoDescuento || null, valorDescuento: row.tipoDescuento && row.valorDescuento !== "" ? row.valorDescuento : null })), confirmarPagos, autorizarCredito })} />
     </form>
   </section>;
 }

@@ -10,6 +10,7 @@ import {
   puedeRecibirAbono,
   validarMontoAbono,
   validarTotalContraAbonado,
+  evaluarCredito,
 } from "../../lib/admin/abonos.js";
 
 const abono = (montoUsd: number, anuladoEn: Date | null = null) => ({ esAbono: true, montoUsd, anuladoEn });
@@ -65,5 +66,34 @@ describe("abonos y saldo", () => {
     assert.equal(resultado.totalUsd, 38);
     assert.deepEqual(resultado.clientes.map((c) => [c.clienteId, c.deudaUsd, c.pedidos]), [[1, 25, 2], [2, 13, 1]]);
     assert.equal(resultado.clientes[0].desde.toISOString(), "2026-08-05T16:00:00.000Z");
+  });
+});
+
+describe("evaluarCredito", () => {
+  const base = { habilitado: true, limiteUsd: 60, deudaUsd: 50 };
+
+  it("sin crédito toda venta sin cobrar requiere autorización", () => {
+    const r = evaluarCredito({ habilitado: false, limiteUsd: null, deudaUsd: 0, montoSinCobrarUsd: 10 });
+    assert.deepEqual(r, { disponibleUsd: 0, requiereAutorizacion: true, excesoUsd: 10 });
+  });
+
+  it("no requiere autorización si cabe en el disponible", () => {
+    const r = evaluarCredito({ ...base, montoSinCobrarUsd: 10 });
+    assert.deepEqual(r, { disponibleUsd: 10, requiereAutorizacion: false, excesoUsd: 0 });
+  });
+
+  it("un centavo por encima del disponible ya requiere autorización", () => {
+    const r = evaluarCredito({ ...base, montoSinCobrarUsd: 10.01 });
+    assert.equal(r.requiereAutorizacion, true);
+    assert.equal(r.excesoUsd, 0.01);
+  });
+
+  it("con el límite por debajo de la deuda el disponible es cero", () => {
+    const r = evaluarCredito({ habilitado: true, limiteUsd: 30, deudaUsd: 50, montoSinCobrarUsd: 5 });
+    assert.deepEqual(r, { disponibleUsd: 0, requiereAutorizacion: true, excesoUsd: 5 });
+  });
+
+  it("un monto sin cobrar de cero nunca requiere autorización", () => {
+    assert.equal(evaluarCredito({ habilitado: false, limiteUsd: null, deudaUsd: 99, montoSinCobrarUsd: 0 }).requiereAutorizacion, false);
   });
 });

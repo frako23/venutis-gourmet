@@ -1,4 +1,10 @@
+import type { Cliente } from "@prisma/client";
+
 export type ClientType = "detal" | "mayorista";
+
+/** El cliente tal como lo ve la tienda: sin notas internas ni condiciones de crédito. */
+export type ClienteTienda = Omit<Cliente, "notasInternas" | "creditoHabilitado" | "limiteCreditoUsd">;
+export const CAMPOS_INTERNOS_CLIENTE = { notasInternas: true, creditoHabilitado: true, limiteCreditoUsd: true } as const;
 
 export type CheckoutClientInput = {
   nombre: string;

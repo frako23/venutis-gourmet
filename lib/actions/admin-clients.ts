@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { normalizeRif, normalizeSearchName } from "@/lib/client-rules";
+import { consultarDeudaCliente, evaluarCredito } from "@/lib/admin/abonos";
 import { requireAdmin } from "@/lib/admin/auth";
 import type { BulkClientsState, ClientCreateState, ClientPatch } from "@/lib/admin/types";
 import { prisma } from "@/lib/prisma";
@@ -317,5 +318,133 @@ export async function guardarEdicionMasivaClientes(_previous: BulkClientsState, 
     if (error instanceof ClientActionFailure) return { success: false, message: "No se guardó ninguna fila. Corrige los conflictos indicados.", issues: publicIssues(error.issues) };
     if (isPrismaUniqueError(error)) return { success: false, message: "No se guardó ninguna fila porque existe un identificador duplicado." };
     return { success: false, message: error instanceof Error ? error.message : "No se pudo guardar la edición masiva." };
+  }
+}
+
+const notasSchema = z.object({
+  clienteId: z.coerce.number().int().positive(),
+  notasInternas: z.string().trim().max(2000, "Las notas admiten hasta 2.000 caracteres."),
+});
+
+export async function guardarNotasCliente(formData: FormData) {
+  const actor = await requireAdmin();
+  const parsed = notasSchema.safeParse({ clienteId: formData.get("clienteId"), notasInternas: formData.get("notasInternas")?.toString() ?? "" });
+  if (!parsed.success) return { success: false as const, message: parsed.error.issues[0]?.message ?? "Revisa las notas." };
+
+  const { clienteId, notasInternas } = parsed.data;
+  try {
+    await prisma.$transaction(async (tx) => {
+      await tx.cliente.update({ where: { id: clienteId }, data: { notasInternas: notasInternas || null } });
+      await tx.historialCliente.create({ data: { clienteId, actorId: actor.id, actorEmail: actor.email, accion: "actualizado", camposModificados: ["notasInternas"] } });
+    });
+  } catch {
+    return { success: false as const, message: "No se pudieron guardar las notas." };
+  }
+  revalidatePath("/admin/clients");
+  revalidatePath(`/admin/clients/${clienteId}`);
+  return { success: true as const, message: "Notas guardadas." };
+}
+
+const creditoSchema = z
+  .object({
+    clienteId: z.coerce.number().int().positive(),
+    habilitado: z.boolean(),
+    limiteUsd: z.coerce.number().finite().min(0, "El límite no puede ser negativo.").nullable(),
+  })
+  .superRefine((valor, ctx) => {
+    if (valor.habilitado && valor.limiteUsd === null) ctx.addIssue({ code: "custom", path: ["limiteUsd"], message: "Indica el límite de crédito." });
+    if (valor.limiteUsd !== null && Math.abs(Math.round(valor.limiteUsd * 100) - valor.limiteUsd * 100) > 1e-6) {
+      ctx.addIssue({ code: "custom", path: ["limiteUsd"], message: "El límite admite como máximo 2 decimales." });
+    }
+  });
+
+const usdTexto = (valor: number) => `USD ${valor.toFixed(2).replace(".", ",")}`;
+const creditoTexto = (habilitado: boolean, limite: number | null) => (habilitado ? `habilitado, límite ${usdTexto(limite ?? 0)}` : "deshabilitado");
+
+export async function actualizarCreditoCliente(formData: FormData) {
+  const actor = await requireAdmin();
+  const limiteRaw = formData.get("limiteUsd")?.toString().trim() ?? "";
+  const parsed = creditoSchema.safeParse({
+    clienteId: formData.get("clienteId"),
+    habilitado: formData.get("habilitado") === "true",
+    limiteUsd: limiteRaw === "" ? null : limiteRaw.replace(",", "."),
+  });
+  if (!parsed.success) return { success: false as const, message: parsed.error.issues[0]?.message ?? "Revisa los datos del crédito." };
+
+  const { clienteId, habilitado } = parsed.data;
+  try {
+    const resultado = await prisma.$transaction(async (tx) => {
+      const actual = await tx.cliente.findUnique({ where: { id: clienteId }, select: { creditoHabilitado: true, limiteCreditoUsd: true } });
+      if (!actual) throw new Error("El cliente no existe.");
+      // Al deshabilitar se conserva el límite guardado.
+      const limiteUsd = habilitado ? parsed.data.limiteUsd : actual.limiteCreditoUsd;
+      await tx.cliente.update({ where: { id: clienteId }, data: { creditoHabilitado: habilitado, limiteCreditoUsd: limiteUsd } });
+      await tx.historialCliente.create({
+        data: {
+          clienteId,
+          actorId: actor.id,
+          actorEmail: actor.email,
+          accion: "actualizado",
+          camposModificados: ["creditoHabilitado", "limiteCreditoUsd"],
+          detalle: `Crédito: ${creditoTexto(actual.creditoHabilitado, actual.limiteCreditoUsd)} → ${creditoTexto(habilitado, limiteUsd)}`,
+        },
+      });
+      const deudaUsd = await consultarDeudaCliente(tx, clienteId);
+      return evaluarCredito({ habilitado, limiteUsd, deudaUsd, montoSinCobrarUsd: 0 }).disponibleUsd;
+    });
+    revalidatePath(`/admin/clients/${clienteId}`);
+    return { success: true as const, message: `Crédito actualizado. Disponible: ${usdTexto(resultado)}.` };
+  } catch (error) {
+    return { success: false as const, message: error instanceof Error ? error.message : "No se pudo actualizar el crédito." };
+  }
+}
+
+const cuentaSchema = z.object({ cuentaId: z.coerce.number().int().positive() });
+
+export async function confirmarVinculacionCuenta(formData: FormData) {
+  const actor = await requireAdmin();
+  const parsed = cuentaSchema.safeParse({ cuentaId: formData.get("cuentaId") });
+  if (!parsed.success) return { success: false as const, message: "La cuenta no es válida." };
+
+  try {
+    const clienteId = await prisma.$transaction(async (tx) => {
+      const cuenta = await tx.cuentaCliente.findUnique({ where: { id: parsed.data.cuentaId } });
+      if (!cuenta) throw new Error("La cuenta ya no existe.");
+      if (cuenta.estado === "vinculada") throw new Error("La cuenta ya está vinculada.");
+      await tx.cuentaCliente.update({ where: { id: cuenta.id }, data: { estado: "vinculada", confirmadaPorEmail: actor.email, confirmadaEn: new Date() } });
+      await tx.historialCliente.create({
+        data: { clienteId: cuenta.clienteId, actorId: actor.id, actorEmail: actor.email, accion: "actualizado", camposModificados: ["cuenta"], detalle: `Cuenta web vinculada (${cuenta.email})` },
+      });
+      return cuenta.clienteId;
+    });
+    revalidatePath(`/admin/clients/${clienteId}`);
+    revalidatePath("/mi-cuenta");
+    return { success: true as const, message: "Cuenta vinculada." };
+  } catch (error) {
+    return { success: false as const, message: error instanceof Error ? error.message : "No se pudo vincular la cuenta." };
+  }
+}
+
+export async function desvincularCuenta(formData: FormData) {
+  const actor = await requireAdmin();
+  const parsed = cuentaSchema.safeParse({ cuentaId: formData.get("cuentaId") });
+  if (!parsed.success) return { success: false as const, message: "La cuenta no es válida." };
+
+  try {
+    const clienteId = await prisma.$transaction(async (tx) => {
+      const cuenta = await tx.cuentaCliente.findUnique({ where: { id: parsed.data.cuentaId } });
+      if (!cuenta) throw new Error("La cuenta ya no existe.");
+      // Solo se borra el vínculo: los pedidos, puntos y saldos del cliente no cambian.
+      await tx.cuentaCliente.delete({ where: { id: cuenta.id } });
+      await tx.historialCliente.create({
+        data: { clienteId: cuenta.clienteId, actorId: actor.id, actorEmail: actor.email, accion: "actualizado", camposModificados: ["cuenta"], detalle: `Cuenta web desvinculada (${cuenta.email})` },
+      });
+      return cuenta.clienteId;
+    });
+    revalidatePath(`/admin/clients/${clienteId}`);
+    revalidatePath("/mi-cuenta");
+    return { success: true as const, message: "Cuenta desvinculada." };
+  } catch (error) {
+    return { success: false as const, message: error instanceof Error ? error.message : "No se pudo desvincular la cuenta." };
   }
 }

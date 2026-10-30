@@ -74,6 +74,7 @@ const paymentLabels: Record<string, string> = {
   PagoMovil: "Pago móvil",
   TransferenciaUsd: "Transferencia USD",
   NoEspecificado: "No especificado",
+  SaldoAFavor: "Saldo a favor",
 };
 
 export function getPaymentMethodLabel(method: string) {

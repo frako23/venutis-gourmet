@@ -1,6 +1,7 @@
 "use client";
 
 import { Search, X } from "lucide-react";
+import Link from "next/link";
 import { FormEvent, useEffect, useRef, useState } from "react";
 
 type FilterType = "todos" | "consumidor" | "mayorista";
@@ -48,7 +49,7 @@ export function ClientsFilters({ q = "", tipo = "todos" }: { q?: string; tipo?: 
       <input type="hidden" name="page" value="1" />
       <div className="flex gap-2">
         <button type="submit" className="admin-button-primary admin-button-brass"><Search size={16} aria-hidden="true" /> Filtrar</button>
-        <a href="/admin/clients" onClick={(event) => { if (pendingRef.current && !window.confirm("Hay cambios de clientes sin guardar. ¿Quieres limpiar los filtros y descartarlos?")) event.preventDefault(); }} className={`admin-button-secondary ${hasPendingChanges ? "border-[#c8a45d]" : ""}`}><X size={16} aria-hidden="true" /> Limpiar</a>
+        <Link href="/admin/clients" onClick={(event) => { if (pendingRef.current && !window.confirm("Hay cambios de clientes sin guardar. ¿Quieres limpiar los filtros y descartarlos?")) event.preventDefault(); }} className={`admin-button-secondary ${hasPendingChanges ? "border-[#c8a45d]" : ""}`}><X size={16} aria-hidden="true" /> Limpiar</Link>
       </div>
     </form>
   );

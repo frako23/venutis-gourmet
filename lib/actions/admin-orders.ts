@@ -49,7 +49,10 @@ export async function actualizarEstadoPedido(formData: FormData) {
     revalidatePath(`/admin/transactions/${input.transaccionId}`);
     const canceled = result.current === "cancelado";
     if (canceled) revalidatePath("/admin/inventory");
-    return { success: true as const, transactionId: input.transaccionId, estadoAnterior: result.previous, estadoNuevo: result.current, changedAt: result.changedAt, message: canceled ? `Pedido ${result.numeroOrden} cancelado. El inventario se actualizó.` : "Estado actualizado correctamente." };
+    revalidatePath("/admin/clients", "layout");
+    revalidatePath("/mi-cuenta");
+    const aFavor = result.saldoDevueltoUsd > 0 ? ` USD ${result.saldoDevueltoUsd.toFixed(2)} quedaron a favor del cliente.` : "";
+    return { success: true as const, transactionId: input.transaccionId, estadoAnterior: result.previous, estadoNuevo: result.current, changedAt: result.changedAt, message: canceled ? `Pedido ${result.numeroOrden} cancelado. El inventario se actualizó.${aFavor}` : "Estado actualizado correctamente." };
   } catch (error) {
     return { success: false as const, message: error instanceof Error ? error.message : "No se pudo actualizar el estado." };
   }
@@ -61,7 +64,8 @@ const abonoSchema = z
     moneda: z.enum(["usd", "bs"]),
     monto: z.coerce.number().positive().refine((value) => Math.abs(Math.round(value * 100) - value * 100) < 1e-6, "El monto admite como máximo 2 decimales."),
     tasaCambio: z.coerce.number().positive().nullable().optional(),
-    metodoPago: z.nativeEnum(MetodoPago).refine((metodo) => metodo !== "NoEspecificado", "Elige el método de pago."),
+    metodoPago: z.nativeEnum(MetodoPago).refine((metodo) => metodo !== "NoEspecificado" && metodo !== "SaldoAFavor", "Elige el método de pago."),
+    permitirExcedente: z.boolean().default(false),
     referencia: z.string().trim().max(120).nullable().optional(),
     fechaPago: z.coerce.date().refine((fecha) => fecha.getTime() <= Date.now() + 24 * 60 * 60 * 1000, "La fecha no puede ser posterior a hoy."),
   })
@@ -86,14 +90,18 @@ export async function registrarAbono(formData: FormData) {
     metodoPago: formData.get("metodoPago"),
     referencia: formData.get("referencia")?.toString() || null,
     fechaPago: formData.get("fechaPago") || new Date().toISOString(),
+    permitirExcedente: formData.get("permitirExcedente") === "true",
   });
   if (!parsed.success) return { success: false as const, message: "Revisa los datos del abono." };
 
   try {
     const result = await prisma.$transaction((tx) => registrarAbonoEnPedido(tx, parsed.data, actor));
     revalidarPedido(parsed.data.transaccionId);
-    const message = result.estado === "pagado" ? `Abono registrado. El pedido ${result.numeroOrden} quedó pagado.` : `Abono registrado. Saldo pendiente: USD ${result.saldoUsd.toFixed(2)}.`;
-    return { success: true as const, message, abonadoUsd: result.abonadoUsd, saldoUsd: result.saldoUsd, estado: result.estado };
+    revalidatePath(`/admin/clients/${result.clienteId}`);
+    revalidatePath("/mi-cuenta");
+    const aFavor = result.excedenteUsd > 0 ? ` y USD ${result.excedenteUsd.toFixed(2)} quedaron a favor del cliente` : "";
+    const message = result.estado === "pagado" ? `Abono registrado. El pedido ${result.numeroOrden} quedó pagado${aFavor}.` : `Abono registrado. Saldo pendiente: USD ${result.saldoUsd.toFixed(2)}.`;
+    return { success: true as const, message, abonadoUsd: result.abonadoUsd, saldoUsd: result.saldoUsd, estado: result.estado, excedenteUsd: result.excedenteUsd };
   } catch (error) {
     return { success: false as const, message: error instanceof Error ? error.message : "No se pudo registrar el abono." };
   }

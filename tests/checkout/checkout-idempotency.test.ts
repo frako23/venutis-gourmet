@@ -10,13 +10,16 @@ import {
 if (integrationEnabled) {
   process.env.DATABASE_URL = process.env.CHECKOUT_TEST_DATABASE_URL || process.env.ADMIN_TEST_DATABASE_URL;
 }
+// Se prueba el núcleo transaccional (la acción solo le añade la sesión del cliente).
 const checkoutModule = integrationEnabled
-  ? await import("../../lib/actions/checkout.js")
+  ? await import("../../lib/checkout-core.js").then((core) => ({
+      procesarCompra: (_estado: unknown, datos: Parameters<typeof core.registrarCompraWeb>[0], clienteSesionId: number | null = null) => core.registrarCompraWeb(datos, { clienteSesionId }),
+    }))
   : null;
 
 test("checkout directo devuelve la misma venta en un reintento y rechaza cambios de precio o stock", { skip: !integrationEnabled }, async () => {
   const prisma = createIntegrationClient();
-  const celular = uniqueValue("0414").slice(0, 12);
+  const celular = uniqueValue("0414");
   const key = uniqueValue("idempotency");
   let clientId: number | undefined;
   let productId: number | undefined;

@@ -7,8 +7,9 @@ import { useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { useDolar } from "@/hooks/useDolar";
+import { aplicarSaldoAFavor } from "@/lib/actions/admin-cuenta-corriente";
 import { anularAbono, registrarAbono } from "@/lib/actions/admin-orders";
-import { calcularAbonado, calcularSaldo, puedeAnularAbono, puedeRecibirAbono } from "@/lib/admin/abonos";
+import { calcularAbonado, calcularSaldo, convertirAbonoAUsd, dividirAbono, puedeAnularAbono, puedeRecibirAbono } from "@/lib/admin/abonos";
 import { getPaymentMethodLabel } from "@/lib/admin/status";
 
 export type AbonoVista = {
@@ -27,29 +28,61 @@ const METODOS: MetodoPago[] = ["Zelle", "EfectivoUsd", "TransferenciaUsd", "Pago
 const usd = (valor: number) => `$${valor.toFixed(2)}`;
 const hoy = () => new Date().toISOString().slice(0, 10);
 
-type Props = { transaccionId: number; numeroOrden: string; estado: EstadoTransaccion; totalUsd: number; abonos: AbonoVista[] };
+type Props = { transaccionId: number; numeroOrden: string; estado: EstadoTransaccion; totalUsd: number; abonos: AbonoVista[]; saldoAFavorUsd: number };
 
-export function AbonosPanel({ transaccionId, numeroOrden, estado, totalUsd, abonos }: Props) {
+export function AbonosPanel({ transaccionId, numeroOrden, estado, totalUsd, abonos, saldoAFavorUsd }: Props) {
   const router = useRouter();
   const { tasa } = useDolar();
   const [pendiente, iniciar] = useTransition();
   const [moneda, setMoneda] = useState<"usd" | "bs">("usd");
   const [aAnular, setAAnular] = useState<AbonoVista | null>(null);
   const formulario = useRef<HTMLFormElement>(null);
+  const [monto, setMonto] = useState("");
+  const [tasaIngresada, setTasaIngresada] = useState("");
+  const [confirmaExcedente, setConfirmaExcedente] = useState(false);
+  const [saldoAplicar, setSaldoAplicar] = useState("");
 
   const pagos = abonos.map((abono) => ({ esAbono: true, montoUsd: abono.montoUsd, anuladoEn: abono.anuladoEn ? new Date(abono.anuladoEn) : null }));
   const abonado = calcularAbonado(pagos);
   const saldo = calcularSaldo({ estado, montoTotal: totalUsd, pagos });
   const puedeAbonar = puedeRecibirAbono(estado) && saldo > 0;
+  const tasaEfectiva = Number(tasaIngresada) || tasa || null;
+  let excedenteUsd = 0;
+  try {
+    const montoNumero = Number(monto);
+    if (montoNumero > 0) excedenteUsd = dividirAbono(convertirAbonoAUsd({ moneda, monto: montoNumero, tasaCambio: tasaEfectiva }), saldo).excedenteUsd;
+  } catch {
+    excedenteUsd = 0;
+  }
+  const maxAplicable = Math.min(saldoAFavorUsd, saldo);
 
   function enviar(formData: FormData) {
     formData.set("transaccionId", String(transaccionId));
+    if (excedenteUsd > 0) formData.set("permitirExcedente", "true");
     iniciar(async () => {
       const resultado = await registrarAbono(formData);
       if (resultado.success) {
         toast.success(resultado.message);
         formulario.current?.reset();
         setMoneda("usd");
+        setMonto("");
+        setConfirmaExcedente(false);
+        router.refresh();
+      } else {
+        toast.error(resultado.message);
+      }
+    });
+  }
+
+  function aplicarSaldo() {
+    const datos = new FormData();
+    datos.set("transaccionId", String(transaccionId));
+    datos.set("montoUsd", saldoAplicar);
+    iniciar(async () => {
+      const resultado = await aplicarSaldoAFavor(datos);
+      if (resultado.success) {
+        toast.success(resultado.message);
+        setSaldoAplicar("");
         router.refresh();
       } else {
         toast.error(resultado.message);
@@ -118,11 +151,11 @@ export function AbonosPanel({ transaccionId, numeroOrden, estado, totalUsd, abon
             <select name="moneda" value={moneda} onChange={(evento) => setMoneda(evento.target.value as "usd" | "bs")} className="admin-field"><option value="usd">USD</option><option value="bs">Bs</option></select>
           </label>
           <label className="admin-label">Monto {moneda === "usd" ? "(USD)" : "(Bs)"}
-            <input name="monto" type="number" min="0.01" step="0.01" required max={moneda === "usd" ? saldo : undefined} placeholder={moneda === "usd" ? `Saldo ${saldo.toFixed(2)}` : undefined} className="admin-field admin-mono" />
+            <input name="monto" type="number" min="0.01" step="0.01" required value={monto} onChange={(evento) => { setMonto(evento.target.value); setConfirmaExcedente(false); }} placeholder={moneda === "usd" ? `Saldo ${saldo.toFixed(2)}` : undefined} className="admin-field admin-mono" />
           </label>
           {moneda === "bs" && (
             <label className="admin-label">Tasa USD/Bs
-              <input key={tasa} name="tasaCambio" type="number" min="0.0001" step="0.0001" required defaultValue={tasa || ""} className="admin-field admin-mono" />
+              <input key={tasa} name="tasaCambio" type="number" min="0.0001" step="0.0001" required defaultValue={tasa || ""} onChange={(evento) => setTasaIngresada(evento.target.value)} className="admin-field admin-mono" />
             </label>
           )}
           <label className="admin-label">Método
@@ -134,8 +167,28 @@ export function AbonosPanel({ transaccionId, numeroOrden, estado, totalUsd, abon
           <label className="admin-label">Fecha
             <input name="fechaPago" type="date" required defaultValue={hoy()} max={hoy()} className="admin-field" />
           </label>
-          <div className="sm:col-span-2"><button type="submit" disabled={pendiente} className="admin-button-primary admin-button-brass">{pendiente ? "Guardando..." : "Registrar abono"}</button></div>
+          {excedenteUsd > 0 && (
+            <label className="sm:col-span-2 flex items-start gap-2 rounded-lg border border-[#c8a45d]/50 bg-[#fffaf0] p-3 text-xs leading-relaxed text-[#18211d]">
+              <input type="checkbox" checked={confirmaExcedente} onChange={(evento) => setConfirmaExcedente(evento.target.checked)} className="mt-0.5 size-4 accent-[#66735f]" />
+              <span><strong>{usd(Math.max(0, saldo))}</strong> saldan el pedido y <strong>{usd(excedenteUsd)}</strong> quedan a favor del cliente. Confirmo el excedente.</span>
+            </label>
+          )}
+          <div className="sm:col-span-2"><button type="submit" disabled={pendiente || (excedenteUsd > 0 && !confirmaExcedente)} className="admin-button-primary admin-button-brass">{pendiente ? "Guardando..." : "Registrar abono"}</button></div>
         </form>
+      )}
+
+      {puedeAbonar && saldoAFavorUsd > 0 && (
+        <div className="mt-5 border-t border-[#ebe9e0] pt-4">
+          <p className="text-sm font-bold text-[#18211d]">Usar saldo a favor</p>
+          <p className="mt-1 text-xs text-[#707970]">El cliente tiene {usd(saldoAFavorUsd)} a favor. Se puede aplicar hasta {usd(maxAplicable)} a este pedido.</p>
+          <div className="mt-3 flex flex-wrap items-end gap-2">
+            <label className="admin-label">Monto a aplicar (USD)
+              <input type="number" min="0.01" max={maxAplicable} step="0.01" value={saldoAplicar} onChange={(evento) => setSaldoAplicar(evento.target.value)} className="admin-field admin-mono" />
+            </label>
+            <button type="button" className="admin-button-secondary" onClick={() => setSaldoAplicar(maxAplicable.toFixed(2))}>Usar todo</button>
+            <button type="button" disabled={pendiente || !(Number(saldoAplicar) > 0)} onClick={aplicarSaldo} className="admin-button-primary admin-button-brass">Aplicar saldo</button>
+          </div>
+        </div>
       )}
 
       {aAnular && (

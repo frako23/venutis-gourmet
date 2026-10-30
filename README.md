@@ -148,6 +148,7 @@ El alias de imports `@/*` apunta a la raíz del proyecto.
 - `/productos/mayoristas`: entrada de compatibilidad que redirige al catálogo unificado con contexto mayorista.
 - `/finalizar-compra`: flujo de checkout.
 - `/confirmacion`: confirmación de compra.
+- `/mi-cuenta`: cuenta del cliente. Permite registrarse con correo verificado y ver puntos de fidelización, lo que debe o tiene a favor y sus pedidos.
 
 ### Administración
 
@@ -163,11 +164,18 @@ El alias de imports `@/*` apunta a la raíz del proyecto.
 - `/admin/analytics`: entrada compatible que redirige a las analíticas de ventas.
 - `/admin/analytics/sales`: ventas semanales/mensuales, desglose por producto y predictor.
 - `/admin/analytics/visits`: visitas agregadas de Web Analytics en producción.
+- `/admin/clients`: directorio de clientes (alta, edición masiva y enlace a la ficha).
+- `/admin/clients/[id]`: ficha del cliente con datos, compras, deuda, crédito, saldo a favor, puntos, notas internas y cuenta web.
+- `/admin/clients/rewards`: premios canjeables con puntos (descuentos o productos gratis).
 - `/admin/delivery-notes`: listado de notas de entrega.
 - `/admin/delivery-notes/new`: creación de notas para clientes mayoristas.
 - `/admin/delivery-notes/[id]/pdf`: descarga protegida del PDF.
 
-El área administrativa requiere autenticación. Si `ALLOWED_EMAILS` está configurada, el correo del usuario también debe estar incluido en esa lista separada por comas.
+El área administrativa requiere autenticación **y** que el correo del usuario esté en `ALLOWED_EMAILS` (lista separada por comas). La tienda comparte el mismo proveedor de identidad con los clientes, así que esta variable es **obligatoria en producción**: si está vacía o ausente, nadie accede al panel (falla cerrado). En desarrollo (`NODE_ENV=development`) el panel no pide inicio de sesión.
+
+#### Cuentas de clientes (Stack Auth)
+
+Para que los clientes puedan registrarse en `/mi-cuenta`, en el dashboard de Stack Auth hay que habilitar el registro de usuarios, configurar los métodos de acceso (Google y/o correo con contraseña) y mantener la verificación de correo activa. Una cuenta solo se vincula a un cliente existente con el correo verificado; si solo coincide el teléfono, la vinculación queda pendiente hasta que alguien del equipo la confirme desde la ficha del cliente.
 
 ### Punto de venta
 
@@ -181,17 +189,20 @@ Este flujo no registra actualmente una `Transaccion` en la base de datos ni desc
 
 Las entidades principales de Prisma son:
 
-- `Cliente`: datos del comprador y tipo de cliente.
+- `Cliente`: datos del comprador, tipo, notas internas y condiciones de crédito (`creditoHabilitado`, `limiteCreditoUsd`).
+- `CuentaCliente`: acceso del cliente a la tienda, vinculado como máximo a un cliente (`vinculada` o `pendiente`).
+- `MovimientoSaldo`: libro del saldo a favor (solo inserciones; el saldo es la suma de los movimientos).
+- `Premio`: premios canjeables con puntos (descuento en USD o producto gratis).
 - `Direccion`: direcciones asociadas al cliente.
 - `Producto` e `Imagen`: catálogo, precios, inventario e imágenes.
 - `Transaccion` y `DetalleCompra`: pedidos y líneas de productos.
 - `Pago`: método, referencia, montos y tasa de cambio.
 - `EstadoTransaccionHistorial`: auditoría de cambios de estado y actor administrativo.
 - `NotaEntrega` y `DetalleNotaEntrega`: documento mayorista con snapshots de líneas.
-- `Fidelidad`: acumulación o redención de puntos.
+- `Fidelidad`: libro de puntos con signo (acumulación, canje, devolución, reversión y ajuste). Los puntos se acreditan cuando el pedido queda pagado.
 - `Resena`: valoración de productos asociada a una compra.
 
-El checkout utiliza una transacción de Prisma para validar y descontar inventario, crear el pedido, registrar el pago y acumular puntos de fidelidad de forma atómica.
+El checkout utiliza una transacción de Prisma para validar y descontar inventario, crear el pedido, registrar el pago y, si hay sesión, aplicar premios y saldo a favor de forma atómica. Los puntos se acreditan después, cuando el pedido queda pagado.
 
 ## Server Actions
 

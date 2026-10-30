@@ -14,14 +14,14 @@ datasource db {
 }
 
 model Cliente {
-  id               Int                @id @default(autoincrement())
+  id               Int                   @id @default(autoincrement())
   tipoCliente      TipoCliente
   nombre           String
   apellido         String
-  rif              String?            @unique
+  rif              String?               @unique
   nombreBusqueda   String
-  celular          String?            @unique
-  email            String?            @unique
+  celular          String?               @unique
+  email            String?               @unique
   direcciones      Direccion[]
   transacciones    Transaccion[]
   notasEntrega     NotaEntrega[]
@@ -29,6 +29,13 @@ model Cliente {
   resenas          Resena[] // reseñas que deja el cliente
   historialCliente HistorialCliente[]
   equivalencias    EquivalenciaCliente[]
+  movimientosSaldo MovimientoSaldo[]
+  cuenta           CuentaCliente?
+
+  // Notas del equipo; nunca se muestran al cliente.
+  notasInternas     String?
+  creditoHabilitado Boolean @default(false)
+  limiteCreditoUsd  Float?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -51,6 +58,7 @@ model HistorialCliente {
   actorEmail        String?
   accion            AccionHistorialCliente
   camposModificados String[]
+  detalle           String?
   createdAt         DateTime               @default(now())
 
   cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
@@ -70,13 +78,13 @@ model Direccion {
 }
 
 model Producto {
-  id              Int                  @id @default(autoincrement())
+  id              Int                    @id @default(autoincrement())
   nombre          String
-  precioDetal     Float                @default(0.0)
-  precioMayorista Float                @default(0.0)
+  precioDetal     Float                  @default(0.0)
+  precioMayorista Float                  @default(0.0)
   categoria       String
   descripcion     String?
-  inventario      Float                @default(0)
+  inventario      Float                  @default(0)
   ubicacion       String?
   // Posición en el catálogo (menor = antes); null = sin posición, va al final.
   orden           Int?
@@ -85,6 +93,7 @@ model Producto {
   detallesNotas   DetalleNotaEntrega[]
   resenas         Resena[]
   equivalencias   EquivalenciaProducto[]
+  premios         Premio[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -100,31 +109,33 @@ model Imagen {
 }
 
 model Transaccion {
-  id               Int                          @id @default(autoincrement())
-  numeroOrden      String                       @unique
-  clienteId        Int
-  cliente          Cliente                      @relation(fields: [clienteId], references: [id])
-  fechaCompra      DateTime                     @default(now())
-  montoTotal       Float
-  montoSubtotal    Float                        @default(0)
-  montoDelivery    Float                        @default(0)
-  tipoDescuento    TipoDescuento?
-  valorDescuento   Float?
-  montoDescuento   Float                        @default(0)
-  tasaCambio       Float?
-  estado           EstadoTransaccion
-  tipodeRetiro     TipoRetiro                   @default(envio)
-  zonaEntrega      String?
-  aliasEntrega     String?
-  direccionEntrega String?
-  claveIdempotencia String?                     @unique
-  importada        Boolean                      @default(false)
-  detalles         DetalleCompra[]
-  fidelidades      Fidelidad[]
-  pagos            Pago[]
-  resenas          Resena[]
-  historialEstados EstadoTransaccionHistorial[]
-  notasEntrega     NotaEntrega[]
+  id                   Int                          @id @default(autoincrement())
+  numeroOrden          String                       @unique
+  clienteId            Int
+  cliente              Cliente                      @relation(fields: [clienteId], references: [id])
+  fechaCompra          DateTime                     @default(now())
+  montoTotal           Float
+  montoSubtotal        Float                        @default(0)
+  montoDelivery        Float                        @default(0)
+  tipoDescuento        TipoDescuento?
+  valorDescuento       Float?
+  montoDescuento       Float                        @default(0)
+  tasaCambio           Float?
+  estado               EstadoTransaccion
+  tipodeRetiro         TipoRetiro                   @default(envio)
+  zonaEntrega          String?
+  aliasEntrega         String?
+  direccionEntrega     String?
+  claveIdempotencia    String?                      @unique
+  importada            Boolean                      @default(false)
+  montoDescuentoPuntos Float                        @default(0)
+  movimientosSaldo     MovimientoSaldo[]
+  detalles             DetalleCompra[]
+  fidelidades          Fidelidad[]
+  pagos                Pago[]
+  resenas              Resena[]
+  historialEstados     EstadoTransaccionHistorial[]
+  notasEntrega         NotaEntrega[]
 
   createdAt DateTime @default(now())
 
@@ -172,7 +183,7 @@ enum TipoRetiro {
 }
 
 model DetalleCompra {
-  id             Int   @id @default(autoincrement())
+  id             Int         @id @default(autoincrement())
   transaccionId  Int
   productoId     Int
   cantidad       Float
@@ -231,12 +242,25 @@ model Fidelidad {
   transaccion    Transaccion?   @relation(fields: [transaccionId], references: [id])
   fecha          DateTime       @default(now())
   tipoMovimiento TipoMovimiento
+  // Con signo: positivo suma, negativo resta.
   puntos         Int
+  motivo         String?
+  actorId        String?
+  actorEmail     String?
+  premioId       Int?
+  premio         Premio?        @relation(fields: [premioId], references: [id])
+  descripcion    String?
+
+  @@index([clienteId, fecha])
+  @@index([transaccionId])
 }
 
 enum TipoMovimiento {
   acumulacion
   redencion
+  devolucion
+  reversion
+  ajuste
 }
 
 model Pago {
@@ -257,6 +281,8 @@ model Pago {
   actorEmail String?
   anuladoEn  DateTime?
 
+  movimientoSaldo MovimientoSaldo?
+
   createdAt DateTime @default(now())
 }
 
@@ -267,6 +293,7 @@ enum MetodoPago {
   PagoMovil
   TransferenciaUsd
   NoEspecificado
+  SaldoAFavor
 }
 
 model Resena {
@@ -313,4 +340,81 @@ model EquivalenciaCliente {
   cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
 
   @@index([clienteId])
+}
+
+enum EstadoCuentaCliente {
+  vinculada
+  pendiente
+}
+
+// Acceso del cliente a la tienda, vinculado como máximo a un Cliente.
+model CuentaCliente {
+  id                 Int                 @id @default(autoincrement())
+  stackUserId        String              @unique
+  email              String
+  clienteId          Int                 @unique
+  cliente            Cliente             @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  estado             EstadoCuentaCliente
+  confirmadaPorEmail String?
+  confirmadaEn       DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum OrigenMovimientoSaldo {
+  sobrepago
+  pago_cuenta
+  pedido_cancelado
+  aplicacion_pedido
+  anulacion
+  ajuste
+}
+
+// Libro del saldo a favor: solo se insertan filas; el saldo es la suma de montoUsd.
+model MovimientoSaldo {
+  id            Int                   @id @default(autoincrement())
+  clienteId     Int
+  cliente       Cliente               @relation(fields: [clienteId], references: [id])
+  montoUsd      Float
+  origen        OrigenMovimientoSaldo
+  transaccionId Int?
+  transaccion   Transaccion?          @relation(fields: [transaccionId], references: [id])
+  pagoId        Int?                  @unique
+  pago          Pago?                 @relation(fields: [pagoId], references: [id])
+  metodoPago    MetodoPago?
+  referencia    String?
+  fechaPago     DateTime?
+  montoBs       Float?
+  tasaCambio    Float?
+  motivo        String?
+  actorId       String?
+  actorEmail    String?
+
+  createdAt DateTime @default(now())
+
+  @@index([clienteId, createdAt])
+  @@index([transaccionId])
+}
+
+enum TipoPremio {
+  descuento
+  producto
+}
+
+model Premio {
+  id                Int         @id @default(autoincrement())
+  nombre            String
+  descripcion       String?
+  tipo              TipoPremio
+  costoPuntos       Int
+  montoDescuentoUsd Float?
+  productoId        Int?
+  producto          Producto?   @relation(fields: [productoId], references: [id])
+  cantidad          Int?
+  activo            Boolean     @default(true)
+  movimientos       Fidelidad[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

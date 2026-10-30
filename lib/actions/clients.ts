@@ -1,9 +1,8 @@
 "use server";
 
-import { Cliente } from "@prisma/client";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { normalizeSearchName } from "@/lib/client-rules";
+import { CAMPOS_INTERNOS_CLIENTE, type ClienteTienda, normalizeSearchName } from "@/lib/client-rules";
 import { prisma } from "../prisma";
 
 const ClientSchema = z.object({
@@ -36,9 +35,9 @@ export async function deleteClient(formData: FormData) {
 }
 
 export async function addClient(
-  prevState: { message: string; status: string; client: Cliente | null },
+  prevState: { message: string; status: string; client: ClienteTienda | null },
   formData: FormData,
-): Promise<{ message: string; status: string; client: Cliente | null }> {
+): Promise<{ message: string; status: string; client: ClienteTienda | null }> {
   const parsed = ClientSchema.safeParse({
     nombre: formData.get("nombre")?.toString() ?? "",
     apellido: formData.get("apellido")?.toString() ?? "",
@@ -65,6 +64,7 @@ export async function addClient(
   try {
     const existingClient = await prisma.cliente.findUnique({
       where: { celular: parsed.data.celular },
+      omit: CAMPOS_INTERNOS_CLIENTE,
     });
 
     if (existingClient) {
@@ -93,6 +93,7 @@ export async function addClient(
         email: normalizedEmail,
         nombreBusqueda: normalizeSearchName(parsed.data.nombre, parsed.data.apellido),
       },
+      omit: CAMPOS_INTERNOS_CLIENTE,
     });
     return {
       message: "Cliente registrado exitosamente",
@@ -147,6 +148,7 @@ export async function getClientByPhone(phone: string) {
   try {
     const cliente = await prisma.cliente.findUnique({
       where: { celular: normalizedPhone },
+      omit: CAMPOS_INTERNOS_CLIENTE,
     });
     return cliente;
   } catch (error) {

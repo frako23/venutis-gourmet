@@ -5,7 +5,7 @@ import { createIntegrationClient, integrationEnabled, uniqueValue } from "./inte
 
 test("venta manual revierte todas las escrituras cuando falla una línea de stock", { skip: !integrationEnabled }, async () => {
   const prisma = createIntegrationClient();
-  const celular = uniqueValue("0414").slice(0, 12);
+  const celular = uniqueValue("0414");
   const order = uniqueValue("INT-VENTA");
   let clientId: number | undefined;
   let productIds: number[] = [];

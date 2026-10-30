@@ -13,7 +13,7 @@ async function withOrder(
   const prisma = createIntegrationClient();
   let clientId: number | undefined;
   try {
-    const client = await prisma.cliente.create({ data: { tipoCliente: "detal", nombre: "Fixture", apellido: "Abonos", nombreBusqueda: "fixture abonos", celular: uniqueValue("0417").slice(0, 12) } });
+    const client = await prisma.cliente.create({ data: { tipoCliente: "detal", nombre: "Fixture", apellido: "Abonos", nombreBusqueda: "fixture abonos", celular: uniqueValue("0417") } });
     clientId = client.id;
     const order = await prisma.transaccion.create({ data: { numeroOrden: uniqueValue("INT-ABONO"), clienteId: client.id, montoSubtotal: 33, montoTotal: 33, estado } });
     const abonar = (cambios: Partial<AbonoInput>) =>
@@ -21,6 +21,8 @@ async function withOrder(
     await run({ prisma, id: order.id, abonar });
   } finally {
     if (clientId !== undefined) {
+      await prisma.movimientoSaldo.deleteMany({ where: { clienteId: clientId } });
+      await prisma.fidelidad.deleteMany({ where: { clienteId: clientId } });
       await prisma.estadoTransaccionHistorial.deleteMany({ where: { transaccion: { clienteId: clientId } } });
       await prisma.pago.deleteMany({ where: { transaccion: { clienteId: clientId } } });
       await prisma.transaccion.deleteMany({ where: { clienteId: clientId } });

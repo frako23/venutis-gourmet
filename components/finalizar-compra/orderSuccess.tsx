@@ -24,7 +24,6 @@ export interface OrderSuccessProps {
     items: CartItem[];
     metodoPago: MetodoPago;
     tipoRetiro: TipoRetiro;
-    puntosGanados: number; 
   };
 }
 

@@ -115,7 +115,7 @@ test("la carga crea pedidos importados sin tocar el inventario y es idempotente"
 
 test("un conflicto revierte toda la carga y no guarda equivalencias", { skip: !integrationEnabled }, async () => {
   await withFixture(async ({ prisma, base, carga, productoIds }) => {
-    const otroCliente = await prisma.cliente.create({ data: { tipoCliente: "detal", nombre: "Otro", apellido: uniqueValue("Conflicto"), nombreBusqueda: uniqueValue("otro conflicto"), celular: uniqueValue("0414").slice(0, 12) } });
+    const otroCliente = await prisma.cliente.create({ data: { tipoCliente: "detal", nombre: "Otro", apellido: uniqueValue("Conflicto"), nombreBusqueda: uniqueValue("otro conflicto"), celular: uniqueValue("0414") } });
     const existente = await prisma.transaccion.create({ data: { numeroOrden: String(base + 1), clienteId: otroCliente.id, montoSubtotal: 5, montoTotal: 5, estado: "pagado" } });
     try {
       const resoluciones = resolucionesPara(productoIds, carga());

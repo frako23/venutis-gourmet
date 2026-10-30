@@ -43,8 +43,8 @@ describe("datos de cliente del checkout", () => {
 
 test("reutiliza el cliente por teléfono y no borra datos ante conflicto de correo", { skip: !integrationEnabled }, async () => {
   const prisma = createIntegrationClient();
-  const celular = uniqueValue("0414").slice(0, 12);
-  const otroCelular = uniqueValue("0412").slice(0, 12);
+  const celular = uniqueValue("0414");
+  const otroCelular = uniqueValue("0412");
   const email = `${uniqueValue("cliente")}@example.com`;
   let existingId: number | undefined;
   let emailOwnerId: number | undefined;
@@ -73,7 +73,7 @@ test("reutiliza el cliente por teléfono y no borra datos ante conflicto de corr
     const conflictForm = new FormData();
     conflictForm.set("nombre", "Nuevo");
     conflictForm.set("apellido", "Cliente");
-    conflictForm.set("celular", uniqueValue("0424").slice(0, 12));
+    conflictForm.set("celular", uniqueValue("0424"));
     conflictForm.set("email", email);
     conflictForm.set("tipoCliente", "detal");
     const conflict = await clientActions!.addClient({ message: "", status: "", client: null }, conflictForm);

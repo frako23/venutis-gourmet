@@ -17,6 +17,7 @@ import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 import { toast } from "sonner";
 import { CheckoutButton } from "../global/checkoutButton";
+import { BeneficiosCliente, SIN_BENEFICIOS, type SeleccionBeneficios } from "./beneficiosCliente";
 import { InputField } from "../global/input";
 import { CopyButton } from "../productos/copyToClipboard";
 
@@ -58,7 +59,13 @@ export const PaymentInformation = () => {
   const purchaseContext = useAppStore((s) => s.purchaseContext);
   const client = useAppStore((s) => s.client);
   const { setCanContinue, setIsSubmitting, isSubmitting } = useCheckout();
-  const finalTotalUSD = totalUSD + deliveryPrice;
+  // La selección de beneficios solo importa en este paso: vive en estado local y no en el store del checkout.
+  const [beneficios, setBeneficios] = useState<SeleccionBeneficios>(SIN_BENEFICIOS);
+  const [recargaBeneficios, setRecargaBeneficios] = useState(0);
+  const totalPedidoUSD = totalUSD + deliveryPrice;
+  // Lo que aún se debe pagar después de los premios y el saldo a favor.
+  const finalTotalUSD = Math.max(0, Math.round((totalPedidoUSD - beneficios.descuentoPuntosUsd - beneficios.saldoAFavorUsd) * 100) / 100);
+  const sinPago = finalTotalUSD <= 0;
 
   useEffect(() => {
     setPaymentRecord((previous) => {
@@ -71,8 +78,7 @@ export const PaymentInformation = () => {
 
   useEffect(() => {
     const valid = Boolean(
-      paymentRecord &&
-        validatePaymentInput(paymentRecord, finalTotalUSD).ok &&
+      (sinPago || (paymentRecord && validatePaymentInput(paymentRecord, finalTotalUSD).ok)) &&
         client?.id &&
         selectedProducts.length > 0 &&
         (deliveryMethod === "recogida" || selectedAddressId),
@@ -86,6 +92,7 @@ export const PaymentInformation = () => {
     selectedAddressId,
     selectedProducts.length,
     setCanContinue,
+    sinPago,
   ]);
 
   const updatePaymentRecord = (patch: Partial<PaymentDetails>) => {
@@ -96,15 +103,17 @@ export const PaymentInformation = () => {
   };
 
   const handleSubmit = async () => {
-    if (!client?.id || !paymentRecord || !selectedProducts.length) return;
+    if (!client?.id || !selectedProducts.length || (!sinPago && !paymentRecord)) return;
     if (deliveryMethod === "envio" && !selectedAddressId) {
       toast.error("Selecciona una dirección de delivery.");
       return;
     }
-    const validation = validatePaymentInput(paymentRecord, finalTotalUSD);
-    if (!validation.ok) {
-      toast.error(validation.message);
-      return;
+    if (!sinPago && paymentRecord) {
+      const validation = validatePaymentInput(paymentRecord, finalTotalUSD);
+      if (!validation.ok) {
+        toast.error(validation.message);
+        return;
+      }
     }
 
     if (!idempotencyKey.current) {
@@ -124,14 +133,17 @@ export const PaymentInformation = () => {
       direccionId: deliveryMethod === "envio" ? selectedAddressId : null,
       claveIdempotencia: idempotencyKey.current,
       carrito,
-      pago: {
-        montoBs: paymentRecord.montoBs,
-        montoUsd: paymentRecord.montoUsd,
-        metodoPago: paymentRecord.metodoPago as MetodoPago,
-        referencia: paymentRecord.metodoPago === "EfectivoUsd" ? null : paymentRecord.referencia,
-        fechaPago: paymentRecord.metodoPago === "EfectivoUsd" ? null : paymentRecord.fechaPago,
-        tasaCambio: paymentRecord.tasaCambio,
-      },
+      beneficios: beneficios.premioIds.length > 0 || beneficios.saldoAFavorUsd > 0 ? { premioIds: beneficios.premioIds, saldoAFavorUsd: beneficios.saldoAFavorUsd } : undefined,
+      pago: sinPago || !paymentRecord
+        ? null
+        : {
+            montoBs: paymentRecord.montoBs,
+            montoUsd: paymentRecord.montoUsd,
+            metodoPago: paymentRecord.metodoPago as MetodoPago,
+            referencia: paymentRecord.metodoPago === "EfectivoUsd" ? null : paymentRecord.referencia,
+            fechaPago: paymentRecord.metodoPago === "EfectivoUsd" ? null : paymentRecord.fechaPago,
+            tasaCambio: paymentRecord.tasaCambio,
+          },
     };
 
     try {
@@ -150,6 +162,11 @@ export const PaymentInformation = () => {
       } else {
         idempotencyKey.current = "";
         toast.error(response.message);
+        // Los puntos, el saldo o un premio cambiaron: se recargan los beneficios y se vuelve a elegir.
+        if (response.code === "BENEFITS_CHANGED") {
+          setBeneficios(SIN_BENEFICIOS);
+          setRecargaBeneficios((veces) => veces + 1);
+        }
       }
     } catch {
       idempotencyKey.current = "";
@@ -182,6 +199,15 @@ export const PaymentInformation = () => {
         <h3 className="text-lg font-bold tracking-tight">Método de Pago</h3>
       </div>
 
+      <BeneficiosCliente key={recargaBeneficios} subtotalUsd={totalUSD} totalUsd={totalPedidoUSD} onChange={setBeneficios} />
+
+      {sinPago ? (
+        <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/10 text-sm">
+          <p className="text-accent-gold font-bold">Tus beneficios cubren todo el pedido.</p>
+          <p className="mt-1 opacity-70">No hay nada que pagar: al confirmar, tu pedido queda pagado.</p>
+        </div>
+      ) : (
+      <>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <PaymentOption id="PagoMovil" label="Pago Móvil" icon={Smartphone} selected={paymentMethod === "PagoMovil"} onClick={() => selectPaymentMethod("PagoMovil")} />
         <PaymentOption id="Zelle" label="Zelle" icon={Smartphone} selected={paymentMethod === "Zelle"} onClick={() => selectPaymentMethod("Zelle")} />
@@ -194,7 +220,7 @@ export const PaymentInformation = () => {
           <h4 className="text-xs uppercase tracking-[2px] font-bold text-accent-gold">Instrucciones de Pago</h4>
           <span className="text-[10px] bg-white/10 px-2 py-1 rounded-md opacity-60">Moneda: {PAYMENT_DETAILS[paymentMethod].currency}</span>
         </div>
-        <p className="text-sm text-accent-gold mb-4">Total del pedido: ${finalTotalUSD.toFixed(2)} / Bs. {(finalTotalUSD * tasa).toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+        <p className="text-sm text-accent-gold mb-4">Total a pagar: ${finalTotalUSD.toFixed(2)} / Bs. {(finalTotalUSD * tasa).toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
 
         {paymentMethod === "PagoMovil" && (
           <div className="grid grid-cols-2 gap-4 text-sm">
@@ -225,6 +251,8 @@ export const PaymentInformation = () => {
       )}
 
       <div className="text-xs opacity-60">Tasa utilizada: Bs. {tasa.toFixed(2)} por USD. El pago declarado no se considera cobrado hasta su confirmación operativa.</div>
+      </>
+      )}
       <CheckoutButton isPending={isSubmitting} type="submit" />
     </form>
   );

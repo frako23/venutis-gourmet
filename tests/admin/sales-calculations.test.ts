@@ -81,3 +81,27 @@ describe("cálculos de ventas administrativas", () => {
     assert.ok(Math.abs(resumen.reduce((suma, fila) => suma + fila.porcentajeDelTotal, 0) - 100) < 0.05);
   });
 });
+
+describe("descuento por puntos", () => {
+  const lines = [{ productoId: 1, cantidad: 2, precioUnitarioUsd: 15 }];
+
+  it("se resta del total junto con el descuento normal", () => {
+    const totals = calculateSaleTotals(lines, { tipo: "usd", valor: 3 }, null, 5);
+    assert.equal(totals.subtotalUsd, 30);
+    assert.equal(totals.descuentoUsd, 3);
+    assert.equal(totals.descuentoPuntosUsd, 5);
+    assert.equal(totals.totalUsd, 22);
+  });
+
+  it("por defecto no descuenta nada", () => {
+    assert.equal(calculateSaleTotals(lines).descuentoPuntosUsd, 0);
+  });
+
+  it("rechaza que ambos descuentos superen el subtotal", () => {
+    assert.throws(() => calculateSaleTotals(lines, { tipo: "usd", valor: 26 }, null, 5), /superar el subtotal/);
+  });
+
+  it("acepta que ambos descuentos igualen el subtotal", () => {
+    assert.equal(calculateSaleTotals(lines, { tipo: "usd", valor: 25 }, null, 5).totalUsd, 0);
+  });
+});

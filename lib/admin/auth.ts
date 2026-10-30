@@ -3,17 +3,13 @@ import "server-only";
 import { stackServerApp } from "@/stack/server";
 import { redirect } from "next/navigation";
 
+import { esCorreoAdministrador, leerCorreosAdministradores } from "./auth-rules";
+
 export type AdminIdentity = {
   id: string;
   email: string | null;
 };
 
-function allowedEmails() {
-  return (process.env.ALLOWED_EMAILS ?? "")
-    .split(",")
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean);
-}
 
 export async function requireAdmin(): Promise<AdminIdentity> {
   if (process.env.NODE_ENV === "development") {
@@ -26,9 +22,8 @@ export async function requireAdmin(): Promise<AdminIdentity> {
   }
 
   const email = user.primaryEmail?.trim().toLowerCase() ?? null;
-  const configuredEmails = allowedEmails();
 
-  if (configuredEmails.length > 0 && (!email || !configuredEmails.includes(email))) {
+  if (!esCorreoAdministrador(email, leerCorreosAdministradores(process.env.ALLOWED_EMAILS))) {
     redirect("/unauthorized");
   }
 

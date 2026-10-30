@@ -10,7 +10,7 @@ async function withFixture(
   run: (ctx: { prisma: ReturnType<typeof createIntegrationClient>; products: [number, number]; orderId: (estado: "por_cobrar" | "en_pedido" | "pagado") => Promise<number>; change: (id: number, input: Omit<OrderStateChangeInput, "transaccionId">) => Promise<Awaited<ReturnType<typeof aplicarCambioEstadoPedido>>>; stock: (id: number) => Promise<number | undefined> }) => Promise<void>,
 ) {
   const prisma = createIntegrationClient();
-  const celular = uniqueValue("0415").slice(0, 12);
+  const celular = uniqueValue("0415");
   let clientId: number | undefined;
   let productIds: number[] = [];
   try {
@@ -30,6 +30,8 @@ async function withFixture(
     await run({ prisma, products: [a.id, b.id], orderId, change, stock });
   } finally {
     if (clientId !== undefined) {
+      await prisma.movimientoSaldo.deleteMany({ where: { clienteId: clientId } });
+      await prisma.fidelidad.deleteMany({ where: { clienteId: clientId } });
       await prisma.estadoTransaccionHistorial.deleteMany({ where: { transaccion: { clienteId: clientId } } });
       await prisma.pago.deleteMany({ where: { transaccion: { clienteId: clientId } } });
       await prisma.detalleCompra.deleteMany({ where: { transaccion: { clienteId: clientId } } });

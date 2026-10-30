@@ -1,6 +1,6 @@
 "use client";
 
-import { Cliente } from "@prisma/client";
+import type { ClienteTienda } from "@/lib/client-rules";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import {
@@ -42,7 +42,7 @@ interface AppState {
   canContinue: boolean;
   deliveryPrice: number;
   selectedAddressId: number | null;
-  client: Cliente | null;
+  client: ClienteTienda | null;
 
   // Acciones (Quitamos los "?" para evitar errores de "undefined")
   setSelectedProducts: (products: CartItem[]) => void;
@@ -60,7 +60,7 @@ interface AppState {
   nextStep: (metodoDePago: boolean) => void;
   setDeliveryPrice: (price: number) => void;
   setSelectedAddressId: (id: number | null) => void;
-  setClient: (client: Cliente | null) => void;
+  setClient: (client: ClienteTienda | null) => void;
   clearClient: () => void;
 }
 

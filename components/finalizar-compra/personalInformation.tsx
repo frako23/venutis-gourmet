@@ -1,5 +1,6 @@
 import { useCheckout } from "@/context/checkoutContext";
 import { addClient, getClientByPhone } from "@/lib/actions/clients";
+import { obtenerClienteCheckout } from "@/lib/actions/cuenta-cliente";
 import { initialStateClient } from "@/lib/constants/constants";
 import { useAppStore } from "@/store/appStore";
 import { UserCircle } from "lucide-react";
@@ -20,6 +21,7 @@ export const PersonalInformation = () => {
     tipoCliente: "detal",
   });
   const [isSearching, setIsSearching] = useState(false);
+  const [sesionVinculada, setSesionVinculada] = useState(false);
   const setClient = useAppStore((s) => s.setClient);
   const setStoreClientId = useAppStore((s) => s.setClientId);
 
@@ -52,13 +54,30 @@ export const PersonalInformation = () => {
     }
   }, [setClient, setClientId, setStoreClientId, state, nextStep]);
 
+  // Con una cuenta vinculada, los datos salen de la sesión y no de lo que se escriba.
+  useEffect(() => {
+    let activo = true;
+    void obtenerClienteCheckout().then((cliente) => {
+      if (!activo || !cliente) return;
+      setSesionVinculada(true);
+      setIsExistingClient(true);
+      setClientId(cliente.id);
+      setStoreClientId(cliente.id);
+      setClient(cliente);
+      setUserData({ nombre: cliente.nombre, apellido: cliente.apellido, email: cliente.email ?? "", celular: cliente.celular ?? "", tipoCliente: cliente.tipoCliente });
+    });
+    return () => {
+      activo = false;
+    };
+  }, [setClient, setClientId, setStoreClientId]);
+
   // Verificamos si el teléfono tiene al menos una longitud mínima para habilitar el resto
   const isPhoneEmpty = userData.celular.trim().length < 10;
 
   // Función para buscar cliente
   const handlePhoneBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
     const phone = e.target.value;
-    if (phone.trim().length >= 10) {
+    if (!sesionVinculada && phone.trim().length >= 10) {
       // Longitud mínima para buscar
       setIsSearching(true);
       const cliente = await getClientByPhone(phone);
@@ -98,6 +117,7 @@ export const PersonalInformation = () => {
   // Manejar cambios manuales en los inputs
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    if (sesionVinculada) return;
     if (name === "celular") {
       setIsExistingClient(false);
       setClient(null);
@@ -130,6 +150,7 @@ export const PersonalInformation = () => {
             value={userData.celular}
             onChange={handleChange}
             onBlur={handlePhoneBlur} // Se dispara al salir del campo
+            readOnly={sesionVinculada}
             required
           />
           {isSearching && (

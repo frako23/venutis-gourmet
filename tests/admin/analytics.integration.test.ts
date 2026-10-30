@@ -5,7 +5,7 @@ import { createIntegrationClient, integrationEnabled, uniqueValue } from "./inte
 
 test("analítica de fixture excluye transacciones canceladas", { skip: !integrationEnabled }, async () => {
   const prisma = createIntegrationClient();
-  const celular = uniqueValue("0416").slice(0, 12);
+  const celular = uniqueValue("0416");
   let clientId: number | undefined;
   let productId: number | undefined;
   let transactionIds: number[] = [];

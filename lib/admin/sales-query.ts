@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import type { SalesFilterState } from "@/components/admin/ventas/salesFilters";
-import { agruparCuentasPorCobrar } from "@/lib/admin/abonos";
+import { agruparCuentasPorCobrar, ESTADOS_CON_DEUDA } from "@/lib/admin/abonos";
 import { prisma } from "@/lib/prisma";
 
 const PENDING_STATES = ["por_cobrar", "pendiente", "en_pedido"] as const;
@@ -39,7 +39,7 @@ export function buildSalesWhere(values: SalesFilterState): Prisma.TransaccionWhe
 /** Resumen de lo que se debe: pedidos abiertos con saldo, agrupados por cliente. */
 export async function consultarCuentasPorCobrar() {
   const pedidos = await prisma.transaccion.findMany({
-    where: { estado: { in: ["por_cobrar", "pendiente", "en_pedido"] } },
+    where: { estado: { in: [...ESTADOS_CON_DEUDA] } },
     select: {
       clienteId: true,
       fechaCompra: true,

@@ -19,6 +19,8 @@ export type ActionError = {
   success: false;
   message: string;
   issues?: ValidationIssue[];
+  /** La venta excede el crédito del cliente y necesita la autorización de la administradora. */
+  requiereAutorizacion?: { deudaUsd: number; limiteUsd: number | null; disponibleUsd: number; excesoUsd: number };
 };
 
 export type ActionSuccess<T extends object = Record<string, never>> = {

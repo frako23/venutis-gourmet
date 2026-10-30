@@ -15,6 +15,8 @@ export type DiscountInput = {
 export type SaleTotals = {
   subtotalUsd: number;
   descuentoUsd: number;
+  /** Descuento por premios canjeados con puntos; se suma al descuento al calcular el total. */
+  descuentoPuntosUsd: number;
   totalUsd: number;
   descuentoBs: number | null;
   totalBs: number | null;
@@ -61,6 +63,7 @@ export function calculateSaleTotals(
   lines: SaleLineInput[],
   discount: DiscountInput | null = null,
   tasaCambio: number | null = null,
+  descuentoPuntosUsd = 0,
 ): SaleTotals {
   const subtotalUsd = calculateSubtotal(lines);
   let descuentoUsd = 0;
@@ -80,16 +83,17 @@ export function calculateSaleTotals(
     }
   }
 
-  if (descuentoUsd > subtotalUsd) {
+  if (Math.round((descuentoUsd + descuentoPuntosUsd) * 100) > Math.round(subtotalUsd * 100)) {
     throw new Error("El descuento no puede superar el subtotal");
   }
 
-  const totalUsd = roundMoney(subtotalUsd - descuentoUsd);
+  const totalUsd = roundMoney(subtotalUsd - descuentoUsd - descuentoPuntosUsd);
   const resolvedRate = tasaCambio && tasaCambio > 0 ? tasaCambio : null;
 
   return {
     subtotalUsd,
     descuentoUsd,
+    descuentoPuntosUsd,
     totalUsd,
     descuentoBs: resolvedRate ? convertUsdToBs(descuentoUsd, resolvedRate) : null,
     totalBs: resolvedRate ? convertUsdToBs(totalUsd, resolvedRate) : null,

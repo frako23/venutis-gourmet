@@ -5,8 +5,10 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { requireAdmin } from "@/lib/admin/auth";
-import { calcularAbonado, validarTotalContraAbonado } from "@/lib/admin/abonos";
-import { calculateSaleTotals, type DiscountInput, type SaleLineInput } from "@/lib/admin/sales-calculations";
+import { bloquearCliente, calcularAbonado, consultarDeudaCliente, evaluarCredito, validarTotalContraAbonado } from "@/lib/admin/abonos";
+import { calculateSaleTotals, roundMoney, type DiscountInput } from "@/lib/admin/sales-calculations";
+import { acreditarPuntosPorPago } from "@/lib/fidelidad";
+import { CreditoRequiereAutorizacion, registrarVentaManualEnTx, type VentaManualInput } from "@/lib/admin/manual-sale";
 import { requiresPaymentConfirmation } from "@/lib/admin/status";
 import type { BulkSalesState, ManualSaleState } from "@/lib/admin/types";
 import { ajustarInventario, isValidQuantity } from "@/lib/inventory";
@@ -35,6 +37,9 @@ const manualSaleSchema = z.object({
   lineas: z.array(lineSchema).min(1),
   descuento: discountSchema.nullable().optional(),
   confirmacionPago: z.boolean().default(false),
+  autorizarCredito: z.boolean().default(false),
+  saldoAFavorUsd: z.coerce.number().finite().nonnegative().default(0),
+  canjes: z.array(z.coerce.number().int().positive()).max(10).default([]),
   pago: z.object({
     montoBs: z.coerce.number().nonnegative().nullable().optional(),
     montoUsd: z.coerce.number().nonnegative().nullable().optional(),
@@ -43,6 +48,11 @@ const manualSaleSchema = z.object({
     fechaPago: z.coerce.date().nullable().optional(),
   }).nullable().optional(),
 });
+
+/** Líneas con precio: las de premios (producto gratis, precio 0) no suman al subtotal. */
+function lineasCobradas(detalles: Array<{ productoId: number; cantidad: number; precioUnitario: number }>) {
+  return detalles.filter((line) => line.precioUnitario > 0).map((line) => ({ productoId: line.productoId, cantidad: line.cantidad, precioUnitarioUsd: line.precioUnitario }));
+}
 
 function readJson<T>(formData: FormData, key: string, fallback: T): T {
   const raw = formData.get(key)?.toString();
@@ -64,6 +74,9 @@ function parseInput(formData: FormData) {
     lineas: readJson(formData, "lineas", []),
     descuento: descuentoRaw ? readJson<DiscountInput | null>(formData, "descuento", null) : null,
     confirmacionPago: formData.get("confirmacionPago") === "true",
+    autorizarCredito: formData.get("autorizarCredito") === "true",
+    saldoAFavorUsd: formData.get("saldoAFavorUsd") || 0,
+    canjes: readJson<number[]>(formData, "canjes", []),
     pago: pagoRaw ? readJson(formData, "pago", null) : null,
   });
 }
@@ -79,53 +92,38 @@ export async function registrarVentaManual(_previous: ManualSaleState, formData:
   if (input.estadoInicial === "pagado" && !input.confirmacionPago && !input.pago) {
     return { success: false, message: "Confirma el cobro o registra los datos de pago para iniciar la venta como pagada." };
   }
-  const discount = input.descuento as DiscountInput | null | undefined;
-  let totals;
-  try {
-    totals = calculateSaleTotals(input.lineas as SaleLineInput[], discount ?? null, input.tasaCambio ?? null);
-  } catch (error) {
-    return { success: false, message: error instanceof Error ? error.message : "Los importes no son válidos." };
-  }
-
-  const uniqueQuantities = new Map<number, number>();
-  for (const line of input.lineas) uniqueQuantities.set(line.productoId, (uniqueQuantities.get(line.productoId) ?? 0) + line.cantidad);
 
   try {
-    const result = await prisma.$transaction(async (tx) => {
-      const client = await tx.cliente.findUnique({ where: { id: input.clienteId }, select: { id: true } });
-      if (!client) throw new Error("El cliente seleccionado no existe.");
-
-      for (const [productoId, cantidad] of [...uniqueQuantities].sort((a, b) => a[0] - b[0])) {
-        await ajustarInventario(tx, productoId, -cantidad, { exigirStock: true });
-      }
-
-      const orderNumber = input.numeroOrden || await nextOrderNumber(tx);
-      const transaction = await tx.transaccion.create({
-        data: {
-          numeroOrden: orderNumber,
+    const result = await prisma.$transaction((tx) =>
+      registrarVentaManualEnTx(
+        tx,
+        {
           clienteId: input.clienteId,
           fechaCompra: input.fechaCompra,
-          montoSubtotal: totals.subtotalUsd,
-          montoDescuento: totals.descuentoUsd,
-          valorDescuento: discount?.valor ?? null,
-          tipoDescuento: discount?.tipo,
-          tasaCambio: totals.tasaCambio,
-          montoTotal: totals.totalUsd,
-          estado: input.estadoInicial as EstadoTransaccion,
+          numeroOrden: input.numeroOrden,
           tipodeRetiro: input.tipodeRetiro as TipoRetiro,
+          tasaCambio: input.tasaCambio ?? null,
+          estadoInicial: input.estadoInicial,
+          lineas: input.lineas as VentaManualInput["lineas"],
+          descuento: (input.descuento as DiscountInput | null | undefined) ?? null,
+          autorizarCredito: input.autorizarCredito,
+          saldoAFavorUsd: input.saldoAFavorUsd,
+          canjes: input.canjes,
+          pago: input.pago,
         },
-      });
-      await tx.detalleCompra.createMany({ data: input.lineas.map((line) => ({ transaccionId: transaction.id, productoId: line.productoId, cantidad: line.cantidad, precioUnitario: line.precioUnitarioUsd, tipoPrecio: line.tipoPrecio })) });
-      await tx.estadoTransaccionHistorial.create({ data: { transaccionId: transaction.id, estadoNuevo: input.estadoInicial as EstadoTransaccion, actorId: actor.id, actorEmail: actor.email, motivo: "Venta registrada manualmente" } });
-      if (input.pago) await tx.pago.create({ data: { transaccionId: transaction.id, montoBs: input.pago.montoBs ?? null, montoUsd: input.pago.montoUsd ?? totals.totalUsd, metodoPago: input.pago.metodoPago, referencia: input.pago.referencia ?? null, fechaPago: input.pago.fechaPago ?? input.fechaCompra, tasaCambio: totals.tasaCambio } });
-      return { id: transaction.id, numeroOrden: transaction.numeroOrden };
-    });
+        actor,
+      ),
+    );
 
     revalidatePath("/admin");
     revalidatePath("/admin/transactions");
     revalidatePath("/admin/inventory");
-    return { success: true, message: "Venta registrada correctamente.", transactionId: result.id, numeroOrden: result.numeroOrden, estado: input.estadoInicial, subtotalUsd: totals.subtotalUsd, descuentoUsd: totals.descuentoUsd, totalUsd: totals.totalUsd };
+    revalidatePath(`/admin/clients/${input.clienteId}`);
+    return { success: true, message: "Venta registrada correctamente.", transactionId: result.id, numeroOrden: result.numeroOrden, estado: input.estadoInicial, subtotalUsd: result.totals.subtotalUsd, descuentoUsd: result.totals.descuentoUsd, totalUsd: result.totals.totalUsd };
   } catch (error) {
+    if (error instanceof CreditoRequiereAutorizacion) {
+      return { success: false, message: error.message, requiereAutorizacion: error.info };
+    }
     return { success: false, message: error instanceof Error ? error.message : "No se pudo registrar la venta." };
   }
 }
@@ -137,7 +135,7 @@ export async function actualizarDescuentoVenta(formData: FormData) {
   try {
     const transaction = await prisma.transaccion.findUnique({ where: { id: parsed.data.transactionId }, include: { detalles: true, pagos: true } });
     if (!transaction) return { success: false as const, message: "La venta no existe." };
-    const totals = calculateSaleTotals(transaction.detalles.map((line) => ({ productoId: line.productoId, cantidad: line.cantidad, precioUnitarioUsd: line.precioUnitario })), { tipo: parsed.data.tipo, valor: parsed.data.valor }, transaction.tasaCambio);
+    const totals = calculateSaleTotals(lineasCobradas(transaction.detalles), { tipo: parsed.data.tipo, valor: parsed.data.valor }, transaction.tasaCambio, transaction.montoDescuentoPuntos);
     validarTotalContraAbonado(totals.totalUsd, calcularAbonado(transaction.pagos));
     await prisma.transaccion.update({ where: { id: transaction.id }, data: { montoSubtotal: totals.subtotalUsd, montoDescuento: totals.descuentoUsd, valorDescuento: parsed.data.valor, tipoDescuento: parsed.data.tipo, montoTotal: totals.totalUsd } });
     revalidatePath("/admin/transactions");
@@ -177,6 +175,7 @@ const bulkSalesSchema = z.object({
   existentes: z.array(bulkExistingRowSchema).max(100),
   nuevas: z.array(bulkNewRowSchema).max(50),
   confirmarPagos: z.boolean(),
+  autorizarCredito: z.boolean().default(false),
 });
 
 function readBulkSales(formData: FormData) {
@@ -212,6 +211,11 @@ export async function guardarEdicionMasivaVentas(_previous: BulkSalesState, form
     const result = await prisma.$transaction(async (tx) => {
       let updated = 0;
       let created = 0;
+      const excedidas: string[] = [];
+      const creditoPorCliente = new Map<number, { habilitado: boolean; limiteUsd: number | null; deudaUsd: number }>();
+      for (const clienteId of [...new Set(input.nuevas.map((row) => row.clienteId))].sort((a, b) => a - b)) {
+        await bloquearCliente(tx, clienteId);
+      }
 
       const existingTransactions = new Map(
         (await tx.transaccion.findMany({ where: { id: { in: input.existentes.map((row) => row.id) } }, include: { detalles: true, pagos: true } })).map((item) => [item.id, item]),
@@ -220,19 +224,26 @@ export async function guardarEdicionMasivaVentas(_previous: BulkSalesState, form
       for (const row of input.existentes) {
         const transaction = existingTransactions.get(row.id);
         if (!transaction) throw new Error(`La venta ${row.numeroOrden} ya no existe.`);
+        if (row.clienteId !== transaction.clienteId) {
+          const [puntos, saldo] = await Promise.all([tx.fidelidad.count({ where: { transaccionId: row.id } }), tx.movimientoSaldo.count({ where: { transaccionId: row.id } })]);
+          if (puntos + saldo > 0) throw new Error(`La venta ${row.numeroOrden} tiene puntos o saldo a favor asociados y no puede cambiar de cliente.`);
+        }
         if (transaction.estado === "cancelado" && row.estado !== "cancelado") throw new Error(`La venta ${row.numeroOrden} está cancelada y no puede reabrirse desde el editor masivo.`);
         if (row.estado === "cancelado" && transaction.estado !== "cancelado") throw new Error(`Cancela ${row.numeroOrden} desde la tabla o el detalle para registrar la razón y devolver el inventario.`);
 
         const totals = calculateSaleTotals(
-          transaction.detalles.map((line) => ({ productoId: line.productoId, cantidad: line.cantidad, precioUnitarioUsd: line.precioUnitario })),
+          lineasCobradas(transaction.detalles),
           bulkDiscount(row.tipoDescuento, row.valorDescuento),
           transaction.tasaCambio,
+          transaction.montoDescuentoPuntos,
         );
         const paidUsd = transaction.pagos.reduce((sum, payment) => sum + (payment.montoUsd ?? 0), 0);
         if (row.estado === "pagado" && transaction.estado !== "pagado" && requiresPaymentConfirmation(totals.totalUsd, paidUsd, input.confirmarPagos, false)) {
           throw new Error(`Confirma el cobro de ${row.numeroOrden} antes de marcarla como pagada.`);
         }
 
+        // Orden de bloqueo Cliente -> pedido: se bloquea antes de actualizar el pedido que pasa a pagado.
+        if (row.estado === "pagado" && transaction.estado !== "pagado") await bloquearCliente(tx, row.clienteId);
         const client = await tx.cliente.findUnique({ where: { id: row.clienteId }, select: { id: true } });
         if (!client) throw new Error(`El cliente de ${row.numeroOrden} no existe.`);
         await tx.transaccion.update({
@@ -250,13 +261,14 @@ export async function guardarEdicionMasivaVentas(_previous: BulkSalesState, form
             montoTotal: totals.totalUsd,
           },
         });
+        if (row.estado === "pagado" && transaction.estado !== "pagado") await acreditarPuntosPorPago(tx, row.id);
         if (row.estado !== transaction.estado) {
           await tx.estadoTransaccionHistorial.create({ data: { transaccionId: row.id, estadoAnterior: transaction.estado, estadoNuevo: row.estado as EstadoTransaccion, actorId: actor.id, actorEmail: actor.email, motivo: "Edición masiva desde ventas y pedidos" } });
         }
         updated += 1;
       }
 
-      for (const row of input.nuevas) {
+      for (const [indice, row] of input.nuevas.entries()) {
         const [client, product] = await Promise.all([
           tx.cliente.findUnique({ where: { id: row.clienteId }, select: { id: true } }),
           tx.producto.findUnique({ where: { id: row.productoId }, select: { id: true, nombre: true } }),
@@ -270,6 +282,22 @@ export async function guardarEdicionMasivaVentas(_previous: BulkSalesState, form
           null,
         );
         if (row.estado === "pagado" && !input.confirmarPagos) throw new Error("Confirma el cobro de las filas nuevas marcadas como pagadas.");
+
+        let motivoCredito = "";
+        if (row.estado !== "pagado") {
+          let credito = creditoPorCliente.get(row.clienteId);
+          if (!credito) {
+            const datos = await tx.cliente.findUnique({ where: { id: row.clienteId }, select: { creditoHabilitado: true, limiteCreditoUsd: true } });
+            credito = { habilitado: datos?.creditoHabilitado ?? false, limiteUsd: datos?.limiteCreditoUsd ?? null, deudaUsd: await consultarDeudaCliente(tx, row.clienteId) };
+            creditoPorCliente.set(row.clienteId, credito);
+          }
+          const evaluacion = evaluarCredito({ ...credito, montoSinCobrarUsd: totals.totalUsd });
+          credito.deudaUsd = roundMoney(credito.deudaUsd + totals.totalUsd);
+          if (evaluacion.requiereAutorizacion) {
+            excedidas.push(row.numeroOrden || `fila nueva ${indice + 1}`);
+            motivoCredito = ` · Autorizada sobre el crédito: excede USD ${evaluacion.excesoUsd.toFixed(2).replace(".", ",")}`;
+          }
+        }
 
         await ajustarInventario(tx, row.productoId, -row.cantidad, { exigirStock: true });
 
@@ -289,10 +317,14 @@ export async function guardarEdicionMasivaVentas(_previous: BulkSalesState, form
           },
         });
         await tx.detalleCompra.create({ data: { transaccionId: transaction.id, productoId: row.productoId, cantidad: row.cantidad, precioUnitario: row.precioUnitarioUsd, tipoPrecio: row.tipoPrecio } });
-        await tx.estadoTransaccionHistorial.create({ data: { transaccionId: transaction.id, estadoNuevo: row.estado as EstadoTransaccion, actorId: actor.id, actorEmail: actor.email, motivo: "Pedido cargado desde el editor masivo" } });
+        await tx.estadoTransaccionHistorial.create({ data: { transaccionId: transaction.id, estadoNuevo: row.estado as EstadoTransaccion, actorId: actor.id, actorEmail: actor.email, motivo: `Pedido cargado desde el editor masivo${motivoCredito}` } });
+        if (row.estado === "pagado") await acreditarPuntosPorPago(tx, transaction.id);
         created += 1;
       }
 
+      if (excedidas.length > 0 && !input.autorizarCredito) {
+        throw new Error(`Las ventas ${excedidas.join(", ")} exceden el crédito disponible. Marca "Autorizo las ventas que exceden el crédito" para guardarlas.`);
+      }
       return { updated, created };
     }, { maxWait: 10000, timeout: 60000 });
 
