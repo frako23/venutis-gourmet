@@ -5,6 +5,7 @@ import {
   calculateSaleTotals,
   calculateSubtotal,
   convertUsdToBs,
+  resumirPorProducto,
   resumirPorTipoPrecio,
 } from "../../lib/admin/sales-calculations.js";
 
@@ -119,5 +120,38 @@ describe("recalcularTotalPedido", () => {
   it("rechaza un descuento por encima del subtotal y convierte a Bs", () => {
     assert.throws(() => recalcularTotalPedido({ lineasCobradas: lineas, descuento: { tipo: "usd", valor: 25 }, tasaCambio: null, descuentoPuntosUsd: 0, montoDeliveryUsd: 0 }), /subtotal/);
     assert.equal(recalcularTotalPedido({ lineasCobradas: lineas, descuento: null, tasaCambio: 10, descuentoPuntosUsd: 0, montoDeliveryUsd: 5 }).totalBs, 250);
+  });
+});
+
+describe("resumirPorProducto", () => {
+  it("suma las líneas del mismo producto", () => {
+    const [fila] = resumirPorProducto([
+      { productoId: 1, nombre: "A", cantidad: 2, precioUnitario: 5 },
+      { productoId: 1, nombre: "A", cantidad: 1.5, precioUnitario: 5 },
+    ], 17.5);
+    assert.equal(fila.cantidadVendida, 3.5);
+    assert.equal(fila.totalUsd, 17.5);
+    assert.equal(fila.porcentajeDelTotal, 100);
+  });
+
+  it("una línea a precio 0 suma unidades y no monto", () => {
+    const [fila] = resumirPorProducto([
+      { productoId: 1, nombre: "A", cantidad: 1, precioUnitario: 10 },
+      { productoId: 1, nombre: "A", cantidad: 1, precioUnitario: 0 },
+    ], 10);
+    assert.equal(fila.cantidadVendida, 2);
+    assert.equal(fila.totalUsd, 10);
+  });
+
+  it("el porcentaje es 0 con total 0", () => {
+    assert.equal(resumirPorProducto([{ productoId: 1, nombre: "A", cantidad: 1, precioUnitario: 0 }], 0)[0].porcentajeDelTotal, 0);
+  });
+
+  it("ordena por monto descendente", () => {
+    const filas = resumirPorProducto([
+      { productoId: 1, nombre: "A", cantidad: 1, precioUnitario: 5 },
+      { productoId: 2, nombre: "B", cantidad: 1, precioUnitario: 9 },
+    ], 14);
+    assert.deepEqual(filas.map((f) => f.productoId), [2, 1]);
   });
 });

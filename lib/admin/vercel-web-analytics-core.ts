@@ -1,9 +1,11 @@
-import type { VisitBreakdownRow, VisitMetric, WebsiteVisitsStatus } from "./types.js";
+import type { VisitBreakdownRow, VisitDay, VisitMetric, WebsiteVisitsStatus } from "./types.js";
 
 const VERCEL_ANALYTICS_ENDPOINT = "https://api.vercel.com/v1/query/web-analytics";
 const REQUEST_TIMEOUT_MS = 8_000;
 
 export type VercelAnalyticsDimension = "requestPath" | "referrerHostname" | "country" | "deviceType";
+
+export type VercelAnalyticsGrouping = VercelAnalyticsDimension | "day";
 
 export type VercelAnalyticsConfig = {
   token: string;
@@ -19,7 +21,7 @@ export type VercelAnalyticsError = Error & {
 type FetchInput = {
   period: { since: string; until: string };
   config: VercelAnalyticsConfig;
-  dimension?: VercelAnalyticsDimension;
+  dimension?: VercelAnalyticsGrouping;
   fetcher?: typeof fetch;
 };
 
@@ -57,7 +59,7 @@ export function buildVercelAnalyticsUrl({ period, config, dimension }: Omit<Fetc
   url.searchParams.set("filter", "environment eq 'production'");
   if (dimension) {
     url.searchParams.set("by", dimension);
-    url.searchParams.set("limit", "10");
+    url.searchParams.set("limit", dimension === "day" ? "100" : "10");
   }
   if (config.teamId) url.searchParams.set("teamId", config.teamId);
   if (config.teamSlug) url.searchParams.set("slug", config.teamSlug);
@@ -138,6 +140,29 @@ export function normalizeVisitBreakdown(data: unknown, dimension: VercelAnalytic
     rows.push({ label: label ?? "Others", pageviews, visitors, isOthers });
   }
   return rows.slice(0, 10);
+}
+
+export function normalizeVisitSeries(data: unknown): VisitDay[] | null {
+  if (!Array.isArray(data)) return null;
+  const rows: VisitDay[] = [];
+  for (const item of data) {
+    if (!item || typeof item !== "object") continue;
+    const row = item as Record<string, unknown>;
+    const pageviews = nonNegativeInteger(row.pageviews);
+    const visitors = nonNegativeInteger(row.visitors);
+    if (pageviews === null || visitors === null || typeof row.timestamp !== "string") continue;
+    const fecha = row.timestamp.slice(0, 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha) || Number.isNaN(new Date(row.timestamp).getTime())) continue;
+    rows.push({ fecha, pageviews, visitors });
+  }
+  return rows;
+}
+
+export async function fetchVercelVisitSeries(input: Omit<FetchInput, "dimension">) {
+  const response = await requestVercelAnalytics({ ...input, dimension: "day" });
+  const rows = normalizeVisitSeries(response.data);
+  if (!rows) throw analyticsError("invalid");
+  return rows;
 }
 
 export async function fetchVercelVisitCount(input: Omit<FetchInput, "dimension">) {

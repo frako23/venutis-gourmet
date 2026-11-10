@@ -1,22 +1,14 @@
-import { roundQuantity } from "@/lib/inventory";
 import { prisma } from "@/lib/prisma";
 import { calculateMovingAverageForecast, getCompletedPeriods } from "./forecast";
 import type { AnalyticsPeriod } from "./periods";
-import { resumirPorTipoPrecio } from "./sales-calculations";
+import { resumirPorProducto, resumirPorTipoPrecio } from "./sales-calculations";
 import type { AnalyticsResult } from "./types";
 
 export async function consultarAnaliticas({ periodo, productoId, incluirPredictor }: { periodo: AnalyticsPeriod; productoId?: number; incluirPredictor: boolean }): Promise<AnalyticsResult> {
   const lineWhere = { transaccion: { fechaCompra: { gte: periodo.desde, lte: periodo.hasta }, estado: { not: "cancelado" as const } }, ...(productoId ? { productoId } : {}) };
   const lines = await prisma.detalleCompra.findMany({ where: lineWhere, include: { producto: true, transaccion: { select: { id: true, fechaCompra: true } } } });
   const totalUsd = Math.round(lines.reduce((sum, line) => sum + line.precioUnitario * line.cantidad, 0) * 100) / 100;
-  const productMap = new Map<number, { nombre: string; cantidadVendida: number; totalUsd: number }>();
-  for (const line of lines) {
-    const current = productMap.get(line.productoId) ?? { nombre: line.producto.nombre, cantidadVendida: 0, totalUsd: 0 };
-    current.cantidadVendida += line.cantidad;
-    current.totalUsd += line.precioUnitario * line.cantidad;
-    productMap.set(line.productoId, current);
-  }
-  const porProducto = [...productMap.entries()].map(([id, product]) => ({ productoId: id, nombre: product.nombre, cantidadVendida: roundQuantity(product.cantidadVendida), totalUsd: Math.round(product.totalUsd * 100) / 100, porcentajeDelTotal: totalUsd ? Math.round(product.totalUsd / totalUsd * 10000) / 100 : 0 })).sort((a, b) => b.totalUsd - a.totalUsd);
+  const porProducto = resumirPorProducto(lines.map((line) => ({ productoId: line.productoId, nombre: line.producto.nombre, cantidad: line.cantidad, precioUnitario: line.precioUnitario })), totalUsd);
   const porTipoPrecio = resumirPorTipoPrecio(lines, totalUsd);
   let predictor: AnalyticsResult["predictor"] = null;
   if (incluirPredictor) {

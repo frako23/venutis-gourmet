@@ -206,6 +206,9 @@ export type VisitMetric = {
   visitors: number;
 };
 
+/** Día de la fuente (YYYY-MM-DD, corte en UTC). */
+export type VisitDay = VisitMetric & { fecha: string };
+
 export type VisitBreakdownRow = VisitMetric & {
   label: string;
   isOthers: boolean;
@@ -231,6 +234,15 @@ export type WebsiteVisitsResult = {
     countries: VisitBreakdownRow[];
     devices: VisitBreakdownRow[];
   };
+  message: string;
+};
+
+export type VisitasDiariasResult = {
+  period: VisitPeriod;
+  queriedAt: string;
+  status: WebsiteVisitsStatus;
+  summary: VisitMetric | null;
+  serie: VisitDay[];
   message: string;
 };
 
