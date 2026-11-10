@@ -9,7 +9,13 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/venta-rapida/sheet";
+import {
+  DeliverySelector,
+  ENTREGA_INICIAL,
+  type EntregaVentaRapida,
+} from "@/components/venta-rapida/deliverySelector";
 import { useDolar } from "@/hooks/useDolar";
+import { validarDatosEntrega, type ZonaDeliveryVista } from "@/lib/delivery-zone-rules";
 import {
   fmtBs,
   fmtRef,
@@ -24,6 +30,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import type { ChangeEvent } from "react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 export interface ProductoVentaRapida {
   id: string;
@@ -36,8 +43,12 @@ export interface ProductoVentaRapida {
 
 export default function PuntoDeVenta({
   products,
+  zonas,
+  zonasError,
 }: {
   products: ProductoVentaRapida[];
+  zonas: ZonaDeliveryVista[];
+  zonasError: boolean;
 }) {
   const router = useRouter();
   const [busqueda, setBusqueda] = useState("");
@@ -46,6 +57,8 @@ export default function PuntoDeVenta({
   const [negocio, setNegocio] = useState("Venuti's Gourmet");
   const [abrirCobro, setAbrirCobro] = useState(false);
   const [abrirAjustes, setAbrirAjustes] = useState(false);
+  // El delivery solo viaja en el mensaje de WhatsApp: no se registra pedido ni cliente.
+  const [entrega, setEntrega] = useState<EntregaVentaRapida>(ENTREGA_INICIAL);
 
   const { tasa } = useDolar();
   const startDirectCheckout = useAppStore((state) => state.startDirectCheckout);
@@ -68,6 +81,11 @@ export default function PuntoDeVenta({
     0,
   );
   const items = lineas.reduce((s, l) => s + l.cantidad, 0);
+  const zonaEntrega = entrega.activo
+    ? (zonas.find((z) => z.id === entrega.zonaId) ?? null)
+    : null;
+  const costoDelivery = zonaEntrega?.costoUsd ?? 0;
+  const totalConDelivery = Math.round((totalUsd + costoDelivery) * 100) / 100;
 
   const filtrados = useMemo(() => {
     const q = busqueda.trim().toLowerCase();
@@ -90,11 +108,30 @@ export default function PuntoDeVenta({
     });
 
   const enviarWhatsapp = () => {
+    let delivery = null;
+    if (entrega.activo) {
+      if (!zonaEntrega) {
+        toast.error("Elige la zona del delivery.");
+        return;
+      }
+      const datos = validarDatosEntrega(entrega);
+      if (!datos.ok) {
+        toast.error(datos.message);
+        document.getElementById(`entrega-${datos.campo}`)?.focus();
+        return;
+      }
+      delivery = {
+        zona: zonaEntrega.nombre,
+        costoUsd: zonaEntrega.costoUsd,
+        recibe: datos.value,
+      };
+    }
     const texto = mensajeWhatsapp({
       negocio,
       lineas,
       tasa: tasaActiva,
       totalUsd,
+      delivery,
     });
     const url = `https://wa.me/+584141713932?text=${encodeURIComponent(texto)}`;
     window.open(url, "_blank");
@@ -285,7 +322,7 @@ export default function PuntoDeVenta({
       <Sheet open={abrirCobro} onOpenChange={setAbrirCobro}>
         <SheetContent
           side="bottom"
-          className="mx-auto max-w-md rounded-t-3xl p-0"
+          className="mx-auto max-h-[92vh] max-w-md overflow-y-auto rounded-t-3xl p-0"
         >
           <SheetHeader className="border-b px-4 py-3">
             <SheetTitle className="font-good-brush text-2xl">
@@ -332,16 +369,36 @@ export default function PuntoDeVenta({
           </div>
 
           <div className="space-y-3 border-t bg-muted/40 px-4 py-4">
+            <DeliverySelector
+              zonas={zonas}
+              zonasError={zonasError}
+              entrega={entrega}
+              onChange={setEntrega}
+            />
+
+            {zonaEntrega && (
+              <div className="space-y-1 text-sm text-muted-foreground">
+                <div className="flex justify-between">
+                  <span>Productos</span>
+                  <span className="tabular">{fmtUsd(totalUsd)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Delivery ({zonaEntrega.nombre})</span>
+                  <span className="tabular">{fmtUsd(costoDelivery)}</span>
+                </div>
+              </div>
+            )}
+
             <div className="flex items-end justify-between">
               <span className="text-sm text-muted-foreground">
                 Total a pagar
               </span>
               <span className="text-right ">
                 <span className="block font-century-gothic text-2xl font-bold tabular">
-                  {fmtUsd(totalUsd)}
+                  {fmtUsd(totalConDelivery)}
                 </span>
                 <span className="block text-sm tabular text-muted-foreground">
-                  {fmtBs(totalUsd * tasaActiva)}
+                  {fmtBs(totalConDelivery * tasaActiva)}
                 </span>
               </span>
             </div>
@@ -364,6 +421,7 @@ export default function PuntoDeVenta({
                 className="flex-1"
                 onClick={() => {
                   setCarrito({});
+                  setEntrega(ENTREGA_INICIAL);
                   setAbrirCobro(false);
                 }}
               >

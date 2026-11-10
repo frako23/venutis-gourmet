@@ -9,6 +9,7 @@ import {
   Users,
   Settings,
   ShoppingCart,
+  Truck,
   Warehouse,
   PanelLeftClose,
   PanelLeftOpen,
@@ -40,6 +41,7 @@ export const adminNavigation: NavigationItem[] = [
     ],
   },
   { icon: FileText, label: "Notas de entrega", link: "/admin/delivery-notes" },
+  { icon: Truck, label: "Delivery", link: "/admin/delivery" },
 ];
 
 export default function Sidebar() {

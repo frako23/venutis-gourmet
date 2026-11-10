@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
+import { claveZona } from "../../lib/delivery-zone-rules.js";
 import {
   createIntegrationClient,
   integrationEnabled,
@@ -288,4 +289,91 @@ test("un premio de producto sin existencia hace fallar la compra completa", { sk
       await prisma.producto.delete({ where: { id: agotado.id } });
     }
   });
+});
+
+// Escenario común del delivery contra una zona creada en la prueba (no la lista fija de antes).
+async function pedidoConZona(opciones: { activa: boolean; costoUsd: number; pagoUsd: number }) {
+  const prisma = createIntegrationClient();
+  const nombre = uniqueValue("Zona prueba");
+  const ids: { zona?: number; cliente?: number; direccion?: number; producto?: number; transaccion?: number } = {};
+  const clave = uniqueValue("checkout-zona");
+  try {
+    const zona = await prisma.zonaDelivery.create({
+      data: { nombre, clave: claveZona(nombre), costoUsd: opciones.costoUsd, activa: opciones.activa },
+    });
+    ids.zona = zona.id;
+    const cliente = await prisma.cliente.create({
+      data: { tipoCliente: "detal", nombre: "Cliente", apellido: "Zona", nombreBusqueda: "cliente zona", celular: uniqueValue("0414") },
+    });
+    ids.cliente = cliente.id;
+    // La dirección guarda el nombre en mayúsculas: la zona se resuelve por clave, no por texto exacto.
+    const direccion = await prisma.direccion.create({
+      data: { clienteId: cliente.id, tipo: "Casa", urbanizacion: nombre.toUpperCase(), direccion: "Calle zona" },
+    });
+    ids.direccion = direccion.id;
+    const producto = await prisma.producto.create({
+      data: { nombre: uniqueValue("Producto zona"), precioDetal: 10, precioMayorista: 8, categoria: "Fixture", inventario: 3 },
+    });
+    ids.producto = producto.id;
+
+    const result = await checkoutModule!.procesarCompra(
+      { message: "", status: "", clientId: cliente.id },
+      {
+        clientId: cliente.id,
+        contexto: "consumidor",
+        tipodeRetiro: "envio",
+        direccionId: direccion.id,
+        claveIdempotencia: clave,
+        carrito: [{ productoId: producto.id, cantidad: 1, precio: 10 }],
+        pago: {
+          metodoPago: "PagoMovil",
+          montoUsd: opciones.pagoUsd,
+          montoBs: opciones.pagoUsd * 35,
+          tasaCambio: 35,
+          fechaPago: new Date("2026-10-15T12:00:00.000Z"),
+          referencia: "REF-ZONA",
+        },
+      },
+    );
+    if (result.success) ids.transaccion = result.transactionId;
+    return {
+      result,
+      nombre,
+      transaccion: ids.transaccion
+        ? await prisma.transaccion.findUnique({ where: { id: ids.transaccion } })
+        : null,
+      pedidosConClave: await prisma.transaccion.count({ where: { claveIdempotencia: clave } }),
+      inventario: (await prisma.producto.findUniqueOrThrow({ where: { id: producto.id } })).inventario,
+    };
+  } finally {
+    if (ids.transaccion) {
+      await prisma.estadoTransaccionHistorial.deleteMany({ where: { transaccionId: ids.transaccion } });
+      await prisma.pago.deleteMany({ where: { transaccionId: ids.transaccion } });
+      await prisma.detalleCompra.deleteMany({ where: { transaccionId: ids.transaccion } });
+      await prisma.transaccion.delete({ where: { id: ids.transaccion } });
+    }
+    if (ids.direccion) await prisma.direccion.delete({ where: { id: ids.direccion } });
+    if (ids.producto) await prisma.producto.delete({ where: { id: ids.producto } });
+    if (ids.cliente) await prisma.cliente.delete({ where: { id: ids.cliente } });
+    if (ids.zona) await prisma.zonaDelivery.delete({ where: { id: ids.zona } });
+    await prisma.$disconnect();
+  }
+}
+
+test("el delivery se cobra con el costo de la zona guardada en la base y conserva su nombre", { skip: !integrationEnabled }, async () => {
+  const { result, nombre, transaccion } = await pedidoConZona({ activa: true, costoUsd: 4.5, pagoUsd: 14.5 });
+  assert.equal(result.success, true);
+  assert.equal(transaccion?.montoDelivery, 4.5);
+  assert.equal(transaccion?.montoTotal, 14.5);
+  assert.equal(transaccion?.zonaEntrega, nombre);
+});
+
+test("una zona inactiva rechaza el pedido sin crearlo ni tocar el inventario", { skip: !integrationEnabled }, async () => {
+  const { result, pedidosConClave, inventario } = await pedidoConZona({ activa: false, costoUsd: 4.5, pagoUsd: 14.5 });
+  assert.equal(result.success, false);
+  if (result.success) return;
+  assert.equal(result.code, "INVALID_ADDRESS");
+  assert.equal(result.message, "Tu sector ya no tiene delivery. Elige otro sector o retira en tienda.");
+  assert.equal(pedidosConClave, 0);
+  assert.equal(inventario, 3);
 });

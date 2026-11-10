@@ -77,13 +77,21 @@ export const fmtRef = (n: number) =>
 export const fmtBs = (n: number) =>
   `Bs ${n.toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
+export type DeliveryVentaRapida = {
+  zona: string;
+  costoUsd: number;
+  recibe: { nombre: string; telefono: string; direccion: string };
+};
+
 export function mensajeWhatsapp(opts: {
   negocio: string;
   lineas: LineaCarrito[];
   tasa: number;
+  /** Total de productos, sin delivery. */
   totalUsd: number;
+  delivery?: DeliveryVentaRapida | null;
 }) {
-  const { negocio, lineas, tasa, totalUsd } = opts;
+  const { negocio, lineas, tasa, totalUsd, delivery } = opts;
   const items = lineas
     .map((l) => {
       const sub = l.producto.precioUsd * l.cantidad;
@@ -93,6 +101,35 @@ export function mensajeWhatsapp(opts: {
       ].join("\n");
     })
     .join("\n");
+
+  if (delivery) {
+    const total = Math.round((totalUsd + delivery.costoUsd) * 100) / 100;
+    return [
+      `Hola, quisiera realizar el siguiente pedido:`,
+      "",
+      `*${negocio}*`,
+      `Fecha: ${new Date().toLocaleString("es-VE")}`,
+      "",
+      "*Detalle del pedido*",
+      items,
+      "",
+      "*Delivery*",
+      `Zona: ${delivery.zona}`,
+      `Costo: ${fmtUsd(delivery.costoUsd)} / ${fmtBs(delivery.costoUsd * tasa)}`,
+      `Recibe: ${delivery.recibe.nombre}`,
+      `Teléfono: ${delivery.recibe.telefono}`,
+      `Dirección: ${delivery.recibe.direccion}`,
+      "",
+      "*Total a pagar*",
+      `Productos: ${fmtUsd(totalUsd)}`,
+      `Delivery: ${fmtUsd(delivery.costoUsd)}`,
+      `Total USD: *${fmtUsd(total)}*`,
+      `Total Bs: *${fmtBs(total * tasa)}*`,
+      "",
+      `Tasa de referencia: *${fmtBs(tasa)} por 1 $*`,
+      "",
+    ].join("\n");
+  }
 
   return [
     `Hola, quisiera realizar el siguiente pedido:`,

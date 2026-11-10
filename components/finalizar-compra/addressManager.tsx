@@ -5,12 +5,10 @@ import {
   addAddress,
   deleteAddress,
   getAddressesByClient,
+  getZonasDelivery,
 } from "@/lib/actions/address";
-import {
-  DELIVERY_ZONES,
-  initialState,
-  WHATSAPP_PHONE_NUMBER,
-} from "@/lib/constants/constants";
+import { initialState, WHATSAPP_PHONE_NUMBER } from "@/lib/constants/constants";
+import { buscarZona, type ZonaDeliveryVista } from "@/lib/delivery-zone-rules";
 import { useAppStore } from "@/store/appStore";
 import { MapPin, MessageCircle, Plus, Trash2 } from "lucide-react";
 import { useActionState, useCallback, useEffect, useState } from "react";
@@ -26,6 +24,8 @@ interface Address {
 
 export function AddressManager() {
   const [addresses, setAddresses] = useState<Address[] | null>([]);
+  // null mientras cargan; el costo de cada dirección sale de las zonas activas.
+  const [zonas, setZonas] = useState<ZonaDeliveryVista[] | null>(null);
   const { setCanContinue } = useCheckout();
   const [isAdding, setIsAdding] = useState(false);
   const selectedAddress = useAppStore((s) => s.selectedAddressId);
@@ -42,11 +42,36 @@ export function AddressManager() {
     direccion: "",
   });
 
-  // El botón de "Continuar" solo se habilita si hay al menos una dirección
+  useEffect(() => {
+    let cancelled = false;
+    getZonasDelivery().then((data) => {
+      if (!cancelled) setZonas(data);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // El botón de "Continuar" solo se habilita si la dirección elegida tiene una zona con delivery
   useEffect(() => {
     const selected = addresses?.find((address) => address.id === selectedAddress);
-    setCanContinue(Boolean(selected && selected.urbanizacion && selected.direccion.trim()));
-  }, [addresses, selectedAddress, setCanContinue]);
+    setCanContinue(
+      Boolean(
+        selected &&
+          selected.direccion.trim() &&
+          zonas &&
+          buscarZona(zonas, selected.urbanizacion),
+      ),
+    );
+  }, [addresses, selectedAddress, zonas, setCanContinue]);
+
+  // El cargo de delivery se muestra con el costo vigente de la zona; el servidor lo recalcula al confirmar.
+  useEffect(() => {
+    const selected = addresses?.find((address) => address.id === selectedAddress);
+    setDeliveryPrice(
+      selected && zonas ? (buscarZona(zonas, selected.urbanizacion)?.costoUsd ?? 0) : 0,
+    );
+  }, [addresses, selectedAddress, zonas, setDeliveryPrice]);
 
   const [state, formAction, isPending] = useActionState(
     addAddress,
@@ -63,13 +88,7 @@ export function AddressManager() {
       ? selectedAddress
       : (nextAddresses[0]?.id ?? null);
     setSelectedAddress(nextSelected);
-    const selected = nextAddresses.find((address) => address.id === nextSelected);
-    setDeliveryPrice(
-      selected
-        ? (DELIVERY_ZONES.find((zone) => zone.name === selected.urbanizacion)?.price ?? 0)
-        : 0,
-    );
-  }, [client, selectedAddress, setDeliveryPrice, setSelectedAddress]);
+  }, [client, selectedAddress, setSelectedAddress]);
 
   useEffect(() => {
     if (!client?.id) return;
@@ -83,18 +102,12 @@ export function AddressManager() {
         ? selectedAddress
         : (nextAddresses[0]?.id ?? null);
       setSelectedAddress(nextSelected);
-      const selected = nextAddresses.find((address) => address.id === nextSelected);
-      setDeliveryPrice(
-        selected
-          ? (DELIVERY_ZONES.find((zone) => zone.name === selected.urbanizacion)?.price ?? 0)
-          : 0,
-      );
     });
 
     return () => {
       cancelled = true;
     };
-  }, [client?.id, selectedAddress, setDeliveryPrice, setSelectedAddress]);
+  }, [client?.id, selectedAddress, setSelectedAddress]);
 
   useEffect(() => {
     // Asumiendo que tu Server Action devuelve algo como { success: true }
@@ -166,10 +179,6 @@ Quedo atento para coordinar la entrega.`;
               className={`group relative p-4 bg-white/5 border  rounded-xl hover:border-accent-gold/50 transition-all cursor-pointer ${selectedAddress === addr.id ? "border-accent-gold" : "border-white/10"}`}
               onClick={() => {
                 setSelectedAddress(addr.id);
-                setDeliveryPrice(
-                  DELIVERY_ZONES.find((z) => z.name === addr.urbanizacion)
-                    ?.price ?? 0,
-                );
               }}
             >
               <div className="flex items-start gap-3">
@@ -181,6 +190,11 @@ Quedo atento para coordinar la entrega.`;
                   <p className="text-sm font-medium opacity-90">
                     {addr.urbanizacion.replace("-", " ")}
                   </p>
+                  {zonas && !buscarZona(zonas, addr.urbanizacion) && (
+                    <p className="text-[11px] font-bold text-red-400">
+                      Sin delivery en este sector
+                    </p>
+                  )}
                   <p className="text-[12px] opacity-50 line-clamp-1">
                     {addr.direccion}
                   </p>
@@ -228,6 +242,7 @@ Quedo atento para coordinar la entrega.`;
             </div>
 
             <ZoneSelector
+              zonas={zonas ?? []}
               newAddress={newAddress}
               setNewAddress={setNewAddress}
             />

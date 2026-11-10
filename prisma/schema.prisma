@@ -77,6 +77,18 @@ model Direccion {
   createdAt DateTime @default(now())
 }
 
+// Única lista de zonas de delivery; las direcciones la referencian por clave (sin acentos ni mayúsculas).
+model ZonaDelivery {
+  id        Int      @id @default(autoincrement())
+  nombre    String
+  // claveZona(nombre); la calcula el servidor.
+  clave     String   @unique
+  costoUsd  Float
+  activa    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Producto {
   id              Int                    @id @default(autoincrement())
   nombre          String

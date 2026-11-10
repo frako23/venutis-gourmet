@@ -63,6 +63,7 @@ El alias `@/*` apunta a la raíz del proyecto y se utiliza para imports absoluto
 - `/admin-login`: acceso al panel administrativo.
 - `/admin/products`: gestión de productos.
 - `/admin/inventory`: inventario, precios e imágenes.
+- `/admin/delivery`: tabla de zonas de delivery con edición directa de nombre y costo, alta de zonas desde una fila nueva y activación/desactivación. Es la única fuente de zonas de la tienda, el checkout, la cotización rápida y la venta rápida.
 - `/admin/inventory/sort`: ordenar manualmente el catálogo (arrastrar o elegir posición); el orden vale para todas las vistas.
 - `/admin/add-product`: alta de productos.
 - `/admin/edit-product/[id]`: edición de productos.
@@ -81,7 +82,7 @@ El layout de `/admin` valida que exista un usuario autenticado y que su correo p
 
 ### Operación rápida
 
-- `/venta-rapida`: punto de venta compacto. Consulta productos disponibles, filtra por nombre o categoría, calcula totales en USD/Bs y genera un mensaje de WhatsApp.
+- `/venta-rapida`: punto de venta compacto. Consulta productos disponibles, filtra por nombre o categoría, calcula totales en USD/Bs y genera un mensaje de WhatsApp. Opcionalmente suma delivery: se busca y elige una zona activa y se piden nombre, teléfono y dirección de quien recibe; el mensaje incluye zona, costo y total con delivery. No se guarda nada.
 - `/cotizacion-rapida`: herramienta temporal para preparar cotizaciones, generar un PNG y compartirlo por WhatsApp. Mantiene la selección, el destinatario y la imagen únicamente en el navegador; no crea pedidos, ventas, clientes, pagos o direcciones, no descuenta inventario y no usa el checkout persistido. Si el navegador no permite compartir archivos, descarga la imagen y abre WhatsApp con texto preparado para que la operadora adjunte el PNG manualmente.
 
 ## 5. Modelo de datos
@@ -92,7 +93,8 @@ La base de datos PostgreSQL está definida en `prisma/schema.prisma`.
 - `CuentaCliente`: vincula un usuario de Stack Auth (`stackUserId`) con un solo `Cliente` (`vinculada` o `pendiente`). Solo el correo verificado vincula solo; el teléfono deja la vinculación pendiente de confirmar.
 - `MovimientoSaldo`: libro del saldo a favor en USD (sobrepago, pago a cuenta, pedido cancelado, aplicación a pedido, anulación y ajuste). Solo se insertan filas; el saldo es la suma de `montoUsd`.
 - `Premio`: descuento fijo en USD o producto gratis, con costo en puntos y estado activo/inactivo.
-- `Direccion`: direcciones de entrega asociadas a un cliente.
+- `Direccion`: direcciones de entrega asociadas a un cliente. `urbanizacion` guarda el nombre de la zona como texto; el checkout la resuelve contra `ZonaDelivery` por `claveZona`.
+- `ZonaDelivery`: zonas de delivery con `nombre`, `clave` única (sin acentos ni mayúsculas), `costoUsd` y `activa`. La migración inicial carga las 90 zonas que antes estaban fijas en el código. Solo las activas se ofrecen fuera del panel; los pedidos conservan su propia copia de zona y costo.
 - `Producto`: nombre, precios detal/mayorista, categoría, descripción, inventario, ubicación, `orden` (posición manual en el catálogo; nulo = sin posición, va al final) e imágenes.
 - `Imagen`: URLs de imágenes asociadas a productos; se eliminan en cascada con el producto.
 - `Transaccion`: número de orden, cliente, subtotal, descuento, `montoDescuentoPuntos` (descuento por premios canjeados), total canónico en USD, tasa, estado y tipo de retiro (`envio` o `recogida`).

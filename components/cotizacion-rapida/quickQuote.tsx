@@ -30,7 +30,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/venta-rapida/sheet";
-import { DELIVERY_ZONES } from "@/lib/constants/constants";
+import { agruparPorCosto, type ZonaDeliveryVista } from "@/lib/delivery-zone-rules";
 import { useDolar } from "@/hooks/useDolar";
 import { Download, Image as ImageIcon, RefreshCw, Share2, Trash2 } from "lucide-react";
 import Image from "next/image";
@@ -46,6 +46,7 @@ import { QuoteArtwork } from "./quoteArtwork";
 
 type QuickQuoteProps = {
   products: QuoteProduct[];
+  zonas: ZonaDeliveryVista[];
   catalogError?: boolean;
 };
 
@@ -60,7 +61,7 @@ const currentProductForLine = (
   currentProducts: Map<number, QuoteProduct>,
 ) => currentProducts.get(line.product.id);
 
-export default function QuickQuote({ products, catalogError = false }: QuickQuoteProps) {
+export default function QuickQuote({ products, zonas, catalogError = false }: QuickQuoteProps) {
   const [search, setSearch] = useState("");
   const [lines, setLines] = useState<QuoteLine[]>([]);
   const [recipientName, setRecipientName] = useState("");
@@ -74,15 +75,15 @@ export default function QuickQuote({ products, catalogError = false }: QuickQuot
 
   const exchangeRate = typeof tasa === "number" ? tasa : 0;
   const selectedZone = useMemo(
-    () => DELIVERY_ZONES.find((zone) => zone.name === deliveryZone) ?? null,
-    [deliveryZone],
+    () => zonas.find((zona) => zona.nombre === deliveryZone) ?? null,
+    [deliveryZone, zonas],
   );
   const draft = useMemo<QuoteDraft>(
     () =>
       buildQuoteDraft(lines, exchangeRate, {
         nombre: recipientName,
         telefono: recipientPhone,
-      }, new Date(), selectedZone ? { zona: selectedZone.name, precioUsd: selectedZone.price } : null),
+      }, new Date(), selectedZone ? { zona: selectedZone.nombre, precioUsd: selectedZone.costoUsd } : null),
     [exchangeRate, lines, recipientName, recipientPhone, selectedZone],
   );
 
@@ -453,21 +454,19 @@ export default function QuickQuote({ products, catalogError = false }: QuickQuot
                 <option value="" className="bg-white text-black">
                   Sin delivery
                 </option>
-                {[...new Set(DELIVERY_ZONES.map((zone) => zone.price))]
-                  .sort((a, b) => a - b)
-                  .map((price) => (
-                    <optgroup
-                      key={price}
-                      label={`Zona delivery $${price}`}
-                      className="bg-white font-semibold text-black"
-                    >
-                      {DELIVERY_ZONES.filter((zone) => zone.price === price).map((zone) => (
-                        <option key={zone.name} value={zone.name} className="bg-white font-normal text-black">
-                          {zone.name}
-                        </option>
-                      ))}
-                    </optgroup>
-                  ))}
+                {agruparPorCosto(zonas).map((grupo) => (
+                  <optgroup
+                    key={grupo.costoUsd}
+                    label={`Zona delivery $${grupo.costoUsd.toFixed(2)}`}
+                    className="bg-white font-semibold text-black"
+                  >
+                    {grupo.zonas.map((zona) => (
+                      <option key={zona.id} value={zona.nombre} className="bg-white font-normal text-black">
+                        {zona.nombre}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
               </select>
             </div>
 

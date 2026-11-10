@@ -1,16 +1,22 @@
 "use server";
 
 import { z } from "zod";
-import { DELIVERY_ZONES } from "@/lib/constants/constants";
+import { claveZona, type ZonaDeliveryVista } from "@/lib/delivery-zone-rules";
+import { listarZonasActivas } from "@/lib/delivery-zones";
 import { prisma } from "../prisma";
+
+const ZONA_NO_DISPONIBLE = "Selecciona una zona de delivery disponible";
+
+// Zona activa que corresponde al sector escrito (por clave); null si no existe o está inactiva.
+async function zonaActiva(urbanizacion: string) {
+  const zona = await prisma.zonaDelivery.findUnique({ where: { clave: claveZona(urbanizacion) } });
+  return zona?.activa ? zona : null;
+}
 
 const AddressSchema = z.object({
   clienteId: z.number().int().positive(),
   direccion: z.string().trim().min(1, "La dirección es obligatoria"),
-  urbanizacion: z.string().trim().refine(
-    (value) => DELIVERY_ZONES.some((zone) => zone.name === value),
-    "Selecciona una zona de delivery configurada",
-  ),
+  urbanizacion: z.string().trim().min(1, ZONA_NO_DISPONIBLE),
   tipo: z.string().trim().min(1, "El alias es obligatorio"),
 });
 
@@ -59,6 +65,9 @@ export async function addAddress(
   }
 
   try {
+    const zona = await zonaActiva(parsed.data.urbanizacion);
+    if (!zona) return { message: ZONA_NO_DISPONIBLE, status: "error", clientId: null };
+
     const cliente = await prisma.cliente.findUnique({
       where: { id: parsed.data.clienteId },
       select: { id: true },
@@ -73,7 +82,7 @@ export async function addAddress(
 
     await prisma.direccion.create({
       data: {
-        urbanizacion: parsed.data.urbanizacion,
+        urbanizacion: zona.nombre,
         direccion: parsed.data.direccion,
         tipo: parsed.data.tipo,
         cliente: {
@@ -109,12 +118,15 @@ export async function editAddress(formData: FormData, direccionId: number) {
     throw new Error("Invalid form data");
   }
 
+  const zona = await zonaActiva(parsed.data.urbanizacion);
+  if (!zona) throw new Error(ZONA_NO_DISPONIBLE);
+
   try {
     await prisma.direccion.update({
       where: { id: direccionId },
       data: {
         direccion: parsed.data.direccion,
-        urbanizacion: parsed.data.urbanizacion,
+        urbanizacion: zona.nombre,
         tipo: parsed.data.tipo,
       },
     });
@@ -136,6 +148,16 @@ export async function getAddressesByClient(clientId: number) {
     return addresses;
   } catch (error) {
     console.error("Error al obtener direcciones:", error);
+    return [];
+  }
+}
+
+// Lectura pública: solo id, nombre y costo de las zonas activas.
+export async function getZonasDelivery(): Promise<ZonaDeliveryVista[]> {
+  try {
+    return await listarZonasActivas();
+  } catch (error) {
+    console.error("Error al obtener las zonas de delivery:", error);
     return [];
   }
 }

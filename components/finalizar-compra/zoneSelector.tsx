@@ -1,23 +1,30 @@
-import { DELIVERY_ZONES } from "@/lib/constants/constants";
+import { agruparPorCosto, filtrarZonas, type ZonaDeliveryVista } from "@/lib/delivery-zone-rules";
 import { ChevronDown, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 
-export const ZoneSelector = ({ newAddress, setNewAddress }: any) => {
+type NuevaDireccion = { tipo: string; urbanizacion: string; direccion: string };
+
+export const ZoneSelector = ({
+  zonas,
+  newAddress,
+  setNewAddress,
+}: {
+  zonas: ZonaDeliveryVista[];
+  newAddress: NuevaDireccion;
+  setNewAddress: (value: NuevaDireccion) => void;
+}) => {
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
 
-  // Filtrado inteligente
-  const filteredZones = useMemo(() => {
-    return query === ""
-      ? DELIVERY_ZONES
-      : DELIVERY_ZONES.filter((zone) =>
-          zone.name.toLowerCase().includes(query.toLowerCase()),
-        );
-  }, [query]);
+  // Filtrado sin distinguir acentos ni mayúsculas, agrupado por costo
+  const grupos = useMemo(
+    () => agruparPorCosto(filtrarZonas(zonas, query)),
+    [zonas, query],
+  );
 
-  const handleSelect = (zone: { name: string; price: number }) => {
-    setNewAddress({ ...newAddress, urbanizacion: zone.name });
-    setQuery(zone.name);
+  const handleSelect = (zona: ZonaDeliveryVista) => {
+    setNewAddress({ ...newAddress, urbanizacion: zona.nombre });
+    setQuery(zona.nombre);
     setIsOpen(false);
   };
 
@@ -34,7 +41,7 @@ export const ZoneSelector = ({ newAddress, setNewAddress }: any) => {
 
         <input
           type="text"
-          className="w-full p-3 pl-9 bg-white/5 border border-white/10 rounded-lg outline-none 
+          className="w-full p-3 pl-9 bg-white/5 border border-white/10 rounded-lg outline-none
                      focus:border-accent-gold transition-all text-white placeholder:text-white/20"
           placeholder="Escribe para buscar tu zona..."
           value={isOpen ? query : newAddress.urbanizacion || query}
@@ -56,31 +63,23 @@ export const ZoneSelector = ({ newAddress, setNewAddress }: any) => {
       {/* Menú Desplegable */}
       {isOpen && (
         <div className="absolute z-50 w-full mt-1 max-h-60 overflow-y-auto bg-[#1a1a1a] border border-white/10 rounded-lg shadow-2xl backdrop-blur-md">
-          {filteredZones.length > 0 ? (
-            // Agrupamos por precio en el filtro también
-            [3, 4, 5, 6].map((price) => {
-              const zonesInPrice = filteredZones.filter(
-                (z) => z.price === price,
-              );
-              if (zonesInPrice.length === 0) return null;
-
-              return (
-                <div key={price}>
-                  <div className="px-3 py-2 text-[10px] font-bold text-accent-gold bg-white/5 uppercase tracking-tighter">
-                    Zona delivery ${price}
-                  </div>
-                  {zonesInPrice.map((zone) => (
-                    <div
-                      key={zone.name}
-                      className="px-4 py-2 text-sm text-white hover:bg-accent-gold hover:text-black cursor-pointer transition-colors"
-                      onClick={() => handleSelect(zone)}
-                    >
-                      {zone.name}
-                    </div>
-                  ))}
+          {grupos.length > 0 ? (
+            grupos.map((grupo) => (
+              <div key={grupo.costoUsd}>
+                <div className="px-3 py-2 text-[10px] font-bold text-accent-gold bg-white/5 uppercase tracking-tighter">
+                  Zona delivery ${grupo.costoUsd.toFixed(2)}
                 </div>
-              );
-            })
+                {grupo.zonas.map((zona) => (
+                  <div
+                    key={zona.id}
+                    className="px-4 py-2 text-sm text-white hover:bg-accent-gold hover:text-black cursor-pointer transition-colors"
+                    onClick={() => handleSelect(zona)}
+                  >
+                    {zona.nombre}
+                  </div>
+                ))}
+              </div>
+            ))
           ) : (
             <div className="p-4 text-center text-xs opacity-40">
               No se encontraron zonas...

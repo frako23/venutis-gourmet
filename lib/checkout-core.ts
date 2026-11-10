@@ -6,7 +6,7 @@ import {
   normalizePurchaseContext,
   PurchaseContext,
 } from "./catalog-context.ts";
-import { DELIVERY_ZONES } from "./constants/constants.ts";
+import { claveZona } from "./delivery-zone-rules.ts";
 import {
   calculateCheckoutTotals,
   getInitialOrderState,
@@ -170,11 +170,13 @@ export async function registrarCompraWeb(
         if (!address || !isAddressOwnedByClient(address.clienteId, clientId)) {
           throw new CheckoutError("INVALID_ADDRESS", "La dirección seleccionada no pertenece al cliente.");
         }
-        const zone = DELIVERY_ZONES.find((item) => item.name === address.urbanizacion);
-        if (!zone) throw new CheckoutError("INVALID_ADDRESS", "La zona de delivery no está configurada.");
-        montoDelivery = zone.price;
+        const zone = await tx.zonaDelivery.findUnique({ where: { clave: claveZona(address.urbanizacion) } });
+        if (!zone || !zone.activa) {
+          throw new CheckoutError("INVALID_ADDRESS", "Tu sector ya no tiene delivery. Elige otro sector o retira en tienda.");
+        }
+        montoDelivery = zone.costoUsd;
         snapshot = {
-          zonaEntrega: address.urbanizacion,
+          zonaEntrega: zone.nombre,
           aliasEntrega: address.tipo,
           direccionEntrega: address.direccion.trim(),
         };
