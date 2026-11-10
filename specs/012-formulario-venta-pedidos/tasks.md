@@ -414,7 +414,7 @@ El buscador, la modal de alta, el formulario en modo edición y la modal de elim
   Reflejar lo mismo en `docs/descripcion-tecnica.md`.
 - [X] T035 Revisar el diff completo (`git diff main`) en busca de cambios fuera de alcance, código muerto, secretos, usos de `alert()` o de `toISOString().slice(0, 16)` para fechas de formulario, e imports con `@/` dentro de `lib/admin/order-edit*.ts`.
 - [X] T036 Ejecutar `npm.cmd run lint`, `npm.cmd run test:admin`, `npm.cmd run test:checkout` y `npm.cmd run build`. Si hay una base aislada disponible, ejecutar también la integración con `$env:RUN_ADMIN_INTEGRATION = "1"`. Declarar cualquier verificación omitida.
-- [ ] T037 Ejecutar a mano [quickstart.md](./quickstart.md) completo: las historias 1 a 4, las fechas en hora de Caracas y el teléfono a 390 px. Marcar en la spec cualquier desviación.
+- [X] T037 Ejecutar a mano [quickstart.md](./quickstart.md) completo: las historias 1 a 4, las fechas en hora de Caracas y el teléfono a 390 px. Marcar en la spec cualquier desviación.
 
 ---
 
