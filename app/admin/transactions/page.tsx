@@ -7,6 +7,7 @@ import { SalesFilters } from "@/components/admin/ventas/salesFilters";
 import { SalesTable } from "@/components/admin/ventas/salesTable";
 import { calcularAbonado, calcularSaldo } from "@/lib/admin/abonos";
 import { buildSalesWhere, consultarCuentasPorCobrar } from "@/lib/admin/sales-query";
+import { motivoSinNota } from "@/lib/admin/delivery-note-rules";
 import { motivoNoEliminable } from "@/lib/admin/order-edit-rules";
 import { getOrderStateLabel } from "@/lib/admin/status";
 import type { PaginatedRows, SalesRow } from "@/lib/admin/types";
@@ -28,7 +29,7 @@ export default async function TransactionsPage({ searchParams }: { searchParams?
   const where = buildSalesWhere({ desde, hasta, estado, cliente, orden, saldo });
   const [total, transactions, clients, products] = await Promise.all([
     prisma.transaccion.count({ where }),
-    prisma.transaccion.findMany({ where, orderBy: { fechaCompra: "desc" }, skip: (page - 1) * PAGE_SIZE, take: PAGE_SIZE, include: { _count: { select: { fidelidades: true, movimientosSaldo: true, notasEntrega: true, resenas: true } }, cliente: true, detalles: { include: { producto: { select: { nombre: true } } } }, pagos: { orderBy: { createdAt: "desc" }, select: { metodoPago: true, referencia: true, montoBs: true, montoUsd: true, tasaCambio: true, esAbono: true, anuladoEn: true } } } }),
+    prisma.transaccion.findMany({ where, orderBy: { fechaCompra: "desc" }, skip: (page - 1) * PAGE_SIZE, take: PAGE_SIZE, include: { _count: { select: { fidelidades: true, movimientosSaldo: true, notasEntrega: true, resenas: true } }, notasEntrega: { select: { id: true }, take: 1 }, cliente: true, detalles: { include: { producto: { select: { nombre: true } } } }, pagos: { orderBy: { createdAt: "desc" }, select: { metodoPago: true, referencia: true, montoBs: true, montoUsd: true, tasaCambio: true, esAbono: true, anuladoEn: true } } } }),
     prisma.cliente.findMany({ orderBy: [{ apellido: "asc" }, { nombre: "asc" }], select: { id: true, nombre: true, apellido: true, tipoCliente: true } }),
     prisma.producto.findMany({ orderBy: ORDEN_CATALOGO, select: { id: true, nombre: true, precioDetal: true, precioMayorista: true, inventario: true } }),
   ]);
@@ -67,6 +68,8 @@ export default async function TransactionsPage({ searchParams }: { searchParams?
       return { eliminable: motivo === null, motivoNoEliminable: motivo };
     })(),
     importada: transaction.importada,
+    notaEntregaId: transaction.notasEntrega[0]?.id ?? null,
+    puedeGenerarNota: motivoSinNota({ estado: transaction.estado, cliente: transaction.cliente, notasEntrega: transaction._count.notasEntrega }) === null,
     tienePagoDeclarado: transaction.pagos.some((payment) => !payment.esAbono),
   }));
   const cuentas = saldo === "pendiente" ? await consultarCuentasPorCobrar() : null;

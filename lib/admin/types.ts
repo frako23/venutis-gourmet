@@ -67,6 +67,10 @@ export type SalesRow = MoneyFields & {
   motivoNoEliminable: string | null;
   importada: boolean;
   tienePagoDeclarado: boolean;
+  // Nota de entrega ya emitida del pedido, o null.
+  notaEntregaId: number | null;
+  // true si el pedido admite generar su nota de entrega.
+  puedeGenerarNota: boolean;
 };
 
 export type PaginatedRows<T> = {

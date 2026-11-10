@@ -1,7 +1,8 @@
-import { FileText, Plus } from "lucide-react";
+import { FileText } from "lucide-react";
 import Link from "next/link";
 
 import { getDeliveryNotes } from "@/lib/actions/delivery-notes";
+import { formatFecha } from "@/lib/format";
 
 export default async function DeliveryNotesPage() {
   const notes = await getDeliveryNotes();
@@ -13,19 +14,17 @@ export default async function DeliveryNotesPage() {
             <p className="admin-eyebrow">Documentos mayoristas</p>
             <h1 className="admin-title mt-2">Notas de entrega</h1>
             <p className="admin-subtitle mt-3">
-              Consulta y descarga documentos emitidos sin afectar inventario ni pagos.
+              Consulta y descarga las notas emitidas. Cada nota se genera desde su pedido en Ventas y pedidos.
             </p>
           </div>
-          <Link href="/admin/delivery-notes/new" className="admin-button-primary admin-button-brass">
-            <Plus size={16} /> Nueva nota
-          </Link>
+          <Link href="/admin/transactions" className="admin-button-secondary">Ir a Ventas y pedidos</Link>
         </div>
 
         {notes.length === 0 ? (
           <div className="admin-panel-flat flex min-h-0 flex-1 flex-col items-center justify-center p-12 text-center">
             <FileText className="text-[#c8a45d]" size={28} />
             <p className="mt-3 font-bold text-[#18211d]">Todavía no hay notas de entrega.</p>
-            <p className="mt-1 text-sm text-[#707970]">Crea la primera para acompañar una entrega mayorista.</p>
+            <p className="mt-1 text-sm text-[#707970]">Genera la primera desde un pedido mayorista en Ventas y pedidos.</p>
           </div>
         ) : (
           <div className="admin-panel min-h-0 flex-1 overflow-hidden">
@@ -36,7 +35,8 @@ export default async function DeliveryNotesPage() {
                     <th>Número</th>
                     <th>Fecha</th>
                     <th>Cliente mayorista</th>
-                    <th>Origen</th>
+                    <th>Factura</th>
+                    <th>Pedido</th>
                     <th />
                   </tr>
                 </thead>
@@ -44,9 +44,10 @@ export default async function DeliveryNotesPage() {
                   {notes.map((note) => (
                     <tr key={note.id}>
                       <td className="admin-mono font-bold">{note.numeroNota}</td>
-                      <td className="text-[#707970]">{note.fechaEntrega.toLocaleDateString("es-VE")}</td>
+                      <td className="text-[#707970]">{formatFecha(note.fechaEntrega)}</td>
                       <td>{note.cliente.nombre} {note.cliente.apellido}</td>
-                      <td className="text-[#707970]">{note.transaccion?.numeroOrden ?? "Manual"}</td>
+                      <td className="admin-mono text-[#707970]">{note.numeroFactura ?? "—"}</td>
+                      <td className="text-[#707970]">{note.transaccion?.numeroOrden ?? "—"}</td>
                       <td className="text-right">
                         <Link href={`/admin/delivery-notes/${note.id}`} className="text-xs font-bold text-[#66735f] hover:text-[#18211d]">
                           Ver / PDF

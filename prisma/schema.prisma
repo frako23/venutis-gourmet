@@ -210,7 +210,10 @@ model DetalleCompra {
 
 model NotaEntrega {
   id               Int      @id @default(autoincrement())
+  // Siempre igual al número de orden del pedido del que sale (las notas anteriores conservan su NE-...).
   numeroNota       String   @unique
+  // Opcional: número de control de la factura asociada, si la hay.
+  numeroFactura    String?
   clienteId        Int
   transaccionId    Int?
   fechaEntrega     DateTime @default(now())
@@ -235,7 +238,7 @@ model DetalleNotaEntrega {
   notaEntregaId     Int
   productoId        Int?
   productoNombre    String
-  cantidad          Int
+  cantidad          Float
   precioUnitarioUsd Float?
   subtotalUsd       Float?
 

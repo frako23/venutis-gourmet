@@ -74,7 +74,7 @@ El alias `@/*` apunta a la raíz del proyecto y se utiliza para imports absoluto
 - `/admin/transactions/export?formato=control`: descarga del control de ventas con las columnas del Excel.
 - `/admin`: dashboard operativo con ventas del periodo, pedidos abiertos y alertas.
 - `/admin/analytics`: agregados semanales/mensuales, productos y predictor explicable.
-- `/admin/delivery-notes`: listado y descarga de notas para mayoristas.
+- `/admin/delivery-notes`: listado y descarga de notas para mayoristas. Las notas se crean desde un pedido (`/admin/delivery-notes/new?transaccionId=`); no hay alta suelta.
 - `/admin/delivery-notes/new`: formulario con vista previa.
 - `/admin/delivery-notes/[id]/pdf`: descarga PDF protegida.
 
@@ -102,7 +102,7 @@ La base de datos PostgreSQL está definida en `prisma/schema.prisma`.
 - `Pago`: montos en bolívares/dólares, tasa de cambio, método y referencia. `esAbono` distingue un cobro recibido (con `actorEmail` y `anuladoEn` si se anuló) de un pago declarado en el checkout; el método `NoEspecificado` es exclusivo de las cargas de Excel.
 - `EquivalenciaProducto` / `EquivalenciaCliente`: decisiones recordadas al conciliar una carga (texto del Excel → producto o cliente).
 - `EstadoTransaccionHistorial`: estado anterior/nuevo, actor, fecha y motivo.
-- `NotaEntrega` / `DetalleNotaEntrega`: nota mayorista y snapshot de líneas, sin mutar inventario ni pagos.
+- `NotaEntrega` / `DetalleNotaEntrega`: nota mayorista de un pedido (`numeroNota` = `numeroOrden`, `numeroFactura` opcional) y snapshot de líneas, sin mutar inventario ni pagos.
 - `Fidelidad`: libro de puntos con signo (`acumulacion`, `redencion`, `devolucion`, `reversion`, `ajuste`). `acreditarPuntosPorPago` acredita 1 punto por USD entero de productos cuando el pedido queda `pagado`: solo clientes `detal`, solo una vez por pedido y nunca en cargas de Excel.
 - `Resena`: valoración de 1 a 5 estrellas vinculada a cliente, producto y transacción.
 

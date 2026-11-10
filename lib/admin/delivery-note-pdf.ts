@@ -3,6 +3,7 @@ import { DELIVERY_NOTE_LOGO_BASE64 } from "./delivery-note-logo.ts";
 
 type NoteForPdf = {
   numeroNota: string;
+  numeroFactura?: string | null;
   fechaEntrega: Date;
   direccionEntrega: string | null;
   personaRecibe: string | null;
@@ -84,7 +85,12 @@ export async function buildDeliveryNotePdf(note: NoteForPdf) {
   // Datos de la nota y del cliente.
   text(page, "NOTA", margin, y, bold, 8, colors.primary);
   text(page, note.numeroNota, margin + 34, y, bold, 11);
-  textRight(page, `Fecha de entrega: ${note.fechaEntrega.toLocaleDateString("es-VE")}`, PAGE_WIDTH - margin, y, regular, 10, colors.ink);
+  if (note.numeroFactura) {
+    const facturaX = margin + 34 + bold.widthOfTextAtSize(note.numeroNota, 11) + 18;
+    text(page, "FACTURA", facturaX, y, bold, 8, colors.primary);
+    text(page, clipped(note.numeroFactura, bold, 11, 150), facturaX + 44, y, bold, 11);
+  }
+  textRight(page, `Fecha de entrega: ${note.fechaEntrega.toLocaleDateString("es-VE", { timeZone: "America/Caracas" })}`, PAGE_WIDTH - margin, y, regular, 10, colors.ink);
   y -= 16;
   page.drawRectangle({ x: margin, y: y - 74, width: contentWidth, height: 74, borderColor: colors.hairline, borderWidth: 0.7 });
   const col2 = PAGE_WIDTH / 2 + 10;
@@ -112,7 +118,7 @@ export async function buildDeliveryNotePdf(note: NoteForPdf) {
   for (const line of note.detalles) {
     if (y < 90) { newPage(); tableHeader(); }
     text(page, clipped(line.productoNombre, regular, 9, 285), columns.product, y, regular, 9);
-    text(page, String(line.cantidad), columns.quantity, y, regular, 9);
+    text(page, String(Math.round(line.cantidad * 100) / 100), columns.quantity, y, regular, 9);
     textRight(page, line.precioUnitarioUsd == null ? "—" : `$${line.precioUnitarioUsd.toFixed(2)}`, columns.priceRight, y, regular, 9);
     textRight(page, line.subtotalUsd == null ? "—" : `$${line.subtotalUsd.toFixed(2)}`, columns.totalRight, y, regular, 9);
     rule(page, y - 9, colors.hairline);

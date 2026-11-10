@@ -66,6 +66,6 @@ Tienda + panel administrativo + punto de venta para pastas/salsas gourmet. Next.
 - **Concurrencia**: toda operación de dinero/puntos bloquea primero el cliente (`bloquearCliente`, `lib/cliente-lock.ts`) y luego el pedido.
 - **Checkout**: la transacción vive en `lib/checkout-core.ts` (`registrarCompraWeb`, sin `@/` para poder probarla); `procesarCompra` solo resuelve la sesión. Con sesión vinculada puede canjear premios y usar saldo; la selección es estado local del paso de pago (no se amplía el estado duplicado).
 
-**Notas de entrega** (mayoristas): guardan snapshots de líneas (`DetalleNotaEntrega`), no tocan inventario ni pagos, y el PDF se genera localmente con `pdf-lib`.
+**Notas de entrega** (mayoristas): ya no se crean sueltas; toda nota sale de un pedido existente (botón "Crear nota de entrega" en Ventas y pedidos y en el detalle del pedido → `/admin/delivery-notes/new?transaccionId=`). `numeroNota` = `numeroOrden` (único, así que un pedido tiene una sola nota; las notas viejas conservan su `NE-...`), las líneas se copian del pedido como snapshot (`DetalleNotaEntrega`) y `numeroFactura` es opcional. Reglas en `lib/admin/delivery-note-rules.ts` (`motivoSinNota`: solo mayoristas, no canceladas, una por pedido). No tocan inventario ni pagos, y el PDF se genera localmente con `pdf-lib`.
 
 **Imágenes**: URLs de Cloudinary; los hosts remotos permitidos para `next/image` están en `next.config.ts`.

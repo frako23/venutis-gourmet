@@ -4,7 +4,7 @@ import { DeleteOrderDialog } from "@/components/admin/ventas/deleteOrderDialog";
 import { BulkSalesEditor } from "@/components/admin/ventas/bulkSalesEditor";
 import { OrderStateSelect } from "@/components/admin/ventas/orderStateSelect";
 import type { Cliente, Producto } from "@prisma/client";
-import { Download, Pencil, Table2, Trash2 } from "lucide-react";
+import { Download, FileText, Pencil, Table2, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -39,6 +39,7 @@ function RowActions({ row, onEliminar }: { row: SalesRow; onEliminar: (row: Sale
   return <div className="flex flex-wrap items-center gap-3 text-xs font-bold" title={row.eliminable ? undefined : row.motivoNoEliminable ?? undefined}>
     <Link href={`/admin/transactions/${row.id}`} className="text-[#66735f] hover:text-[#18211d]">Ver</Link>
     {row.editable && <Link href={`/admin/add-transaction?editar=${row.id}`} className="inline-flex items-center gap-1 text-[#66735f] hover:text-[#18211d]"><Pencil size={13} /> Editar</Link>}
+    {row.notaEntregaId ? <Link href={`/admin/delivery-notes/${row.notaEntregaId}`} className="inline-flex items-center gap-1 text-[#66735f] hover:text-[#18211d]"><FileText size={13} /> Ver nota</Link> : row.puedeGenerarNota && <Link href={`/admin/delivery-notes/new?transaccionId=${row.id}`} className="inline-flex items-center gap-1 text-[#8c6a2c] hover:text-[#18211d]"><FileText size={13} /> Crear nota de entrega</Link>}
     {row.eliminable && <button type="button" onClick={() => onEliminar(row)} className="inline-flex items-center gap-1 text-[#b85f49] hover:text-[#a5452f]"><Trash2 size={13} /> Eliminar</button>}
   </div>;
 }

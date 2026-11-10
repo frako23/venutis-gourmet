@@ -45,7 +45,7 @@ export default async function AdminDashboardPage() {
             <div className="absolute -right-4 -top-6 rotate-12 font-serif text-[8rem] leading-none text-[#c8a45d]/[0.12]">N</div>
             <div className="relative">
               <div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-lg bg-[#f5eddc] text-[#a57c2f]"><FileText size={18} /></span><h2 className="font-bold text-[#18211d]">Documentos mayoristas</h2></div>
-              <p className="mt-3 max-w-md text-sm leading-relaxed text-[#707970]">Genera notas de entrega con una presentación lista para descargar e imprimir.</p>
+              <p className="mt-3 max-w-md text-sm leading-relaxed text-[#707970]">Genera la nota de entrega de un pedido mayorista, lista para descargar e imprimir.</p>
               <Link href="/admin/delivery-notes" className="mt-5 inline-flex items-center text-sm font-bold text-[#66735f] hover:text-[#18211d]">Gestionar notas <span className="ml-2" aria-hidden="true">↗</span></Link>
             </div>
           </div>
