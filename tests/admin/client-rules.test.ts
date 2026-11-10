@@ -32,3 +32,22 @@ test("rechaza prefijos, longitud y dígito verificador inválidos", () => {
   assert.throws(() => normalizeRif("J123456789"), /dígito.*4/);
   assert.equal(normalizeRif(""), null);
 });
+
+import { filtrarClientes } from "../../lib/client-rules.js";
+
+const cliente = (nombre: string, apellido: string) => ({ nombre, apellido, nombreBusqueda: normalizeSearchName(nombre, apellido) });
+const lista = [cliente("Marcos", "Díaz"), cliente("María", "Pérez"), cliente("Ana", "Marín")];
+
+test("filtrarClientes ignora acentos, mayúsculas y espacios de más", () => {
+  assert.deepEqual(filtrarClientes(lista, "maria").map((c) => c.nombre), ["María"]);
+  assert.deepEqual(filtrarClientes(lista, "  MARÍA   ").map((c) => c.nombre), ["María"]);
+});
+test("filtrarClientes exige todas las palabras", () => {
+  assert.deepEqual(filtrarClientes(lista, "mar pe").map((c) => c.nombre), ["María"]);
+});
+test("filtrarClientes sin texto devuelve los primeros por nombre y respeta el límite", () => {
+  assert.deepEqual(filtrarClientes(lista, "", 2).map((c) => c.nombre), ["Ana", "Marcos"]);
+});
+test("filtrarClientes pone primero a quien empieza por la primera palabra", () => {
+  assert.deepEqual(filtrarClientes(lista, "mar").map((c) => c.nombre), ["Marcos", "María", "Ana"]);
+});

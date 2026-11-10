@@ -50,3 +50,18 @@ const tipoPuntos: Record<string, string> = {
 export function tipoPuntosLabel(tipo: string) {
   return tipoPuntos[tipo] ?? tipo;
 }
+
+/** Instante -> "YYYY-MM-DDTHH:mm" en hora de Caracas (valor para <input type="datetime-local">). */
+export function fechaHoraLocalCaracas(instante: Date | string): string {
+  const partes = new Intl.DateTimeFormat("en-CA", { timeZone: ZONA_HORARIA, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date(instante));
+  const valor = (tipo: string) => partes.find((parte) => parte.type === tipo)?.value ?? "00";
+  return `${valor("year")}-${valor("month")}-${valor("day")}T${valor("hour")}:${valor("minute")}`;
+}
+
+/** "YYYY-MM-DDTHH:mm" escrito en hora de Caracas -> instante. Caracas es UTC-4 todo el año (sin horario de verano). */
+export function interpretarFechaHoraCaracas(texto: string): Date | null {
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(texto)) return null;
+  const fecha = new Date(`${texto}:00-04:00`);
+  if (Number.isNaN(fecha.getTime())) return null;
+  return fechaHoraLocalCaracas(fecha) === texto ? fecha : null;
+}

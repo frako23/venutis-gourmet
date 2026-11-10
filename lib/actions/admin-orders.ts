@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { requireAdmin } from "@/lib/admin/auth";
 import { anularAbonoEnPedido, registrarAbonoEnPedido } from "@/lib/admin/abonos";
+import { eliminarPedidoEnTx } from "@/lib/admin/order-edit";
 import { aplicarCambioEstadoPedido } from "@/lib/admin/order-state-change";
 import { prisma } from "@/lib/prisma";
 
@@ -118,5 +119,24 @@ export async function anularAbono(formData: FormData) {
     return { success: true as const, message: `Abono anulado. Saldo pendiente: USD ${result.saldoUsd.toFixed(2)}.` };
   } catch (error) {
     return { success: false as const, message: error instanceof Error ? error.message : "No se pudo anular el abono." };
+  }
+}
+
+const eliminarSchema = z.object({
+  transaccionId: z.coerce.number().int().positive(),
+  estadoEsperado: z.enum(["pagado", "pendiente", "por_cobrar", "en_pedido", "cancelado"]),
+  totalEsperadoUsd: z.coerce.number().finite(),
+});
+
+export async function eliminarPedido(formData: FormData): Promise<{ success: boolean; message: string }> {
+  await requireAdmin();
+  const parsed = eliminarSchema.safeParse({ transaccionId: formData.get("transaccionId"), estadoEsperado: formData.get("estadoEsperado"), totalEsperadoUsd: formData.get("totalEsperadoUsd") });
+  if (!parsed.success) return { success: false, message: "Los datos del pedido no son válidos." };
+  try {
+    const result = await prisma.$transaction((tx) => eliminarPedidoEnTx(tx, parsed.data), { maxWait: 10000, timeout: 30000 });
+    for (const ruta of ["/admin", "/admin/transactions", "/admin/inventory", "/admin/analytics", `/admin/clients/${result.clienteId}`]) revalidatePath(ruta);
+    return { success: true, message: `Pedido ${result.numeroOrden} eliminado.` };
+  } catch (error) {
+    return { success: false, message: error instanceof Error ? error.message : "No se pudo eliminar el pedido." };
   }
 }

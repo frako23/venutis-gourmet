@@ -137,7 +137,8 @@ Las validaciones de formularios se realizan principalmente con esquemas Zod dent
 - direcciones: alta, edición, eliminación y consulta por cliente;
 - checkout: creación atómica de pedidos, pagos e inventario;
 - reseñas: alta y eliminación.
-- admin-sales: venta manual atómica, descuento y stock.
+- admin-sales: venta manual atómica, descuento y stock. También `editarVentaManual` (edición de pedidos, ver `lib/admin/order-edit.ts`).
+- admin-orders: estados, abonos y `eliminarPedido` (borrado definitivo de pedidos sin cobros, puntos, saldo, notas ni reseñas).
 - admin-orders / order-status: estado operativo e historial append-only; `registrarAbono` y `anularAbono` (abonos y saldo).
 - sales-import: `previsualizarCargaVentas` (no escribe) y `confirmarCargaVentas` (vuelve a leer el archivo y crea los pedidos en una transacción; no toca inventario).
 - delivery-notes: validación mayorista, snapshots y consultas para PDF.

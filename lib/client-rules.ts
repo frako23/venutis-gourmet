@@ -100,3 +100,13 @@ export function formatRif(value: string | null | undefined) {
 export function clientTypeLabel(type: ClientType) {
   return type === "mayorista" ? "Mayorista" : "Consumidor";
 }
+
+/** Clientes cuyo `nombreBusqueda` contiene todas las palabras de `texto` (sin acentos ni mayúsculas). Primero los que empiezan por la primera palabra. */
+export function filtrarClientes<T extends { nombre: string; apellido: string; nombreBusqueda: string }>(clientes: T[], texto: string, limite = 20): T[] {
+  const palabras = normalizeSearchName(texto).split(" ").filter(Boolean);
+  const ordenados = [...clientes].sort((a, b) => a.nombre.localeCompare(b.nombre, "es") || a.apellido.localeCompare(b.apellido, "es"));
+  if (palabras.length === 0) return ordenados.slice(0, limite);
+  const coincidentes = ordenados.filter((cliente) => palabras.every((palabra) => cliente.nombreBusqueda.includes(palabra)));
+  const empiezan = coincidentes.filter((cliente) => cliente.nombreBusqueda.startsWith(palabras[0]));
+  return [...empiezan, ...coincidentes.filter((cliente) => !empiezan.includes(cliente))].slice(0, limite);
+}

@@ -6,11 +6,13 @@ import { z } from "zod";
 
 import { requireAdmin } from "@/lib/admin/auth";
 import { bloquearCliente, calcularAbonado, consultarDeudaCliente, evaluarCredito, validarTotalContraAbonado } from "@/lib/admin/abonos";
-import { calculateSaleTotals, roundMoney, type DiscountInput } from "@/lib/admin/sales-calculations";
+import { calculateSaleTotals, recalcularTotalPedido, roundMoney, type DiscountInput } from "@/lib/admin/sales-calculations";
 import { acreditarPuntosPorPago } from "@/lib/fidelidad";
 import { CreditoRequiereAutorizacion, registrarVentaManualEnTx, type VentaManualInput } from "@/lib/admin/manual-sale";
 import { requiresPaymentConfirmation } from "@/lib/admin/status";
-import type { BulkSalesState, ManualSaleState } from "@/lib/admin/types";
+import { interpretarFechaHoraCaracas } from "@/lib/format";
+import { ConfirmarDiferenciaRequerida, editarPedidoEnTx } from "@/lib/admin/order-edit";
+import type { BulkSalesState, EdicionVentaState, ManualSaleState } from "@/lib/admin/types";
 import { ajustarInventario, isValidQuantity } from "@/lib/inventory";
 import { nextOrderNumber } from "@/lib/order-number";
 import { prisma } from "@/lib/prisma";
@@ -29,7 +31,7 @@ const discountSchema = z.object({
 
 const manualSaleSchema = z.object({
   clienteId: z.coerce.number().int().positive(),
-  fechaCompra: z.coerce.date(),
+  fechaCompra: z.date(),
   numeroOrden: z.string().trim().max(80).optional(),
   tipodeRetiro: z.enum(["envio", "recogida"]).default("envio"),
   tasaCambio: z.coerce.number().finite().positive().nullable().optional(),
@@ -60,13 +62,15 @@ function readJson<T>(formData: FormData, key: string, fallback: T): T {
   try { return JSON.parse(raw) as T; } catch { return fallback; }
 }
 
+function fechaTextoDe(formData: FormData) { return formData.get("fechaCompra")?.toString().trim() || null; }
+
 function parseInput(formData: FormData) {
   const tasaRaw = formData.get("tasaCambio")?.toString().trim() ?? "";
   const descuentoRaw = formData.get("descuento")?.toString().trim() ?? "";
   const pagoRaw = formData.get("pago")?.toString().trim() ?? "";
   return manualSaleSchema.safeParse({
     clienteId: formData.get("clienteId"),
-    fechaCompra: formData.get("fechaCompra") || new Date().toISOString(),
+    fechaCompra: (fechaTextoDe(formData) && interpretarFechaHoraCaracas(fechaTextoDe(formData)!)) || new Date(),
     numeroOrden: formData.get("numeroOrden")?.toString().trim() || undefined,
     tipodeRetiro: formData.get("tipodeRetiro")?.toString() || "envio",
     tasaCambio: tasaRaw ? Number(tasaRaw) : null,
@@ -83,6 +87,8 @@ function parseInput(formData: FormData) {
 
 export async function registrarVentaManual(_previous: ManualSaleState, formData: FormData): Promise<ManualSaleState> {
   const actor = await requireAdmin();
+  const fechaTexto = formData.get("fechaCompra")?.toString().trim();
+  if (fechaTexto && !interpretarFechaHoraCaracas(fechaTexto)) return { success: false, message: "La fecha no es válida." };
   const parsed = parseInput(formData);
   if (!parsed.success) {
     return { success: false, message: "Revisa los datos de la venta.", issues: parsed.error.issues.map((issue) => ({ field: issue.path.join(".") || "formulario", message: issue.message })) };
@@ -135,7 +141,7 @@ export async function actualizarDescuentoVenta(formData: FormData) {
   try {
     const transaction = await prisma.transaccion.findUnique({ where: { id: parsed.data.transactionId }, include: { detalles: true, pagos: true } });
     if (!transaction) return { success: false as const, message: "La venta no existe." };
-    const totals = calculateSaleTotals(lineasCobradas(transaction.detalles), { tipo: parsed.data.tipo, valor: parsed.data.valor }, transaction.tasaCambio, transaction.montoDescuentoPuntos);
+    const totals = recalcularTotalPedido({ lineasCobradas: lineasCobradas(transaction.detalles), descuento: { tipo: parsed.data.tipo, valor: parsed.data.valor }, tasaCambio: transaction.tasaCambio, descuentoPuntosUsd: transaction.montoDescuentoPuntos, montoDeliveryUsd: transaction.montoDelivery });
     validarTotalContraAbonado(totals.totalUsd, calcularAbonado(transaction.pagos));
     await prisma.transaccion.update({ where: { id: transaction.id }, data: { montoSubtotal: totals.subtotalUsd, montoDescuento: totals.descuentoUsd, valorDescuento: parsed.data.valor, tipoDescuento: parsed.data.tipo, montoTotal: totals.totalUsd } });
     revalidatePath("/admin/transactions");
@@ -231,12 +237,13 @@ export async function guardarEdicionMasivaVentas(_previous: BulkSalesState, form
         if (transaction.estado === "cancelado" && row.estado !== "cancelado") throw new Error(`La venta ${row.numeroOrden} está cancelada y no puede reabrirse desde el editor masivo.`);
         if (row.estado === "cancelado" && transaction.estado !== "cancelado") throw new Error(`Cancela ${row.numeroOrden} desde la tabla o el detalle para registrar la razón y devolver el inventario.`);
 
-        const totals = calculateSaleTotals(
-          lineasCobradas(transaction.detalles),
-          bulkDiscount(row.tipoDescuento, row.valorDescuento),
-          transaction.tasaCambio,
-          transaction.montoDescuentoPuntos,
-        );
+        const totals = recalcularTotalPedido({
+          lineasCobradas: lineasCobradas(transaction.detalles),
+          descuento: bulkDiscount(row.tipoDescuento, row.valorDescuento),
+          tasaCambio: transaction.tasaCambio,
+          descuentoPuntosUsd: transaction.montoDescuentoPuntos,
+          montoDeliveryUsd: transaction.montoDelivery,
+        });
         const paidUsd = transaction.pagos.reduce((sum, payment) => sum + (payment.montoUsd ?? 0), 0);
         if (row.estado === "pagado" && transaction.estado !== "pagado" && requiresPaymentConfirmation(totals.totalUsd, paidUsd, input.confirmarPagos, false)) {
           throw new Error(`Confirma el cobro de ${row.numeroOrden} antes de marcarla como pagada.`);
@@ -334,5 +341,70 @@ export async function guardarEdicionMasivaVentas(_previous: BulkSalesState, form
     return { success: true, message: `${result.updated} venta(s) actualizada(s) y ${result.created} pedido(s) cargado(s).`, ...result };
   } catch (error) {
     return { success: false, message: error instanceof Error ? error.message : "No se pudo guardar la edición masiva." };
+  }
+}
+
+const edicionSchema = z.object({
+  transaccionId: z.coerce.number().int().positive(),
+  version: z.string().regex(/^[0-9a-f]{16}$/),
+  clienteId: z.coerce.number().int().positive(),
+  numeroOrden: z.string().trim().min(1).max(80),
+  fechaCompra: z.string().refine((valor) => interpretarFechaHoraCaracas(valor) !== null, "La fecha no es válida."),
+  fechaOriginal: z.string(),
+  tipodeRetiro: z.enum(["envio", "recogida"]),
+  tasaCambio: z.coerce.number().finite().positive().nullable(),
+  lineas: z.array(lineSchema).min(1),
+  descuento: discountSchema.nullable(),
+  confirmarCobroDiferencia: z.boolean(),
+  autorizarCredito: z.boolean(),
+});
+
+export async function editarVentaManual(_previous: EdicionVentaState, formData: FormData): Promise<EdicionVentaState> {
+  const actor = await requireAdmin();
+  const tasaRaw = formData.get("tasaCambio")?.toString().trim() ?? "";
+  const descuentoRaw = formData.get("descuento")?.toString().trim() ?? "";
+  const parsed = edicionSchema.safeParse({
+    transaccionId: formData.get("transaccionId"),
+    version: formData.get("version"),
+    clienteId: formData.get("clienteId"),
+    numeroOrden: formData.get("numeroOrden")?.toString().trim() ?? "",
+    fechaCompra: formData.get("fechaCompra")?.toString().trim() ?? "",
+    fechaOriginal: formData.get("fechaOriginal")?.toString().trim() ?? "",
+    tipodeRetiro: formData.get("tipodeRetiro")?.toString() || "envio",
+    tasaCambio: tasaRaw ? Number(tasaRaw) : null,
+    lineas: readJson(formData, "lineas", []),
+    descuento: descuentoRaw ? readJson<DiscountInput | null>(formData, "descuento", null) : null,
+    confirmarCobroDiferencia: formData.get("confirmarCobroDiferencia") === "true",
+    autorizarCredito: formData.get("autorizarCredito") === "true",
+  });
+  if (!parsed.success) {
+    return { success: false, message: parsed.error.issues.some((issue) => issue.path[0] === "fechaCompra") ? "La fecha no es válida." : "Revisa los datos del pedido.", issues: parsed.error.issues.map((issue) => ({ field: issue.path.join(".") || "formulario", message: issue.message })) };
+  }
+  const input = parsed.data;
+
+  try {
+    const result = await prisma.$transaction(
+      (tx) => editarPedidoEnTx(tx, {
+        transaccionId: input.transaccionId,
+        version: input.version,
+        clienteId: input.clienteId,
+        numeroOrden: input.numeroOrden,
+        fechaCompra: interpretarFechaHoraCaracas(input.fechaCompra)!,
+        fechaSinCambios: input.fechaCompra === input.fechaOriginal,
+        tipodeRetiro: input.tipodeRetiro as TipoRetiro,
+        tasaCambio: input.tasaCambio,
+        lineas: input.lineas,
+        descuento: input.descuento as DiscountInput | null,
+        confirmarCobroDiferencia: input.confirmarCobroDiferencia,
+        autorizarCredito: input.autorizarCredito,
+      }, actor),
+      { maxWait: 10000, timeout: 30000 },
+    );
+    for (const ruta of ["/admin", "/admin/transactions", `/admin/transactions/${result.id}`, "/admin/inventory", `/admin/clients/${input.clienteId}`, `/admin/clients/${result.clienteAnteriorId}`]) revalidatePath(ruta);
+    return { success: true, message: `Pedido ${result.numeroOrden} actualizado.`, transactionId: result.id, numeroOrden: result.numeroOrden, totalUsd: result.totalUsd };
+  } catch (error) {
+    if (error instanceof CreditoRequiereAutorizacion) return { success: false, message: error.message, requiereAutorizacion: error.info };
+    if (error instanceof ConfirmarDiferenciaRequerida) return { success: false, message: error.message, requiereConfirmarDiferencia: { diferenciaUsd: error.diferenciaUsd } };
+    return { success: false, message: error instanceof Error ? error.message : "No se pudo guardar el pedido." };
   }
 }

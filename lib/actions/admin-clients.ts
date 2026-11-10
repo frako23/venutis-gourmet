@@ -192,7 +192,7 @@ export async function crearClienteAdministrativo(_previous: ClientCreateState, f
           nombreBusqueda: normalizeSearchName(normalized.values.nombre, normalized.values.apellido),
           direcciones: normalized.address ? { create: normalized.address } : undefined,
         },
-        select: { id: true },
+        select: { id: true, nombre: true, apellido: true, tipoCliente: true, nombreBusqueda: true, celular: true, rif: true },
       });
       await tx.historialCliente.create({
         data: {
@@ -207,7 +207,7 @@ export async function crearClienteAdministrativo(_previous: ClientCreateState, f
     });
 
     revalidateClientSurfaces();
-    return { success: true, message: "Cliente creado correctamente.", clientId: result.id };
+    return { success: true, message: "Cliente creado correctamente.", clientId: result.id, cliente: result };
   } catch (error) {
     if (isPrismaUniqueError(error)) return invalidCreate("El teléfono, correo o RIF ya pertenece a otro cliente.");
     return { success: false, message: error instanceof Error ? error.message : "No se pudo crear el cliente." };

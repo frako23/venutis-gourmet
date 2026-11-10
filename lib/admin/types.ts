@@ -6,6 +6,7 @@ import type {
   TipoRetiro,
 } from "@prisma/client";
 
+import type { InfoCredito } from "./manual-sale";
 import type { SaleTotals } from "./sales-calculations";
 import type { ActiveOrderState } from "./status";
 import type { AnalyticsPeriod } from "./periods";
@@ -61,6 +62,11 @@ export type SalesRow = MoneyFields & {
   zonaEntrega: string | null;
   aliasEntrega: string | null;
   direccionEntrega: string | null;
+  editable: boolean;
+  eliminable: boolean;
+  motivoNoEliminable: string | null;
+  importada: boolean;
+  tienePagoDeclarado: boolean;
 };
 
 export type PaginatedRows<T> = {
@@ -156,9 +162,24 @@ export type BulkClientsState =
 
 export type ClientHistoryAction = AccionHistorialCliente;
 
+export type ClienteBusqueda = {
+  id: number;
+  nombre: string;
+  apellido: string;
+  tipoCliente: "detal" | "mayorista";
+  nombreBusqueda: string;
+  celular: string | null;
+  rif: string | null;
+};
+
 export type ClientCreateState = ActionResult<{
   clientId: number;
+  cliente: ClienteBusqueda;
 }>;
+
+export type EdicionVentaState =
+  | { success: true; message: string; transactionId: number; numeroOrden: string; totalUsd: number }
+  | { success: false; message: string; issues?: ValidationIssue[]; requiereAutorizacion?: InfoCredito; requiereConfirmarDiferencia?: { diferenciaUsd: number } };
 
 export type ClientValidationIssue = ValidationIssue & {
   rowId?: number;

@@ -1,7 +1,7 @@
 "use client";
 
 import { crearClienteAdministrativo } from "@/lib/actions/admin-clients";
-import type { ClientCreateState } from "@/lib/admin/types";
+import type { ClientCreateState, ClienteBusqueda } from "@/lib/admin/types";
 import { X } from "lucide-react";
 import { FormEvent, useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -9,7 +9,8 @@ import { toast } from "sonner";
 
 const initialState: ClientCreateState = { success: false, message: "" };
 
-export function ClientCreateModal({ onClose }: { onClose: () => void }) {
+export function ClientCreateModal({ onClose, nombreInicial, onCreated }: { onClose: () => void; nombreInicial?: string; onCreated?: (cliente: ClienteBusqueda) => void }) {
+  const [primerNombre = "", ...resto] = (nombreInicial ?? "").trim().split(/\s+/).filter(Boolean);
   const router = useRouter();
   const [state, formAction, isPending] = useActionState(crearClienteAdministrativo, initialState);
   const [dirty, setDirty] = useState(false);
@@ -21,9 +22,10 @@ export function ClientCreateModal({ onClose }: { onClose: () => void }) {
     }
     if (!state.success) return;
     toast.success(state.message);
-    router.refresh();
+    if (onCreated) onCreated(state.cliente);
+    else router.refresh();
     onClose();
-  }, [onClose, router, state]);
+  }, [onClose, onCreated, router, state]);
 
   useEffect(() => {
     function onBeforeUnload(event: BeforeUnloadEvent) {
@@ -68,10 +70,10 @@ export function ClientCreateModal({ onClose }: { onClose: () => void }) {
               <input name="rif" className="admin-field admin-mono" placeholder="J-12345678-4" />
             </Field>
             <Field label="Nombre" error={fieldError("nombre")}>
-              <input name="nombre" className="admin-field" required autoComplete="given-name" />
+              <input name="nombre" className="admin-field" required autoComplete="given-name" defaultValue={primerNombre} />
             </Field>
             <Field label="Apellido / razón complementaria" error={fieldError("apellido")}>
-              <input name="apellido" className="admin-field" required autoComplete="family-name" />
+              <input name="apellido" className="admin-field" required autoComplete="family-name" defaultValue={resto.join(" ")} />
             </Field>
             <Field label="Teléfono" error={fieldError("celular")}>
               <input name="celular" className="admin-field" required inputMode="tel" autoComplete="tel" />

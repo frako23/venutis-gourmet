@@ -105,3 +105,19 @@ describe("descuento por puntos", () => {
     assert.equal(calculateSaleTotals(lines, { tipo: "usd", valor: 25 }, null, 5).totalUsd, 0);
   });
 });
+
+import { recalcularTotalPedido } from "../../lib/admin/sales-calculations.js";
+
+describe("recalcularTotalPedido", () => {
+  const lineas = [{ productoId: 1, cantidad: 2, precioUnitarioUsd: 10 }];
+  it("suma el delivery sin incluirlo en la base del porcentaje", () => {
+    assert.equal(recalcularTotalPedido({ lineasCobradas: lineas, descuento: { tipo: "porcentaje", valor: 10 }, tasaCambio: null, descuentoPuntosUsd: 0, montoDeliveryUsd: 3 }).totalUsd, 21);
+  });
+  it("resta el descuento por puntos", () => {
+    assert.equal(recalcularTotalPedido({ lineasCobradas: lineas, descuento: { tipo: "porcentaje", valor: 10 }, tasaCambio: null, descuentoPuntosUsd: 2, montoDeliveryUsd: 3 }).totalUsd, 19);
+  });
+  it("rechaza un descuento por encima del subtotal y convierte a Bs", () => {
+    assert.throws(() => recalcularTotalPedido({ lineasCobradas: lineas, descuento: { tipo: "usd", valor: 25 }, tasaCambio: null, descuentoPuntosUsd: 0, montoDeliveryUsd: 0 }), /subtotal/);
+    assert.equal(recalcularTotalPedido({ lineasCobradas: lineas, descuento: null, tasaCambio: 10, descuentoPuntosUsd: 0, montoDeliveryUsd: 5 }).totalBs, 250);
+  });
+});

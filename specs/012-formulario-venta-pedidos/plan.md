@@ -172,7 +172,8 @@ El detalle y las alternativas descartadas están en [research.md](./research.md)
 | `components/admin/ventas/salesTable.tsx` | Columna "Acciones" y acciones en las tarjetas. |
 | `components/admin/clientes/clientCreateModal.tsx` | Props `nombreInicial` y `onCreated`. |
 | `tests/admin/order-edit-rules.test.ts` (**nuevo**) | Casos puros del contrato. |
-| `tests/admin/client-rules.test.ts`, `tests/admin/sales-calculations.test.ts` | Casos de `filtrarClientes`, de las fechas de Caracas y de `recalcularTotalPedido`. |
+| `tests/admin/fechas-caracas.test.ts` (**nuevo**) | Casos de `fechaHoraLocalCaracas` e `interpretarFechaHoraCaracas`. |
+| `tests/admin/client-rules.test.ts`, `tests/admin/sales-calculations.test.ts` | Casos de `filtrarClientes` y de `recalcularTotalPedido`. |
 | `tests/admin/order-edit.integration.test.ts` (**nuevo**) | Las 8 integraciones del contrato. |
 | `CLAUDE.md`, `docs/descripcion-tecnica.md` | Documentan la edición y eliminación de pedidos, la regla del total con delivery y el alta desde la venta. |
 
@@ -224,6 +225,7 @@ lib/
 tests/admin/
 ├── order-edit-rules.test.ts        # nuevo
 ├── order-edit.integration.test.ts  # nuevo
+├── fechas-caracas.test.ts          # nuevo
 ├── client-rules.test.ts
 └── sales-calculations.test.ts
 ```
