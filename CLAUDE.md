@@ -22,6 +22,7 @@ Las variables de entorno requeridas (`DATABASE_URL`, `ALLOWED_EMAILS`, Stack Aut
 ## Convenciones
 
 - **Notificaciones**: todas las notificaciones dentro de la app (éxito, error, avisos) deben manejarse con **sonner** (`toast` desde `"sonner"`). No introducir otras librerías ni alerts/banners ad hoc para esto. Ya existe un `<Toaster>` en `app/layout.tsx`, `app/productos/layout.tsx` y `app/admin/layout.tsx`.
+- **Fechas y horas**: siempre en hora de Caracas (`ZONA_HORARIA` en `lib/format.ts`), tanto al mostrar como al proponer valores por defecto, interpretar lo que se ingresa y cortar por día/mes en filtros, reportes, exportaciones y PDFs. Nunca depender de la zona del servidor ni del navegador (p. ej., `new Date().toISOString().slice(0, 16)` da UTC).
 - La UI y los mensajes están en español; los nombres de dominio del modelo también (`Transaccion`, `Cliente`, `Producto`...).
 - Alias de imports: `@/*` apunta a la raíz del proyecto.
 - Todo cambio de `prisma/schema.prisma` debe ir con su migración y regeneración del cliente.

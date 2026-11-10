@@ -1,28 +1,22 @@
 <!--
 Sync Impact Report
-- Versión: 1.0.0 → 2.0.0 (MAJOR)
-- Motivo: la simplicidad pasa a ser el principio rector y no negociable; los principios se
-  reordenan y se redefinen. Los planes 001–006 citan los principios por su numeración anterior;
-  se conservan como registro histórico y no se reescriben.
-- Principios modificados:
-  - V. Simplicidad, experiencia móvil y canales reales → I. Simplicidad ante todo (NO NEGOCIABLE)
-    (lo móvil y WhatsApp pasan a "Restricciones técnicas y convenciones")
-  - II. Fuente única y consistencia operacional → II. Una sola fuente de verdad
-  - I. Separación de las tres aplicaciones → III. Superficies con límites claros
-    (cuatro superficies: se añade /cotizacion-rapida; /venta-rapida solo persiste delegando
-    en el checkout existente)
-  - III. Seguridad, privacidad y control administrativo → IV. Seguridad del lado del servidor
-  - IV. Calidad verificable y cambios trazables → V. Pruebas proporcionales al riesgo
-- Secciones renombradas: "Restricciones del sistema y del dominio" → "Restricciones técnicas y
-  convenciones" (incorpora sonner, español, tokens de DESIGN.md y móvil primero).
+- Versión: 2.0.0 → 2.1.0 (MINOR)
+- Motivo: se añade una obligación nueva y vinculante: todas las fechas y horas del sistema
+  se manejan en la hora de Caracas, sin depender de la zona horaria del servidor ni del
+  navegador.
+- Principios modificados: ninguno.
+- Secciones modificadas: "Restricciones técnicas y convenciones" (nueva viñeta "Fechas y
+  horas").
 - Secciones añadidas: ninguna. Secciones eliminadas: ninguna.
-- Flujo de trabajo: la especificación pasa a ser proporcional (los ajustes acotados no la
-  requieren) y se añade la "puerta de simplicidad" al Constitution Check.
 - Plantillas:
   - ✅ .specify/templates/plan-template.md: deriva los gates de este archivo en tiempo de
-    ejecución; su tabla Complexity Tracking ya pide la alternativa más simple rechazada.
+    ejecución; no requiere cambios.
   - ✅ spec-template.md, tasks-template.md y checklist-template.md: sin referencias directas.
-- TODOs diferidos: ninguno (ratificación confirmada por el commit 2f34227 del 2026-10-07).
+- Guía operativa: CLAUDE.md debe recoger la misma convención (Gobernanza: coherencia).
+- Trabajo de adopción: el código existente que proponga o interprete fechas en UTC o en la
+  zona del navegador (p. ej., la fecha por defecto del formulario de venta manual) se corrige
+  dentro de las especificaciones que lo toquen, empezando por 012-formulario-venta-pedidos.
+- TODOs diferidos: ninguno.
 -->
 
 # Constitución de Venuti's Gourmet
@@ -136,6 +130,13 @@ tampoco se sostiene en un equipo pequeño.
 - Los estilos usan los tokens de `DESIGN.md` y `app/globals.css`; no se introducen
   colores, fuentes ni sistemas de componentes paralelos. La tienda y la venta rápida se
   diseñan móvil primero.
+- **Fechas y horas**: la zona del negocio es siempre la de Caracas (`America/Caracas`,
+  UTC−4, sin horario de verano), definida una sola vez en `ZONA_HORARIA` (`lib/format.ts`).
+  Toda fecha u hora que se muestra, que un formulario propone por defecto o que se ingresa
+  (se interpreta como hora de Caracas), y todo corte por día, semana o mes en filtros,
+  reportes, analíticas, exportaciones, mensajes y PDFs, DEBE calcularse en esa zona. NUNCA
+  se depende de la zona horaria del servidor ni del navegador. La base de datos guarda
+  instantes; la conversión ocurre al mostrar, proponer, interpretar y agrupar.
 - WhatsApp es el canal de coordinación con los clientes. NO se añaden pasarelas de pago,
   webhooks, colas, cachés externas ni microservicios sin una necesidad de negocio
   documentada.
@@ -172,4 +173,4 @@ Esta constitución prevalece sobre las convenciones informales que la contradiga
 - **Excepciones**: se documentan en *Complexity Tracking* del plan con su motivo y la
   alternativa simple rechazada; una excepción no se convierte en práctica por repetición.
 
-**Versión**: 2.0.0 | **Ratificada**: 2026-10-07 | **Última enmienda**: 2026-10-29
+**Versión**: 2.1.0 | **Ratificada**: 2026-10-07 | **Última enmienda**: 2026-11-10
