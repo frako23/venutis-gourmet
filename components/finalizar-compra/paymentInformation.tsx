@@ -247,6 +247,7 @@ export const PaymentInformation = () => {
             <InputField label="Monto en Bs" name="montoBs" type="number" value={paymentRecord?.montoBs ?? 0} onChange={(event: ChangeEvent<HTMLInputElement>) => updatePaymentRecord({ montoBs: Number(event.target.value) })} required />
           </div>
           <InputField label="Referencia del Pago" name="referencia" type="text" value={paymentRecord?.referencia ?? ""} onChange={(event: ChangeEvent<HTMLInputElement>) => updatePaymentRecord({ referencia: event.target.value })} required />
+          <p className="text-xs opacity-70 -mt-2">Coloca solo los últimos 4 dígitos de la referencia.</p>
         </>
       )}
 
