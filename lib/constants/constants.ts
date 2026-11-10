@@ -19,8 +19,8 @@ interface PaymentMethodDetails {
 export const PAYMENT_DETAILS: Record<string, PaymentMethodDetails> = {
   PagoMovil: {
     bank: "Banco Mercantil",
-    phone: "0412-1234567",
-    id: "V-12.345.678",
+    phone: "0424-2507784",
+    id: "V-12.749.042",
     currency: "Bs.",
     instructions:
       "Recuerda capturar el comprobante con el número de referencia.",
