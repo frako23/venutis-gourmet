@@ -26,19 +26,19 @@ export const PAYMENT_DETAILS: Record<string, PaymentMethodDetails> = {
       "Recuerda capturar el comprobante con el número de referencia.",
   },
   Zelle: {
-    email: "pagos@venutisgourmet.com",
-    name: "Venuti's Gourmet LLC",
+    email: "venutiss@gmail.com",
+    name: "Antonieta Di Domenico Venuti",
     currency: "USD",
     instructions: "Por favor, indica tu nombre en el motivo del pago.",
   },
   TransferenciaBs: {
-    bank: "Banco Provincial",
-    account: "0108-XXXX-XXXX-XXXXXXXXX",
-    name: "Venuti's Gourmet C.A.",
-    id: "J-12345678-9",
+    bank: "Banco Mercantil",
+    account: "01050242011242029354",
+    name: "Antonieta Di Domenico Venuti",
+    id: "V-12.749.042",
     currency: "Bs.",
     instructions:
-      "La transferencia debe ser del mismo banco para despacho inmediato.",
+      "Envía el comprobante con el número de referencia al confirmar tu pedido.",
   },
   EfectivoUsd: {
     instructions:
