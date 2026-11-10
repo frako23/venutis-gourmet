@@ -72,7 +72,7 @@ El alias `@/*` apunta a la raíz del proyecto y se utiliza para imports absoluto
 - `/admin/add-transaction`: alta de transacciones desde administración.
 - `/admin/transactions/import`: carga masiva de ventas desde el Excel "Control de ventas" (vista previa, conciliación de productos y clientes, confirmación atómica).
 - `/admin/transactions/export?formato=control`: descarga del control de ventas con las columnas del Excel.
-- `/admin`: dashboard operativo con ventas del periodo, pedidos abiertos y alertas.
+- `/admin`: resumen con cuatro indicadores (ventas de 30 días, pedidos abiertos, alertas de inventario, mayoristas) y cuatro gráficos: ventas por mes (12 meses), top 5 de productos, ventas por tipo de cliente y visitas por día (30 días, hora de Caracas salvo los días de visitas, que corta Vercel en UTC).
 - `/admin/analytics`: agregados semanales/mensuales, productos y predictor explicable.
 - `/admin/delivery-notes`: listado y descarga de notas para mayoristas. Las notas se crean desde un pedido (`/admin/delivery-notes/new?transaccionId=`); no hay alta suelta.
 - `/admin/delivery-notes/new`: formulario con vista previa.

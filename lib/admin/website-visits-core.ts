@@ -1,7 +1,8 @@
-import type { VisitPeriod, WebsiteVisitsResult, WebsiteVisitsStatus } from "./types.js";
+import type { VisitDay, VisitPeriod, VisitasDiariasResult, WebsiteVisitsResult, WebsiteVisitsStatus } from "./types.js";
 import {
   fetchVercelVisitAggregate,
   fetchVercelVisitCount,
+  fetchVercelVisitSeries,
   readVercelAnalyticsConfig,
   type VercelAnalyticsConfig,
   type VercelAnalyticsDimension,
@@ -88,6 +89,38 @@ export async function consultarAnaliticasVisitas(input: WebsiteVisitsInput): Pro
   } catch (error) {
     const status = errorStatus(error);
     return resultForStatus(input.period, status, queriedAt);
+  }
+}
+
+/** Un elemento por día entre since y until; los días sin fila quedan en 0. */
+export function completarSerieDiaria(period: { since: string; until: string }, filas: VisitDay[]): VisitDay[] {
+  const porFecha = new Map<string, VisitDay>();
+  for (const fila of filas) if (!porFecha.has(fila.fecha)) porFecha.set(fila.fecha, fila);
+  const serie: VisitDay[] = [];
+  const fin = Date.parse(`${period.until}T00:00:00Z`);
+  for (let t = Date.parse(`${period.since}T00:00:00Z`); t <= fin; t += 86_400_000) {
+    const fecha = new Date(t).toISOString().slice(0, 10);
+    serie.push(porFecha.get(fecha) ?? { fecha, pageviews: 0, visitors: 0 });
+  }
+  return serie;
+}
+
+/** Visitas por día y totales del período. Nunca lanza: todo error se traduce a un estado. */
+export async function consultarVisitasDiarias(input: WebsiteVisitsInput): Promise<VisitasDiariasResult> {
+  const queriedAt = new Date().toISOString();
+  const vacio = (status: WebsiteVisitsStatus): VisitasDiariasResult => ({ period: input.period, queriedAt, status, summary: null, serie: [], message: messageForStatus(status) });
+  if (!input.period.isValid) return vacio("invalid");
+  const config = "config" in input ? input.config : readVercelAnalyticsConfig();
+  if (!config) return vacio("not_configured");
+  try {
+    const [summary, filas] = await Promise.all([
+      fetchVercelVisitCount({ period: input.period, config, fetcher: input.fetcher }),
+      fetchVercelVisitSeries({ period: input.period, config, fetcher: input.fetcher }),
+    ]);
+    const status: WebsiteVisitsStatus = summary.pageviews === 0 && summary.visitors === 0 ? "no_data" : "ready";
+    return { period: input.period, queriedAt, status, summary, serie: completarSerieDiaria(input.period, filas), message: messageForStatus(status) };
+  } catch (error) {
+    return vacio(errorStatus(error));
   }
 }
 

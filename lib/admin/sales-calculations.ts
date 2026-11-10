@@ -1,5 +1,6 @@
 import { isValidQuantity, roundQuantity } from "../inventory.ts";
 import { getPriceTypeLabel } from "./status.ts";
+import type { AnalyticsProductRow } from "./types.js";
 
 export type SaleLineInput = {
   productoId: number;
@@ -128,4 +129,24 @@ export function recalcularTotalPedido({ lineasCobradas, descuento, tasaCambio, d
   const base = calculateSaleTotals(lineasCobradas, descuento, tasaCambio, descuentoPuntosUsd);
   const totalUsd = roundMoney(base.totalUsd + montoDeliveryUsd);
   return { ...base, totalUsd, totalBs: base.tasaCambio ? convertUsdToBs(totalUsd, base.tasaCambio) : null };
+}
+
+/** Unidades y monto (precio × cantidad, sin delivery ni descuentos del pedido) por producto, de mayor a menor monto. Regla única de las analíticas y del Resumen. */
+export function resumirPorProducto(lines: Array<{ productoId: number; nombre: string; cantidad: number; precioUnitario: number }>, totalUsd: number): AnalyticsProductRow[] {
+  const porProducto = new Map<number, { nombre: string; cantidadVendida: number; totalUsd: number }>();
+  for (const line of lines) {
+    const actual = porProducto.get(line.productoId) ?? { nombre: line.nombre, cantidadVendida: 0, totalUsd: 0 };
+    actual.cantidadVendida += line.cantidad;
+    actual.totalUsd += line.precioUnitario * line.cantidad;
+    porProducto.set(line.productoId, actual);
+  }
+  return [...porProducto.entries()]
+    .map(([productoId, producto]) => ({
+      productoId,
+      nombre: producto.nombre,
+      cantidadVendida: roundQuantity(producto.cantidadVendida),
+      totalUsd: roundMoney(producto.totalUsd),
+      porcentajeDelTotal: totalUsd ? Math.round((producto.totalUsd / totalUsd) * 10000) / 100 : 0,
+    }))
+    .sort((a, b) => b.totalUsd - a.totalUsd);
 }

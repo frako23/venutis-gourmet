@@ -5,8 +5,9 @@ import { resolveVisitPeriod } from "../../lib/admin/visit-periods.js";
 import {
   buildVercelAnalyticsUrl,
   normalizeVisitBreakdown,
+  normalizeVisitSeries,
 } from "../../lib/admin/vercel-web-analytics-core.js";
-import { consultarAnaliticasVisitas } from "../../lib/admin/website-visits-core.js";
+import { consultarAnaliticasVisitas, consultarVisitasDiarias } from "../../lib/admin/website-visits-core.js";
 
 const config = {
   token: "test-token",
@@ -160,4 +161,73 @@ test("traduce configuración, permisos, validación, indisponibilidad y timeout"
     fetcher: async (input) => new Response(JSON.stringify({ data: new URL(input.toString()).pathname.endsWith("/count") ? { pageviews: "many", visitors: 1 } : [] }), { status: 200 }),
   });
   assert.equal(malformed.status, "invalid");
+});
+
+function mockSerie(dias: Array<Record<string, unknown>>, totales = { pageviews: 30, visitors: 20 }) {
+  return async (input: RequestInfo | URL) => {
+    const url = new URL(input.toString());
+    return new Response(JSON.stringify({ data: url.pathname.endsWith("/visits/count") ? totales : dias }), { status: 200 });
+  };
+}
+
+test("la consulta diaria pide by=day con límite 100 y producción", () => {
+  const url = buildVercelAnalyticsUrl({ period: period(), config, dimension: "day" });
+  assert.equal(url.pathname.endsWith("/visits/aggregate"), true);
+  assert.equal(url.searchParams.get("by"), "day");
+  assert.equal(url.searchParams.get("limit"), "100");
+  assert.equal(url.searchParams.get("filter"), "environment eq 'production'");
+  assert.equal(url.searchParams.get("since"), "2026-10-01");
+  assert.equal(url.searchParams.get("until"), "2026-10-07");
+});
+
+test("completa la serie diaria con ceros en los días sin fila", async () => {
+  const result = await consultarVisitasDiarias({
+    period: period(),
+    config,
+    fetcher: mockSerie([
+      { timestamp: "2026-10-02T00:00:00.000Z", pageviews: 10, visitors: 7 },
+      { timestamp: "2026-10-04T00:00:00.000Z", pageviews: 5, visitors: 3 },
+      { timestamp: "2026-10-06T00:00:00.000Z", pageviews: 2, visitors: 2 },
+    ]),
+  });
+  assert.equal(result.status, "ready");
+  assert.equal(result.serie.length, 7);
+  assert.deepEqual(result.serie.map((d) => d.fecha), ["2026-10-01", "2026-10-02", "2026-10-03", "2026-10-04", "2026-10-05", "2026-10-06", "2026-10-07"]);
+  assert.deepEqual(result.serie[1], { fecha: "2026-10-02", pageviews: 10, visitors: 7 });
+  assert.deepEqual(result.serie[0], { fecha: "2026-10-01", pageviews: 0, visitors: 0 });
+});
+
+test("descarta filas inválidas de la serie sin fallar", () => {
+  const rows = normalizeVisitSeries([
+    { pageviews: 1, visitors: 1 },
+    { timestamp: "no-es-fecha", pageviews: 1, visitors: 1 },
+    { timestamp: "2026-10-02T00:00:00.000Z", pageviews: -1, visitors: 1 },
+    { timestamp: "2026-10-02T00:00:00.000Z", pageviews: 1.5, visitors: 1 },
+    { timestamp: "2026-10-03T00:00:00.000Z", pageviews: 4, visitors: 2 },
+  ]);
+  assert.deepEqual(rows, [{ fecha: "2026-10-03", pageviews: 4, visitors: 2 }]);
+  assert.equal(normalizeVisitSeries({}), null);
+});
+
+test("la consulta diaria devuelve no_data con totales en cero", async () => {
+  const result = await consultarVisitasDiarias({ period: period(), config, fetcher: mockSerie([], { pageviews: 0, visitors: 0 }) });
+  assert.equal(result.status, "no_data");
+});
+
+test("la consulta diaria no llama a Vercel sin configuración ni con período inválido", async () => {
+  let calls = 0;
+  const fetcher = async () => { calls += 1; return new Response("{}"); };
+  assert.equal((await consultarVisitasDiarias({ period: period(), config: null, fetcher })).status, "not_configured");
+  const invalid = resolveVisitPeriod({ preset: "custom", since: "2026-10-08", until: "2026-10-01" });
+  assert.equal((await consultarVisitasDiarias({ period: invalid, config, fetcher })).status, "invalid");
+  assert.equal(calls, 0);
+});
+
+test("la consulta diaria traduce 401 y errores de red sin lanzar", async () => {
+  const noAutorizado = await consultarVisitasDiarias({ period: period(), config, fetcher: async () => new Response("{}", { status: 401 }) });
+  assert.equal(noAutorizado.status, "unauthorized");
+  assert.equal(noAutorizado.summary, null);
+  assert.deepEqual(noAutorizado.serie, []);
+  const red = await consultarVisitasDiarias({ period: period(), config, fetcher: async () => { throw new Error("red"); } });
+  assert.equal(red.status, "unavailable");
 });
