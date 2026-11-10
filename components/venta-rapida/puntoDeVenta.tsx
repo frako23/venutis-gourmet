@@ -413,7 +413,7 @@ export default function PuntoDeVenta({
               className="w-full bg-gold py-4 font-semibold text-black hover:opacity-95"
               onClick={iniciarCheckoutDirecto}
             >
-              Procesar pedido en la app
+              Pagar ahora
             </Button>
             <div className="flex gap-2">
               <Button
