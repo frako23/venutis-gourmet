@@ -13,14 +13,17 @@ export function formatPuntosConSigno(value: number) {
   return `${value > 0 ? "+" : value < 0 ? "−" : ""}${Math.abs(value).toLocaleString("es-VE")}`;
 }
 
+/** Zona horaria oficial del negocio (Caracas, UTC-4). Los servidores corren en UTC. */
+export const ZONA_HORARIA = "America/Caracas";
+
 export function formatFecha(value: Date | string | null | undefined) {
   if (!value) return "—";
-  return new Date(value).toLocaleDateString("es-VE");
+  return new Date(value).toLocaleDateString("es-VE", { timeZone: ZONA_HORARIA });
 }
 
 export function formatFechaHora(value: Date | string | null | undefined) {
   if (!value) return "—";
-  return new Date(value).toLocaleString("es-VE", { dateStyle: "short", timeStyle: "short" });
+  return new Date(value).toLocaleString("es-VE", { dateStyle: "short", timeStyle: "short", timeZone: ZONA_HORARIA });
 }
 
 const origenSaldo: Record<string, string> = {

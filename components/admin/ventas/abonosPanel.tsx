@@ -130,7 +130,7 @@ export function AbonosPanel({ transaccionId, numeroOrden, estado, totalUsd, abon
                 <strong className="admin-mono">{usd(abono.montoUsd)}</strong>
                 {abono.montoBs ? ` · Bs. ${abono.montoBs.toFixed(2)}${abono.tasaCambio ? ` (tasa ${abono.tasaCambio})` : ""}` : ""} · {getPaymentMethodLabel(abono.metodoPago)}
                 <p className="text-xs text-[#707970]">
-                  {abono.fechaPago ? new Date(abono.fechaPago).toLocaleDateString("es-VE") : "Sin fecha"}
+                  {abono.fechaPago ? new Date(abono.fechaPago).toLocaleDateString("es-VE", { timeZone: "America/Caracas" }) : "Sin fecha"}
                   {abono.referencia ? ` · Ref. ${abono.referencia}` : ""}
                   {abono.actorEmail ? ` · ${abono.actorEmail}` : ""}
                 </p>

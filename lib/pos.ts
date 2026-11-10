@@ -98,7 +98,7 @@ export function mensajeWhatsapp(opts: {
     `Hola, quisiera realizar el siguiente pedido:`,
     "",
     `*${negocio}*`,
-    `Fecha: ${new Date().toLocaleString("es-VE")}`,
+    `Fecha: ${new Date().toLocaleString("es-VE", { timeZone: "America/Caracas" })}`,
     "",
     "*Detalle del pedido*",
     items,

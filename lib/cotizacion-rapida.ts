@@ -238,7 +238,7 @@ export function buildQuoteWhatsAppText({
     "Hola, te comparto la siguiente cotización:",
     "",
     "*Venuti's Gourmet*",
-    `Fecha: ${issuedAt.toLocaleString("es-VE")}`,
+    `Fecha: ${issuedAt.toLocaleString("es-VE", { timeZone: "America/Caracas" })}`,
     recipient ? recipient.trimEnd() : "",
     "",
     "*Detalle de la cotización*",

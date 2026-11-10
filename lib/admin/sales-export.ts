@@ -82,7 +82,7 @@ function worksheetXml(records: SalesExportRecord[]) {
   records.forEach((record, index) => {
     rows.push(row([
       textCell(record.numeroOrden),
-      textCell(record.fechaCompra.toLocaleDateString("es-VE")),
+      textCell(record.fechaCompra.toLocaleDateString("es-VE", { timeZone: "America/Caracas" })),
       textCell(record.cliente),
       textCell(formatProducts(record.productos)),
       numberCell(record.tasaCambio),
