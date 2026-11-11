@@ -39,6 +39,8 @@ export type PedidoEditable = {
   lineasPremio: Array<{ nombre: string; cantidad: number }>;
   descuentoPuntosUsd: number;
   montoDeliveryUsd: number;
+  /** Delivery cubierto por un premio; entra en el total. */
+  descuentoDeliveryUsd: number;
   zonaEntrega: string | null;
   abonadoUsd: number;
   totalAnteriorUsd: number;

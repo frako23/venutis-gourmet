@@ -3,6 +3,7 @@
 import {
   BarChart3,
   FileText,
+  Gift,
   Globe2,
   LayoutDashboard,
   LucideIcon,
@@ -30,6 +31,7 @@ export const adminNavigation: NavigationItem[] = [
   { icon: LayoutDashboard, label: "Resumen", link: "/admin" },
   { icon: ShoppingCart, label: "Ventas y pedidos", link: "/admin/transactions" },
   { icon: Users, label: "Clientes", link: "/admin/clients" },
+  { icon: Gift, label: "Puntos", link: "/admin/points" },
   { icon: Warehouse, label: "Inventario", link: "/admin/inventory" },
   {
     icon: BarChart3,

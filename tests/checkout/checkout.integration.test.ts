@@ -377,3 +377,113 @@ test("una zona inactiva rechaza el pedido sin crearlo ni tocar el inventario", {
   assert.equal(pedidosConClave, 0);
   assert.equal(inventario, 3);
 });
+
+/** Cliente con sesión, producto de USD 10, una zona de USD 4 con su dirección y puntos iniciales. */
+async function conDeliveryGratis(run: (ctx: { prisma: ReturnType<typeof createIntegrationClient>; clienteId: number; productoId: number; direccionId: number; premioId: number; puntos: () => Promise<number>; saldo: () => Promise<number> }) => Promise<void>) {
+  await conBeneficios(async ({ prisma, clienteId, productoId, puntos, saldo }) => {
+    const nombre = uniqueValue("Zona Premio");
+    const zona = await prisma.zonaDelivery.create({ data: { nombre, clave: claveZona(nombre), costoUsd: 4, activa: true } });
+    const direccion = await prisma.direccion.create({ data: { clienteId, tipo: "Casa", urbanizacion: nombre, direccion: "Calle de prueba" } });
+    const premio = await prisma.premio.create({ data: { nombre: "Premio checkout Delivery gratis", tipo: "delivery", costoPuntos: 100, compraMinimaUsd: 15 } });
+    await prisma.fidelidad.create({ data: { clienteId, tipoMovimiento: "ajuste", puntos: 120, motivo: "Puntos iniciales de prueba" } });
+    try {
+      await run({ prisma, clienteId, productoId, direccionId: direccion.id, premioId: premio.id, puntos, saldo });
+    } finally {
+      // Los pedidos de la prueba referencian la dirección solo por texto; conBeneficios los borra después.
+      await prisma.fidelidad.deleteMany({ where: { premioId: premio.id } });
+      await prisma.premio.delete({ where: { id: premio.id } });
+      await prisma.zonaDelivery.delete({ where: { id: zona.id } });
+      await prisma.direccion.deleteMany({ where: { clienteId } });
+    }
+  });
+}
+
+const compraConEnvio = (clienteId: number, productoId: number, direccionId: number, cantidad: number, premioIds: number[], extra: Record<string, unknown> = {}) =>
+  compra(clienteId, productoId, cantidad, {
+    tipodeRetiro: "envio" as const,
+    direccionId,
+    beneficios: { premioIds, saldoAFavorUsd: 0 },
+    pago: { metodoPago: "Zelle" as const, montoUsd: cantidad * 10, montoBs: cantidad * 350, tasaCambio: 35, fechaPago: new Date("2026-10-15T12:00:00.000Z"), referencia: "REF-DELIVERY" },
+    ...extra,
+  });
+
+test("delivery gratis: el pedido conserva el delivery, descuenta aparte y los puntos del premio", { skip: !integrationEnabled }, async () => {
+  await conDeliveryGratis(async ({ prisma, clienteId, productoId, direccionId, premioId, puntos }) => {
+    const resultado = await checkoutModule!.procesarCompra({ message: "", status: "", clientId: clienteId }, compraConEnvio(clienteId, productoId, direccionId, 2, [premioId]) as never, clienteId);
+    assert.equal(resultado.success, true);
+    if (!resultado.success) return;
+    const pedido = await prisma.transaccion.findUniqueOrThrow({ where: { id: resultado.transactionId } });
+    assert.equal(pedido.montoDelivery, 4);
+    assert.equal(pedido.montoDescuentoDelivery, 4);
+    assert.equal(pedido.montoDescuentoPuntos, 0);
+    assert.equal(pedido.montoTotal, 20);
+    const canje = await prisma.fidelidad.findFirstOrThrow({ where: { transaccionId: pedido.id, tipoMovimiento: "redencion" } });
+    assert.equal(canje.puntos, -100);
+    assert.equal(await puntos(), 20);
+
+    // Al quedar pagado gana los puntos de sus productos, igual que si hubiera pagado el delivery.
+    await prisma.transaccion.update({ where: { id: pedido.id }, data: { estado: "pagado" } });
+    const { acreditarPuntosPorPago } = await import("../../lib/fidelidad.js");
+    assert.equal(await prisma.$transaction((tx) => acreditarPuntosPorPago(tx, pedido.id)), 20);
+  });
+});
+
+test("delivery gratis en retiro en tienda se rechaza sin escribir nada", { skip: !integrationEnabled }, async () => {
+  await conDeliveryGratis(async ({ prisma, clienteId, productoId, premioId, puntos }) => {
+    const datos = compra(clienteId, productoId, 2, { beneficios: { premioIds: [premioId], saldoAFavorUsd: 0 } });
+    const resultado = await checkoutModule!.procesarCompra({ message: "", status: "", clientId: clienteId }, datos as never, clienteId);
+    assert.equal(resultado.success, false);
+    if (resultado.success) return;
+    assert.equal(resultado.code, "BENEFITS_CHANGED");
+    assert.equal(await prisma.transaccion.count({ where: { clienteId } }), 0);
+    assert.equal(await puntos(), 120);
+    assert.equal((await prisma.producto.findUniqueOrThrow({ where: { id: productoId } })).inventario, 10);
+  });
+});
+
+test("delivery gratis bajo la compra mínima se rechaza sin escribir nada", { skip: !integrationEnabled }, async () => {
+  await conDeliveryGratis(async ({ prisma, clienteId, productoId, direccionId, premioId, puntos }) => {
+    const resultado = await checkoutModule!.procesarCompra({ message: "", status: "", clientId: clienteId }, compraConEnvio(clienteId, productoId, direccionId, 1, [premioId]) as never, clienteId);
+    assert.equal(resultado.success, false);
+    if (resultado.success) return;
+    assert.equal(resultado.code, "BENEFITS_CHANGED");
+    assert.equal(await prisma.transaccion.count({ where: { clienteId } }), 0);
+    assert.equal(await puntos(), 120);
+  });
+});
+
+test("dos premios de delivery en el mismo pedido se rechazan", { skip: !integrationEnabled }, async () => {
+  await conDeliveryGratis(async ({ prisma, clienteId, productoId, direccionId, premioId, puntos }) => {
+    const resultado = await checkoutModule!.procesarCompra({ message: "", status: "", clientId: clienteId }, compraConEnvio(clienteId, productoId, direccionId, 2, [premioId, premioId]) as never, clienteId);
+    assert.equal(resultado.success, false);
+    assert.equal(await prisma.transaccion.count({ where: { clienteId } }), 0);
+    assert.equal(await puntos(), 120);
+  });
+});
+
+test("delivery gratis junto con un descuento y saldo a favor", { skip: !integrationEnabled }, async () => {
+  await conDeliveryGratis(async ({ prisma, clienteId, productoId, direccionId, premioId, puntos, saldo }) => {
+    await darSaldo(prisma, clienteId, 3);
+    await darPuntos(prisma, clienteId, 100);
+    const descuento = await prisma.premio.create({ data: { nombre: "Premio checkout descuento 5", tipo: "descuento", costoPuntos: 50, montoDescuentoUsd: 5 } });
+    try {
+      // 3 x 10 = 30 + delivery 4; premios -5 y -4; saldo -3 => por pagar 22.
+      const datos = compraConEnvio(clienteId, productoId, direccionId, 3, [premioId, descuento.id], {
+        beneficios: { premioIds: [premioId, descuento.id], saldoAFavorUsd: 3 },
+        pago: { metodoPago: "Zelle", montoUsd: 22, montoBs: 770, tasaCambio: 35, fechaPago: new Date("2026-10-15T12:00:00.000Z"), referencia: "REF-COMBO" },
+      });
+      const resultado = await checkoutModule!.procesarCompra({ message: "", status: "", clientId: clienteId }, datos as never, clienteId);
+      assert.equal(resultado.success, true);
+      if (!resultado.success) return;
+      const pedido = await prisma.transaccion.findUniqueOrThrow({ where: { id: resultado.transactionId } });
+      assert.equal(pedido.montoTotal, 25);
+      assert.equal(pedido.montoDescuentoDelivery, 4);
+      assert.equal(pedido.montoDescuentoPuntos, 5);
+      assert.equal(await puntos(), 220 - 150);
+      assert.equal(await saldo(), 0);
+    } finally {
+      await prisma.fidelidad.deleteMany({ where: { premioId: descuento.id } });
+      await prisma.premio.delete({ where: { id: descuento.id } });
+    }
+  });
+});

@@ -45,6 +45,7 @@ const tipoPuntos: Record<string, string> = {
   devolucion: "Devolución",
   reversion: "Reversión",
   ajuste: "Ajuste",
+  bono: "Bono de bienvenida",
 };
 
 export function tipoPuntosLabel(tipo: string) {

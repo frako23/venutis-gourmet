@@ -6,7 +6,7 @@ import { registrarAbonoEnPedido } from "../../lib/admin/abonos.ts";
 import { canjearPremioEnPedido } from "../../lib/admin/canje-pedido.ts";
 import { registrarVentaManualEnTx } from "../../lib/admin/manual-sale.ts";
 import { aplicarCambioEstadoPedido } from "../../lib/admin/order-state-change.ts";
-import { ajustarPuntos, puntosDisponiblesDelCliente } from "../../lib/fidelidad.ts";
+import { acreditarBonoBienvenida, ajustarPuntos, puntosDisponiblesDelCliente } from "../../lib/fidelidad.ts";
 
 const actor = { id: "integration", email: "integration@local" };
 
@@ -255,6 +255,115 @@ test("dos canjes simultáneos que superan los puntos no los dejan negativos", { 
     } finally {
       await prisma.fidelidad.deleteMany({ where: { premioId: premio.id } });
       await prisma.premio.delete({ where: { id: premio.id } });
+    }
+  });
+});
+
+async function conPremioDelivery(run: (ctx: Ctx & { premioId: number }) => Promise<void>, extra: { compraMinimaUsd?: number } = {}) {
+  await conCliente("detal", async (ctx) => {
+    const premio = await ctx.prisma.premio.create({ data: { nombre: uniqueValue("Delivery gratis"), tipo: "delivery", costoPuntos: 100, compraMinimaUsd: extra.compraMinimaUsd ?? null } });
+    await darPuntos(ctx.prisma, ctx.clienteId, 250);
+    try {
+      await run({ ...ctx, premioId: premio.id });
+    } finally {
+      await ctx.prisma.fidelidad.deleteMany({ where: { premioId: premio.id } });
+      await ctx.prisma.premio.delete({ where: { id: premio.id } });
+    }
+  });
+}
+
+test("canjear delivery gratis en un pedido baja el total en el delivery y no cambia el delivery guardado", { skip: !integrationEnabled }, async () => {
+  await conPremioDelivery(async ({ prisma, pedido, premioId, puntos }) => {
+    const id = await pedido(20, { delivery: 4 });
+    await prisma.$transaction((tx) => canjearPremioEnPedido(tx, { transaccionId: id, premioId }, actor));
+    const actualizado = await prisma.transaccion.findUniqueOrThrow({ where: { id } });
+    assert.equal(actualizado.montoTotal, 20);
+    assert.equal(actualizado.montoDelivery, 4);
+    assert.equal(actualizado.montoDescuentoDelivery, 4);
+    assert.equal(actualizado.montoDescuentoPuntos, 0);
+    assert.equal(await puntos(), 150);
+    assert.ok(await prisma.estadoTransaccionHistorial.findFirst({ where: { transaccionId: id, motivo: { startsWith: "Canje:" } } }));
+  });
+});
+
+test("un segundo delivery gratis en el mismo pedido se rechaza", { skip: !integrationEnabled }, async () => {
+  await conPremioDelivery(async ({ prisma, pedido, premioId, puntos }) => {
+    const id = await pedido(20, { delivery: 4 });
+    await prisma.$transaction((tx) => canjearPremioEnPedido(tx, { transaccionId: id, premioId }, actor));
+    await assert.rejects(() => prisma.$transaction((tx) => canjearPremioEnPedido(tx, { transaccionId: id, premioId }, actor)), /ya tiene el delivery cubierto/);
+    assert.equal(await puntos(), 150);
+  });
+});
+
+test("delivery gratis en un pedido sin delivery se rechaza", { skip: !integrationEnabled }, async () => {
+  await conPremioDelivery(async ({ prisma, pedido, premioId, puntos }) => {
+    const id = await pedido(20);
+    await assert.rejects(() => prisma.$transaction((tx) => canjearPremioEnPedido(tx, { transaccionId: id, premioId }, actor)), /solo aplica a pedidos con delivery/);
+    assert.equal(await puntos(), 250);
+    assert.equal((await prisma.transaccion.findUniqueOrThrow({ where: { id } })).montoTotal, 20);
+  });
+});
+
+test("cancelar un pedido con delivery gratis devuelve los puntos del canje", { skip: !integrationEnabled }, async () => {
+  await conPremioDelivery(async ({ prisma, pedido, premioId, puntos }) => {
+    const id = await pedido(20, { delivery: 4 });
+    await prisma.$transaction((tx) => canjearPremioEnPedido(tx, { transaccionId: id, premioId }, actor));
+    await prisma.$transaction((tx) => aplicarCambioEstadoPedido(tx, { transaccionId: id, estadoNuevo: "cancelado", confirmacionPago: false }, actor));
+    assert.equal(await prisma.fidelidad.count({ where: { transaccionId: id, tipoMovimiento: "devolucion" } }), 1);
+    assert.equal(await puntos(), 250);
+  });
+});
+
+test("una venta manual con un premio bajo su compra mínima se rechaza sin escribir nada", { skip: !integrationEnabled }, async () => {
+  await conCliente("detal", async ({ prisma, clienteId, producto, puntos }) => {
+    const productoId = await producto(10);
+    const premio = await prisma.premio.create({ data: { nombre: uniqueValue("Descuento con mínimo"), tipo: "descuento", costoPuntos: 100, montoDescuentoUsd: 2, compraMinimaUsd: 30 } });
+    await darPuntos(prisma, clienteId, 250);
+    try {
+      await assert.rejects(
+        () => prisma.$transaction((tx) => registrarVentaManualEnTx(tx, { clienteId, fechaCompra: new Date(), tipodeRetiro: "recogida", tasaCambio: null, estadoInicial: "por_cobrar", lineas: [{ productoId, cantidad: 4, precioUnitarioUsd: 5, tipoPrecio: "detal" }], descuento: null, autorizarCredito: true, canjes: [premio.id] }, actor)),
+        /Agrega USD 12,00 más en productos/,
+      );
+      assert.equal(await prisma.transaccion.count({ where: { clienteId } }), 0);
+      assert.equal(await puntos(), 250);
+    } finally {
+      await prisma.premio.delete({ where: { id: premio.id } });
+    }
+  });
+});
+
+test("el bono de bienvenida se acredita una sola vez a un consumidor, incluso con llamadas simultáneas", { skip: !integrationEnabled }, async () => {
+  await conCliente("detal", async ({ prisma, clienteId, puntos }) => {
+    const resultados = await Promise.all([1, 2].map(() => prisma.$transaction((tx) => acreditarBonoBienvenida(tx, clienteId))));
+    assert.deepEqual(resultados.sort(), [0, 25]);
+    assert.equal(await prisma.$transaction((tx) => acreditarBonoBienvenida(tx, clienteId)), 0);
+    assert.equal(await prisma.fidelidad.count({ where: { clienteId, tipoMovimiento: "bono" } }), 1);
+    assert.equal(await puntos(), 25);
+  });
+});
+
+test("un mayorista no recibe el bono de bienvenida", { skip: !integrationEnabled }, async () => {
+  await conCliente("mayorista", async ({ prisma, clienteId, puntos }) => {
+    assert.equal(await prisma.$transaction((tx) => acreditarBonoBienvenida(tx, clienteId)), 0);
+    assert.equal(await prisma.fidelidad.count({ where: { clienteId } }), 0);
+    assert.equal(await puntos(), 0);
+  });
+});
+
+test("vincular, desvincular y volver a vincular la cuenta no repite el bono", { skip: !integrationEnabled }, async () => {
+  await conCliente("detal", async ({ prisma, clienteId, puntos }) => {
+    const vincular = (stackUserId: string) =>
+      prisma.$transaction(async (tx) => {
+        await tx.cuentaCliente.create({ data: { stackUserId, email: uniqueValue("cuenta") + "@prueba.local", clienteId, estado: "vinculada" } });
+        return acreditarBonoBienvenida(tx, clienteId);
+      });
+    try {
+      assert.equal(await vincular(uniqueValue("stack")), 25);
+      await prisma.cuentaCliente.deleteMany({ where: { clienteId } });
+      assert.equal(await vincular(uniqueValue("stack")), 0);
+      assert.equal(await puntos(), 25);
+    } finally {
+      await prisma.cuentaCliente.deleteMany({ where: { clienteId } });
     }
   });
 });

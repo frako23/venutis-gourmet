@@ -15,7 +15,7 @@ export default async function AddTransactionPage({ searchParams }: { searchParam
     prisma.producto.findMany({ where: { OR: [{ inventario: { gt: 0 } }, { id: { in: idsDelPedido } }] }, orderBy: ORDEN_CATALOGO, select: { id: true, nombre: true, precioDetal: true, precioMayorista: true, inventario: true } }),
     prisma.movimientoSaldo.groupBy({ by: ["clienteId"], _sum: { montoUsd: true } }),
     prisma.fidelidad.groupBy({ by: ["clienteId"], _sum: { puntos: true } }),
-    prisma.premio.findMany({ where: { activo: true }, orderBy: { costoPuntos: "asc" }, include: { producto: { select: { nombre: true } } } }),
+    prisma.premio.findMany({ where: { activo: true, tipo: { not: "delivery" } }, orderBy: { costoPuntos: "asc" }, include: { producto: { select: { nombre: true } } } }),
   ]);
   const puntos: Record<number, number> = {};
   for (const fila of puntosRaw) if ((fila._sum.puntos ?? 0) > 0) puntos[fila.clienteId] = fila._sum.puntos ?? 0;

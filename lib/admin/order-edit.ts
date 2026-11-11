@@ -80,6 +80,7 @@ export async function cargarPedidoEditable(db: Prisma.TransactionClient | import
     lineasPremio: pedido.detalles.filter((d) => d.precioUnitario <= 0).map((d) => ({ nombre: d.producto.nombre, cantidad: d.cantidad })),
     descuentoPuntosUsd: pedido.montoDescuentoPuntos,
     montoDeliveryUsd: pedido.montoDelivery,
+    descuentoDeliveryUsd: pedido.montoDescuentoDelivery,
     zonaEntrega: pedido.zonaEntrega,
     abonadoUsd: calcularAbonado(pedido.pagos),
     totalAnteriorUsd: pedido.montoTotal,
@@ -136,6 +137,7 @@ export async function editarPedidoEnTx(tx: Prisma.TransactionClient, input: Edic
     tasaCambio: input.tasaCambio,
     descuentoPuntosUsd: pedido.montoDescuentoPuntos,
     montoDeliveryUsd: pedido.montoDelivery,
+    descuentoDeliveryUsd: pedido.montoDescuentoDelivery,
   });
   const abonado = calcularAbonado(pedido.pagos);
   if (cents(totals.totalUsd) < cents(abonado)) throw new Error(`El total quedaría por debajo de lo ya abonado (USD ${abonado.toFixed(2)}).`);

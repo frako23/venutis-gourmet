@@ -141,7 +141,7 @@ export async function actualizarDescuentoVenta(formData: FormData) {
   try {
     const transaction = await prisma.transaccion.findUnique({ where: { id: parsed.data.transactionId }, include: { detalles: true, pagos: true } });
     if (!transaction) return { success: false as const, message: "La venta no existe." };
-    const totals = recalcularTotalPedido({ lineasCobradas: lineasCobradas(transaction.detalles), descuento: { tipo: parsed.data.tipo, valor: parsed.data.valor }, tasaCambio: transaction.tasaCambio, descuentoPuntosUsd: transaction.montoDescuentoPuntos, montoDeliveryUsd: transaction.montoDelivery });
+    const totals = recalcularTotalPedido({ lineasCobradas: lineasCobradas(transaction.detalles), descuento: { tipo: parsed.data.tipo, valor: parsed.data.valor }, tasaCambio: transaction.tasaCambio, descuentoPuntosUsd: transaction.montoDescuentoPuntos, montoDeliveryUsd: transaction.montoDelivery, descuentoDeliveryUsd: transaction.montoDescuentoDelivery });
     validarTotalContraAbonado(totals.totalUsd, calcularAbonado(transaction.pagos));
     await prisma.transaccion.update({ where: { id: transaction.id }, data: { montoSubtotal: totals.subtotalUsd, montoDescuento: totals.descuentoUsd, valorDescuento: parsed.data.valor, tipoDescuento: parsed.data.tipo, montoTotal: totals.totalUsd } });
     revalidatePath("/admin/transactions");
@@ -243,6 +243,7 @@ export async function guardarEdicionMasivaVentas(_previous: BulkSalesState, form
           tasaCambio: transaction.tasaCambio,
           descuentoPuntosUsd: transaction.montoDescuentoPuntos,
           montoDeliveryUsd: transaction.montoDelivery,
+          descuentoDeliveryUsd: transaction.montoDescuentoDelivery,
         });
         const paidUsd = transaction.pagos.reduce((sum, payment) => sum + (payment.montoUsd ?? 0), 0);
         if (row.estado === "pagado" && transaction.estado !== "pagado" && requiresPaymentConfirmation(totals.totalUsd, paidUsd, input.confirmarPagos, false)) {

@@ -1,6 +1,6 @@
 "use server";
 
-import { Prisma } from "@prisma/client";
+import { Prisma, type TipoPremio } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -8,7 +8,7 @@ import { CAMPOS_INTERNOS_CLIENTE, type ClienteTienda, normalizeSearchName } from
 import { obtenerClienteDeSesion, obtenerSesionCliente } from "@/lib/cuenta-cliente";
 import { resolverVinculacion } from "@/lib/cuenta-cliente-rules";
 import { saldoAFavorDisponible } from "@/lib/admin/abonos";
-import { puntosDisponiblesDelCliente } from "@/lib/fidelidad";
+import { acreditarBonoBienvenida, PROGRAMA_PUNTOS, puntosDisponiblesDelCliente } from "@/lib/fidelidad";
 import { unidadesDisponibles } from "@/lib/inventory";
 import { prisma } from "@/lib/prisma";
 import { stackServerApp } from "@/stack/server";
@@ -54,7 +54,8 @@ export async function completarRegistroCliente(_previous: RegistroClienteState, 
       if (resolucion.accion === "vincular" || resolucion.accion === "pendiente") {
         const estado = resolucion.accion === "vincular" ? ("vinculada" as const) : ("pendiente" as const);
         await tx.cuentaCliente.create({ data: { stackUserId: usuario.id, email: sesion.email, clienteId: resolucion.clienteId, estado } });
-        return { estado };
+        const bono = estado === "vinculada" ? await acreditarBonoBienvenida(tx, resolucion.clienteId) : 0;
+        return { estado, bono };
       }
       if (resolucion.accion === "crear_cliente") {
         const cliente = await tx.cliente.create({
@@ -63,7 +64,8 @@ export async function completarRegistroCliente(_previous: RegistroClienteState, 
         });
         await tx.cuentaCliente.create({ data: { stackUserId: usuario.id, email: sesion.email, clienteId: cliente.id, estado: "vinculada" } });
         await tx.historialCliente.create({ data: { clienteId: cliente.id, actorId: `cliente:${usuario.id}`, actorEmail: sesion.email, accion: "creado", camposModificados: ["cliente", "cuenta"] } });
-        return { estado: "vinculada" as const };
+        const bono = await acreditarBonoBienvenida(tx, cliente.id);
+        return { estado: "vinculada" as const, bono };
       }
       return null;
     });
@@ -71,7 +73,7 @@ export async function completarRegistroCliente(_previous: RegistroClienteState, 
     if (!resultado) return { status: "error", message: CONFLICTO };
     revalidatePath("/mi-cuenta");
     return resultado.estado === "vinculada"
-      ? { status: "success", estado: "vinculada", message: "¡Listo! Ya puedes ver tus puntos y tu saldo." }
+      ? { status: "success", estado: "vinculada", message: resultado.bono > 0 ? `¡Listo! Te regalamos ${PROGRAMA_PUNTOS.puntosBienvenida} puntos de bienvenida.` : "¡Listo! Ya puedes ver tus puntos y tu saldo." }
       : { status: "success", estado: "pendiente", message: "Encontramos un registro con ese teléfono. Lo confirmaremos y te avisaremos." };
   } catch (error) {
     // Dos peticiones a la vez o un dato único repetido: no se deja nada a medias.
@@ -96,10 +98,13 @@ export type BeneficiosCheckout =
       premios: Array<{
         id: number;
         nombre: string;
-        tipo: "descuento" | "producto";
+        tipo: TipoPremio;
         costoPuntos: number;
         montoDescuentoUsd: number | null;
         cantidad: number | null;
+        productoId: number | null;
+        compraMinimaUsd: number | null;
+        activo: boolean;
         producto: { id: number; nombre: string; unidadesDisponibles: number } | null;
       }>;
     };
@@ -126,6 +131,9 @@ export async function obtenerBeneficiosCheckout(): Promise<BeneficiosCheckout> {
         costoPuntos: premio.costoPuntos,
         montoDescuentoUsd: premio.montoDescuentoUsd,
         cantidad: premio.cantidad,
+        productoId: premio.productoId,
+        compraMinimaUsd: premio.compraMinimaUsd,
+        activo: premio.activo,
         producto: premio.producto ? { id: premio.producto.id, nombre: premio.producto.nombre, unidadesDisponibles: unidadesDisponibles(premio.producto.inventario) } : null,
       })),
   };

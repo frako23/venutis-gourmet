@@ -124,10 +124,10 @@ export function resumirPorTipoPrecio(lines: Array<{ tipoPrecio: TipoPrecioLinea;
     .sort((a, b) => b.totalUsd - a.totalUsd);
 }
 
-/** Total de un pedido existente: igual que `calculateSaleTotals`, más el delivery guardado (que no entra en la base del descuento). */
-export function recalcularTotalPedido({ lineasCobradas, descuento, tasaCambio, descuentoPuntosUsd, montoDeliveryUsd }: { lineasCobradas: SaleLineInput[]; descuento: DiscountInput | null; tasaCambio: number | null; descuentoPuntosUsd: number; montoDeliveryUsd: number }): SaleTotals {
+/** Total de un pedido existente: igual que `calculateSaleTotals`, más el delivery guardado menos el que cubrió un premio (ninguno entra en la base del descuento). */
+export function recalcularTotalPedido({ lineasCobradas, descuento, tasaCambio, descuentoPuntosUsd, montoDeliveryUsd, descuentoDeliveryUsd }: { lineasCobradas: SaleLineInput[]; descuento: DiscountInput | null; tasaCambio: number | null; descuentoPuntosUsd: number; montoDeliveryUsd: number; descuentoDeliveryUsd: number }): SaleTotals {
   const base = calculateSaleTotals(lineasCobradas, descuento, tasaCambio, descuentoPuntosUsd);
-  const totalUsd = roundMoney(base.totalUsd + montoDeliveryUsd);
+  const totalUsd = roundMoney(base.totalUsd + montoDeliveryUsd - descuentoDeliveryUsd);
   return { ...base, totalUsd, totalBs: base.tasaCambio ? convertUsdToBs(totalUsd, base.tasaCambio) : null };
 }
 

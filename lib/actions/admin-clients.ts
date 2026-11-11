@@ -8,6 +8,7 @@ import { normalizeRif, normalizeSearchName } from "@/lib/client-rules";
 import { consultarDeudaCliente, evaluarCredito } from "@/lib/admin/abonos";
 import { requireAdmin } from "@/lib/admin/auth";
 import type { BulkClientsState, ClientCreateState, ClientPatch } from "@/lib/admin/types";
+import { acreditarBonoBienvenida } from "@/lib/fidelidad";
 import { prisma } from "@/lib/prisma";
 
 const clientTypeSchema = z.enum(["detal", "mayorista"]);
@@ -407,7 +408,7 @@ export async function confirmarVinculacionCuenta(formData: FormData) {
   if (!parsed.success) return { success: false as const, message: "La cuenta no es válida." };
 
   try {
-    const clienteId = await prisma.$transaction(async (tx) => {
+    const { clienteId, bono } = await prisma.$transaction(async (tx) => {
       const cuenta = await tx.cuentaCliente.findUnique({ where: { id: parsed.data.cuentaId } });
       if (!cuenta) throw new Error("La cuenta ya no existe.");
       if (cuenta.estado === "vinculada") throw new Error("La cuenta ya está vinculada.");
@@ -415,11 +416,12 @@ export async function confirmarVinculacionCuenta(formData: FormData) {
       await tx.historialCliente.create({
         data: { clienteId: cuenta.clienteId, actorId: actor.id, actorEmail: actor.email, accion: "actualizado", camposModificados: ["cuenta"], detalle: `Cuenta web vinculada (${cuenta.email})` },
       });
-      return cuenta.clienteId;
+      return { clienteId: cuenta.clienteId, bono: await acreditarBonoBienvenida(tx, cuenta.clienteId) };
     });
     revalidatePath(`/admin/clients/${clienteId}`);
     revalidatePath("/mi-cuenta");
-    return { success: true as const, message: "Cuenta vinculada." };
+    revalidatePath("/admin/points");
+    return { success: true as const, message: bono > 0 ? `Cuenta vinculada. Se acreditaron ${bono} puntos de bienvenida.` : "Cuenta vinculada." };
   } catch (error) {
     return { success: false as const, message: error instanceof Error ? error.message : "No se pudo vincular la cuenta." };
   }

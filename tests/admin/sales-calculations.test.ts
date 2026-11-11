@@ -112,14 +112,23 @@ import { recalcularTotalPedido } from "../../lib/admin/sales-calculations.js";
 describe("recalcularTotalPedido", () => {
   const lineas = [{ productoId: 1, cantidad: 2, precioUnitarioUsd: 10 }];
   it("suma el delivery sin incluirlo en la base del porcentaje", () => {
-    assert.equal(recalcularTotalPedido({ lineasCobradas: lineas, descuento: { tipo: "porcentaje", valor: 10 }, tasaCambio: null, descuentoPuntosUsd: 0, montoDeliveryUsd: 3 }).totalUsd, 21);
+    assert.equal(recalcularTotalPedido({ lineasCobradas: lineas, descuento: { tipo: "porcentaje", valor: 10 }, tasaCambio: null, descuentoPuntosUsd: 0, montoDeliveryUsd: 3, descuentoDeliveryUsd: 0 }).totalUsd, 21);
   });
   it("resta el descuento por puntos", () => {
-    assert.equal(recalcularTotalPedido({ lineasCobradas: lineas, descuento: { tipo: "porcentaje", valor: 10 }, tasaCambio: null, descuentoPuntosUsd: 2, montoDeliveryUsd: 3 }).totalUsd, 19);
+    assert.equal(recalcularTotalPedido({ lineasCobradas: lineas, descuento: { tipo: "porcentaje", valor: 10 }, tasaCambio: null, descuentoPuntosUsd: 2, montoDeliveryUsd: 3, descuentoDeliveryUsd: 0 }).totalUsd, 19);
   });
   it("rechaza un descuento por encima del subtotal y convierte a Bs", () => {
-    assert.throws(() => recalcularTotalPedido({ lineasCobradas: lineas, descuento: { tipo: "usd", valor: 25 }, tasaCambio: null, descuentoPuntosUsd: 0, montoDeliveryUsd: 0 }), /subtotal/);
-    assert.equal(recalcularTotalPedido({ lineasCobradas: lineas, descuento: null, tasaCambio: 10, descuentoPuntosUsd: 0, montoDeliveryUsd: 5 }).totalBs, 250);
+    assert.throws(() => recalcularTotalPedido({ lineasCobradas: lineas, descuento: { tipo: "usd", valor: 25 }, tasaCambio: null, descuentoPuntosUsd: 0, montoDeliveryUsd: 0, descuentoDeliveryUsd: 0 }), /subtotal/);
+    assert.equal(recalcularTotalPedido({ lineasCobradas: lineas, descuento: null, tasaCambio: 10, descuentoPuntosUsd: 0, montoDeliveryUsd: 5, descuentoDeliveryUsd: 0 }).totalBs, 250);
+  });
+  it("T1: el delivery cubierto por un premio no entra en el total", () => {
+    assert.equal(recalcularTotalPedido({ lineasCobradas: lineas, descuento: null, tasaCambio: null, descuentoPuntosUsd: 0, montoDeliveryUsd: 4, descuentoDeliveryUsd: 4 }).totalUsd, 20);
+  });
+  it("T2: el descuento porcentual no toca el delivery", () => {
+    assert.equal(recalcularTotalPedido({ lineasCobradas: lineas, descuento: { tipo: "porcentaje", valor: 10 }, tasaCambio: null, descuentoPuntosUsd: 0, montoDeliveryUsd: 4, descuentoDeliveryUsd: 4 }).totalUsd, 18);
+  });
+  it("T3: sin delivery cubierto sigue igual", () => {
+    assert.equal(recalcularTotalPedido({ lineasCobradas: lineas, descuento: null, tasaCambio: null, descuentoPuntosUsd: 0, montoDeliveryUsd: 4, descuentoDeliveryUsd: 0 }).totalUsd, 24);
   });
 });
 

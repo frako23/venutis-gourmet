@@ -12,6 +12,8 @@ const dosDecimales = (valor: number) => Math.abs(Math.round(valor * 100) - valor
 
 function revalidarFidelidad(clienteId?: number, transaccionId?: number) {
   revalidatePath("/admin/clients/rewards");
+  revalidatePath("/admin/points");
+  revalidatePath("/mi-cuenta/puntos");
   if (clienteId) revalidatePath(`/admin/clients/${clienteId}`);
   if (transaccionId) revalidatePath(`/admin/transactions/${transaccionId}`);
   revalidatePath("/mi-cuenta");
@@ -41,11 +43,12 @@ const premioSchema = z
   .object({
     nombre: z.string().trim().min(3, "El nombre debe tener entre 3 y 80 caracteres.").max(80, "El nombre debe tener entre 3 y 80 caracteres."),
     descripcion: z.string().trim().max(240, "La descripción admite hasta 240 caracteres.").optional(),
-    tipo: z.enum(["descuento", "producto"]),
+    tipo: z.enum(["descuento", "producto", "delivery"]),
     costoPuntos: z.coerce.number().int("El costo debe ser un número entero.").positive("El costo en puntos debe ser mayor que cero."),
     montoDescuentoUsd: z.coerce.number().positive("El descuento debe ser mayor que cero.").refine(dosDecimales, "El descuento admite como máximo 2 decimales.").optional(),
     productoId: z.coerce.number().int().positive().optional(),
     cantidad: z.coerce.number().int("La cantidad debe ser un número entero.").positive("La cantidad debe ser mayor que cero.").optional(),
+    compraMinimaUsd: z.coerce.number().positive("La compra mínima debe ser mayor que cero.").refine(dosDecimales, "La compra mínima admite como máximo 2 decimales.").optional(),
   })
   .superRefine((valor, ctx) => {
     if (valor.tipo === "descuento" && valor.montoDescuentoUsd === undefined) ctx.addIssue({ code: "custom", path: ["montoDescuentoUsd"], message: "Indica el monto del descuento." });
@@ -67,19 +70,22 @@ function leerPremio(formData: FormData) {
     montoDescuentoUsd: texto("montoDescuentoUsd"),
     productoId: texto("productoId"),
     cantidad: texto("cantidad"),
+    compraMinimaUsd: texto("compraMinimaUsd"),
   });
 }
 
 function datosDelPremio(valor: z.infer<typeof premioSchema>) {
   const esDescuento = valor.tipo === "descuento";
+  const esProducto = valor.tipo === "producto";
   return {
     nombre: valor.nombre,
     descripcion: valor.descripcion || null,
     tipo: valor.tipo,
     costoPuntos: valor.costoPuntos,
     montoDescuentoUsd: esDescuento ? valor.montoDescuentoUsd ?? null : null,
-    productoId: esDescuento ? null : valor.productoId ?? null,
-    cantidad: esDescuento ? null : valor.cantidad ?? null,
+    productoId: esProducto ? valor.productoId ?? null : null,
+    cantidad: esProducto ? valor.cantidad ?? null : null,
+    compraMinimaUsd: valor.compraMinimaUsd ?? null,
   };
 }
 
