@@ -4,6 +4,8 @@ import { Prisma, type TipoCliente } from "@prisma/client";
 
 import { consultarDeudaCliente, calcularSaldo, ESTADOS_CON_DEUDA, saldoAFavorDisponible } from "@/lib/admin/abonos";
 import { resolverVinculacion } from "@/lib/cuenta-cliente-rules";
+import { acreditarBonoBienvenida, describirRecompensa, estadoPremio, type EstadoPremio, premioMasCercano } from "@/lib/fidelidad";
+import { unidadesDisponibles } from "@/lib/inventory";
 import { prisma } from "@/lib/prisma";
 import { stackServerApp } from "@/stack/server";
 
@@ -36,7 +38,10 @@ export async function obtenerSesionCliente(): Promise<SesionCliente> {
     });
     if (resolucion.accion === "vincular") {
       try {
-        await prisma.cuentaCliente.create({ data: { stackUserId: usuario.id, email, clienteId: resolucion.clienteId, estado: "vinculada" } });
+        await prisma.$transaction(async (tx) => {
+          await tx.cuentaCliente.create({ data: { stackUserId: usuario.id, email, clienteId: resolucion.clienteId, estado: "vinculada" } });
+          await acreditarBonoBienvenida(tx, resolucion.clienteId);
+        });
       } catch (error) {
         // Otra petición ya la creó (única por usuario y por cliente): se relee abajo.
         if (!(error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002")) throw error;
@@ -62,9 +67,7 @@ export type ResumenCuenta = {
   puntos: {
     disponibles: number;
     mostrar: boolean;
-    movimientos: Array<{ fecha: Date; puntos: number; tipo: string; descripcion: string; numeroOrden: string | null }>;
   };
-  premios: Array<{ id: number; nombre: string; descripcion: string | null; costoPuntos: number; faltan: number }>;
   deudaUsd: number;
   pedidosPendientes: Array<{ numeroOrden: string; fecha: Date; totalUsd: number; saldoUsd: number; estado: string }>;
   saldoAFavorUsd: number;
@@ -87,15 +90,14 @@ const conceptoPuntos: Record<string, string> = {
   devolucion: "Devolución de puntos",
   reversion: "Puntos revertidos",
   ajuste: "Ajuste",
+  bono: "Bono de bienvenida",
 };
 
 /** Resumen para "Mi cuenta". Solo se llama con el `clienteId` de la sesión y nunca incluye datos internos. */
 export async function obtenerResumenCuenta(clienteId: number): Promise<ResumenCuenta> {
   const cliente = await prisma.cliente.findUniqueOrThrow({ where: { id: clienteId }, select: { nombre: true, apellido: true, tipoCliente: true } });
-  const [puntosAgg, movimientosPuntos, premios, deudaUsd, saldoAFavorUsd, movimientosSaldo, pedidos] = await Promise.all([
+  const [puntosAgg, deudaUsd, saldoAFavorUsd, movimientosSaldo, pedidos] = await Promise.all([
     prisma.fidelidad.aggregate({ where: { clienteId }, _sum: { puntos: true } }),
-    prisma.fidelidad.findMany({ where: { clienteId }, orderBy: { fecha: "desc" }, take: MOVIMIENTOS_VISIBLES, select: { fecha: true, puntos: true, tipoMovimiento: true, descripcion: true, transaccion: { select: { numeroOrden: true } } } }),
-    prisma.premio.findMany({ where: { activo: true }, orderBy: { costoPuntos: "asc" }, select: { id: true, nombre: true, descripcion: true, costoPuntos: true } }),
     consultarDeudaCliente(prisma, clienteId),
     saldoAFavorDisponible(prisma, clienteId),
     prisma.movimientoSaldo.findMany({ where: { clienteId }, orderBy: { createdAt: "desc" }, take: MOVIMIENTOS_VISIBLES, select: { createdAt: true, montoUsd: true, origen: true, transaccion: { select: { numeroOrden: true } } } }),
@@ -115,9 +117,7 @@ export async function obtenerResumenCuenta(clienteId: number): Promise<ResumenCu
     puntos: {
       disponibles,
       mostrar: cliente.tipoCliente === "detal" || disponibles > 0,
-      movimientos: movimientosPuntos.map((m) => ({ fecha: m.fecha, puntos: m.puntos, tipo: m.tipoMovimiento, descripcion: m.descripcion ?? conceptoPuntos[m.tipoMovimiento] ?? m.tipoMovimiento, numeroOrden: m.transaccion?.numeroOrden ?? null })),
     },
-    premios: premios.map((premio) => ({ ...premio, faltan: Math.max(0, premio.costoPuntos - disponibles) })),
     deudaUsd,
     pedidosPendientes: conSaldo
       .filter((pedido) => (ESTADOS_CON_DEUDA as readonly string[]).includes(pedido.estado) && pedido.saldoUsd > 0)
@@ -125,5 +125,52 @@ export async function obtenerResumenCuenta(clienteId: number): Promise<ResumenCu
     saldoAFavorUsd,
     movimientosSaldo: movimientosSaldo.map((m) => ({ fecha: m.createdAt, montoUsd: m.montoUsd, concepto: conceptoSaldo[m.origen] ?? m.origen, numeroOrden: m.transaccion?.numeroOrden ?? null })),
     pedidos: conSaldo.map((pedido) => ({ id: pedido.id, numeroOrden: pedido.numeroOrden, fecha: pedido.fechaCompra, totalUsd: pedido.montoTotal, estado: pedido.estado, saldoUsd: pedido.saldoUsd })),
+  };
+}
+
+const usdTexto = (valor: number) => `USD ${valor.toFixed(2).replace(".", ",")}`;
+
+export type MisPuntos = {
+  nombre: string;
+  mostrar: boolean;
+  acumula: boolean;
+  disponibles: number;
+  proximo: { nombre: string; faltan: number } | null;
+  premios: Array<{ id: number; nombre: string; descripcion: string | null; costoPuntos: number; recompensa: string; condiciones: string[]; estado: EstadoPremio }>;
+  movimientos: Array<{ fecha: Date; puntos: number; concepto: string; numeroOrden: string | null }>;
+};
+
+/** Datos de "Mis puntos". Solo se llama con el `clienteId` de la sesión; nunca incluye autor ni motivo de los movimientos. */
+export async function obtenerMisPuntos(clienteId: number): Promise<MisPuntos> {
+  const [cliente, puntosAgg, movimientos, premios] = await Promise.all([
+    prisma.cliente.findUniqueOrThrow({ where: { id: clienteId }, select: { nombre: true, apellido: true, tipoCliente: true } }),
+    prisma.fidelidad.aggregate({ where: { clienteId }, _sum: { puntos: true } }),
+    prisma.fidelidad.findMany({ where: { clienteId }, orderBy: { fecha: "desc" }, take: MOVIMIENTOS_VISIBLES, select: { fecha: true, puntos: true, tipoMovimiento: true, descripcion: true, transaccion: { select: { numeroOrden: true } } } }),
+    prisma.premio.findMany({ where: { activo: true }, orderBy: { costoPuntos: "asc" }, include: { producto: { select: { nombre: true, inventario: true } } } }),
+  ]);
+  const disponibles = puntosAgg._sum.puntos ?? 0;
+  const vista = premios.map((premio) => {
+    const sinExistencia = premio.tipo === "producto" && unidadesDisponibles(premio.producto?.inventario ?? 0) < (premio.cantidad ?? 1);
+    const condiciones: string[] = [];
+    if (premio.compraMinimaUsd) condiciones.push(`Compra mínima de ${usdTexto(premio.compraMinimaUsd)} en productos`);
+    if (premio.tipo === "delivery") condiciones.push("Solo en pedidos con delivery");
+    return {
+      id: premio.id,
+      nombre: premio.nombre,
+      descripcion: premio.descripcion,
+      costoPuntos: premio.costoPuntos,
+      recompensa: describirRecompensa({ tipo: premio.tipo, montoDescuentoUsd: premio.montoDescuentoUsd, cantidad: premio.cantidad, productoNombre: premio.producto?.nombre ?? null }),
+      condiciones,
+      estado: estadoPremio({ costoPuntos: premio.costoPuntos, puntosDisponibles: disponibles, sinExistencia }),
+    };
+  });
+  return {
+    nombre: `${cliente.nombre} ${cliente.apellido}`.trim(),
+    mostrar: cliente.tipoCliente === "detal" || disponibles > 0,
+    acumula: cliente.tipoCliente === "detal",
+    disponibles,
+    proximo: premioMasCercano(vista.filter((premio) => premio.estado.tipo !== "sin_existencia"), disponibles),
+    premios: vista,
+    movimientos: movimientos.map((m) => ({ fecha: m.fecha, puntos: m.puntos, concepto: m.descripcion ?? conceptoPuntos[m.tipoMovimiento] ?? m.tipoMovimiento, numeroOrden: m.transaccion?.numeroOrden ?? null })),
   };
 }

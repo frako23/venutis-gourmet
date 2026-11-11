@@ -221,11 +221,11 @@ export async function registrarCompraWeb(
       }
 
       const subtotalUsd = calculateCheckoutTotals(validatedLines.map((line) => ({ precio: line.precioUnitario, cantidad: line.cantidad })), 0).subtotalUsd;
-      const canjes = await validandoBeneficios(() => prepararCanjes(tx, { clienteId: clientId, premioIds: beneficios.premioIds, subtotalUsd, descuentoUsd: 0 }));
+      const canjes = await validandoBeneficios(() => prepararCanjes(tx, { clienteId: clientId, premioIds: beneficios.premioIds, subtotalUsd, descuentoUsd: 0, montoDeliveryUsd: montoDelivery }));
       const totals = calculateCheckoutTotals(
         validatedLines.map((line) => ({ precio: line.precioUnitario, cantidad: line.cantidad })),
         montoDelivery,
-        canjes.descuentoPuntosUsd,
+        Math.round((canjes.descuentoPuntosUsd + canjes.descuentoDeliveryUsd) * 100) / 100,
       );
 
       const saldoAplicarUsd = Math.round(beneficios.saldoAFavorUsd * 100) / 100;
@@ -260,6 +260,7 @@ export async function registrarCompraWeb(
           montoSubtotal: totals.subtotalUsd,
           montoDelivery: totals.montoDelivery,
           montoDescuentoPuntos: canjes.descuentoPuntosUsd,
+          montoDescuentoDelivery: canjes.descuentoDeliveryUsd,
           montoTotal: totals.montoTotal,
           tasaCambio: pagoDeclarado?.tasaCambio ?? null,
           estado: estado as EstadoTransaccion,
@@ -306,7 +307,7 @@ export async function registrarCompraWeb(
       });
 
       // Premios y saldo a favor se aplican en la misma transacción; si algo ya no alcanza, no se escribe nada.
-      await validandoBeneficios(() => canjearPremios(tx, { clienteId: clientId, transaccionId: transaccion.id, premioIds: beneficios.premioIds, subtotalUsd, descuentoUsd: 0 }, null));
+      await validandoBeneficios(() => canjearPremios(tx, { clienteId: clientId, transaccionId: transaccion.id, premioIds: beneficios.premioIds, subtotalUsd, descuentoUsd: 0, montoDeliveryUsd: montoDelivery }, null));
       let estadoFinal: CheckoutSuccess["estado"] = estado;
       if (saldoAplicarUsd > 0) {
         const abono = await validandoBeneficios(() => aplicarSaldoAFavorEnPedido(tx, { transaccionId: transaccion.id, montoUsd: saldoAplicarUsd }, null));

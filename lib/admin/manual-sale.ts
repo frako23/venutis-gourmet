@@ -50,7 +50,7 @@ export async function registrarVentaManualEnTx(tx: Prisma.TransactionClient, inp
 
   const canjes = input.canjes ?? [];
   const base = calculateSaleTotals(input.lineas, input.descuento, input.tasaCambio);
-  const preparados = await prepararCanjes(tx, { clienteId: input.clienteId, premioIds: canjes, subtotalUsd: base.subtotalUsd, descuentoUsd: base.descuentoUsd });
+  const preparados = await prepararCanjes(tx, { clienteId: input.clienteId, premioIds: canjes, subtotalUsd: base.subtotalUsd, descuentoUsd: base.descuentoUsd, montoDeliveryUsd: 0 });
   const totals = calculateSaleTotals(input.lineas, input.descuento, input.tasaCambio, preparados.descuentoPuntosUsd);
   const saldoAFavorUsd = input.saldoAFavorUsd ?? 0;
   if (saldoAFavorUsd > 0 && (input.estadoInicial === "pagado" || input.pago)) {
@@ -129,7 +129,7 @@ export async function registrarVentaManualEnTx(tx: Prisma.TransactionClient, inp
     });
   }
   if (canjes.length > 0) {
-    await canjearPremios(tx, { clienteId: input.clienteId, transaccionId: transaccion.id, premioIds: canjes, subtotalUsd: base.subtotalUsd, descuentoUsd: base.descuentoUsd }, actor);
+    await canjearPremios(tx, { clienteId: input.clienteId, transaccionId: transaccion.id, premioIds: canjes, subtotalUsd: base.subtotalUsd, descuentoUsd: base.descuentoUsd, montoDeliveryUsd: 0 }, actor);
   }
   if (saldoAFavorUsd > 0) {
     await aplicarSaldoAFavorEnPedido(tx, { transaccionId: transaccion.id, montoUsd: saldoAFavorUsd }, actor);

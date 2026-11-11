@@ -47,7 +47,7 @@ export function CanjearPremioPanel({ transaccionId, puntos, premios, canjes, des
           {canjes.map((canje) => <li key={canje.id} className="flex justify-between gap-3 py-2"><span>{canje.descripcion}</span><span className="admin-mono text-[#a5452f]">{canje.puntos.toLocaleString("es-VE")} pts</span></li>)}
         </ul>
       )}
-      {descuentoPuntosUsd > 0 && <p className="mt-2 text-xs text-[#707970]">Descuento por puntos aplicado: {formatUsd(descuentoPuntosUsd)}</p>}
+      {descuentoPuntosUsd > 0 && <p className="mt-2 text-xs text-[#707970]">Descuento por premios aplicado: {formatUsd(descuentoPuntosUsd)}</p>}
       <div className="mt-4 border-t border-[#ebe9e0] pt-4">
         <p className="text-xs text-[#707970]">El cliente tiene {puntos.toLocaleString("es-VE")} puntos.</p>
         {disponibles.length === 0 ? (

@@ -6,11 +6,11 @@ import { cargarPedidoEditable, editarPedidoEnTx, eliminarPedidoEnTx, type Edicio
 
 const actor = { id: "integration", email: "integration@local" };
 
-type Opciones = { estado?: "por_cobrar" | "pagado" | "cancelado"; importada?: boolean; inventario?: number; cantidad?: number; delivery?: number; acumulacion?: number };
+type Opciones = { estado?: "por_cobrar" | "pagado" | "cancelado"; importada?: boolean; inventario?: number; cantidad?: number; delivery?: number; descuentoDelivery?: number; acumulacion?: number };
 
 async function conPedido(opciones: Opciones, run: (ctx: { prisma: ReturnType<typeof createIntegrationClient>; pedidoId: number; clienteId: number; productoId: number; editar: (cambios: Partial<EdicionPedidoInput>) => ReturnType<typeof editarPedidoEnTx>; inventario: () => Promise<number | undefined> }) => Promise<void>) {
   const prisma = createIntegrationClient();
-  const { estado = "por_cobrar", importada = false, inventario = 7, cantidad = 2, delivery = 0, acumulacion } = opciones;
+  const { estado = "por_cobrar", importada = false, inventario = 7, cantidad = 2, delivery = 0, descuentoDelivery = 0, acumulacion } = opciones;
   let clienteId: number | undefined;
   let productoId: number | undefined;
   try {
@@ -19,7 +19,7 @@ async function conPedido(opciones: Opciones, run: (ctx: { prisma: ReturnType<typ
     const producto = await prisma.producto.create({ data: { nombre: uniqueValue("Producto edicion"), precioDetal: 5, precioMayorista: 4, categoria: "Fixture", inventario } });
     productoId = producto.id;
     const subtotal = cantidad * 5;
-    const pedido = await prisma.transaccion.create({ data: { numeroOrden: uniqueValue("INT-EDIT"), clienteId: cliente.id, montoSubtotal: subtotal, montoDelivery: delivery, montoTotal: subtotal + delivery, estado, importada } });
+    const pedido = await prisma.transaccion.create({ data: { numeroOrden: uniqueValue("INT-EDIT"), clienteId: cliente.id, montoSubtotal: subtotal, montoDelivery: delivery, montoDescuentoDelivery: descuentoDelivery, montoTotal: subtotal + delivery - descuentoDelivery, estado, importada } });
     await prisma.detalleCompra.create({ data: { transaccionId: pedido.id, productoId: producto.id, cantidad, precioUnitario: 5, tipoPrecio: "detal" } });
     if (acumulacion) await prisma.fidelidad.create({ data: { clienteId: cliente.id, transaccionId: pedido.id, puntos: acumulacion, tipoMovimiento: "acumulacion" } });
 
@@ -147,5 +147,15 @@ test("eliminar con estado o total distinto se rechaza", { skip: !integrationEnab
   await conPedido({ cantidad: 3 }, async ({ prisma, pedidoId }) => {
     await assert.rejects(() => prisma.$transaction((tx) => eliminarPedidoEnTx(tx, { transaccionId: pedidoId, estadoEsperado: "en_pedido", totalEsperadoUsd: 15 })), /cambió/);
     await assert.rejects(() => prisma.$transaction((tx) => eliminarPedidoEnTx(tx, { transaccionId: pedidoId, estadoEsperado: "por_cobrar", totalEsperadoUsd: 99 })), /cambió/);
+  });
+});
+
+test("editar un pedido con delivery gratis conserva el delivery y el descuento y recalcula el total", { skip: !integrationEnabled }, async () => {
+  await conPedido({ delivery: 4, descuentoDelivery: 4 }, async ({ prisma, pedidoId, productoId, editar }) => {
+    await editar({ lineas: [{ productoId, cantidad: 3, precioUnitarioUsd: 5, tipoPrecio: "detal" }] });
+    const pedido = await prisma.transaccion.findUniqueOrThrow({ where: { id: pedidoId } });
+    assert.equal(pedido.montoTotal, 15);
+    assert.equal(pedido.montoDelivery, 4);
+    assert.equal(pedido.montoDescuentoDelivery, 4);
   });
 });

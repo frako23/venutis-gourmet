@@ -141,6 +141,8 @@ model Transaccion {
   claveIdempotencia    String?                      @unique
   importada            Boolean                      @default(false)
   montoDescuentoPuntos Float                        @default(0)
+  // Delivery cubierto por un premio. Entre 0 y montoDelivery.
+  montoDescuentoDelivery Float                      @default(0)
   movimientosSaldo     MovimientoSaldo[]
   detalles             DetalleCompra[]
   fidelidades          Fidelidad[]
@@ -276,6 +278,7 @@ enum TipoMovimiento {
   devolucion
   reversion
   ajuste
+  bono
 }
 
 model Pago {
@@ -415,6 +418,7 @@ model MovimientoSaldo {
 enum TipoPremio {
   descuento
   producto
+  delivery
 }
 
 model Premio {
@@ -427,6 +431,8 @@ model Premio {
   productoId        Int?
   producto          Producto?   @relation(fields: [productoId], references: [id])
   cantidad          Int?
+  // null = sin compra mínima. Mayor que 0, 2 decimales.
+  compraMinimaUsd   Float?
   activo            Boolean     @default(true)
   movimientos       Fidelidad[]
 

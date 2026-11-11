@@ -13,7 +13,7 @@ export default async function RewardsPage() {
   const [premios, canjes, productos] = await Promise.all([
     prisma.premio.findMany({ orderBy: [{ activo: "desc" }, { costoPuntos: "asc" }], include: { producto: { select: { nombre: true } } } }),
     prisma.fidelidad.groupBy({ by: ["premioId"], where: { tipoMovimiento: "redencion", premioId: { not: null } }, _count: { _all: true } }),
-    prisma.producto.findMany({ orderBy: ORDEN_CATALOGO, select: { id: true, nombre: true } }),
+    prisma.producto.findMany({ orderBy: ORDEN_CATALOGO, select: { id: true, nombre: true, precioDetal: true } }),
   ]);
   const canjesPorPremio = new Map(canjes.map((fila) => [fila.premioId, fila._count._all]));
 
@@ -38,6 +38,7 @@ export default async function RewardsPage() {
             productoId: premio.productoId,
             productoNombre: premio.producto?.nombre ?? null,
             cantidad: premio.cantidad,
+            compraMinimaUsd: premio.compraMinimaUsd,
             activo: premio.activo,
             canjes: canjesPorPremio.get(premio.id) ?? 0,
           }))}

@@ -64,7 +64,7 @@ export const PaymentInformation = () => {
   const [recargaBeneficios, setRecargaBeneficios] = useState(0);
   const totalPedidoUSD = totalUSD + deliveryPrice;
   // Lo que aún se debe pagar después de los premios y el saldo a favor.
-  const finalTotalUSD = Math.max(0, Math.round((totalPedidoUSD - beneficios.descuentoPuntosUsd - beneficios.saldoAFavorUsd) * 100) / 100);
+  const finalTotalUSD = Math.max(0, Math.round((totalPedidoUSD - beneficios.descuentoPremiosUsd - beneficios.saldoAFavorUsd) * 100) / 100);
   const sinPago = finalTotalUSD <= 0;
 
   useEffect(() => {
@@ -199,7 +199,7 @@ export const PaymentInformation = () => {
         <h3 className="text-lg font-bold tracking-tight">Método de Pago</h3>
       </div>
 
-      <BeneficiosCliente key={recargaBeneficios} subtotalUsd={totalUSD} totalUsd={totalPedidoUSD} onChange={setBeneficios} />
+      <BeneficiosCliente key={recargaBeneficios} subtotalUsd={totalUSD} totalUsd={totalPedidoUSD} montoDeliveryUsd={deliveryMethod === "envio" ? deliveryPrice : 0} onChange={setBeneficios} />
 
       {sinPago ? (
         <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/10 text-sm">

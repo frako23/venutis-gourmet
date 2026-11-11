@@ -18,25 +18,27 @@ export async function canjearPremioEnPedido(
   const pedido = await tx.transaccion.findUnique({ where: { id: input.transaccionId }, include: { pagos: true } });
   if (!pedido) throw new Error("La venta no existe.");
   if (!puedeRecibirAbono(pedido.estado)) throw new Error("Solo se canjean premios en pedidos por cobrar o en pedido.");
+  const premio = await tx.premio.findUnique({ where: { id: input.premioId }, select: { nombre: true, costoPuntos: true, tipo: true } });
+  if (!premio) throw new Error("El premio seleccionado no existe.");
+  if (premio.tipo === "delivery" && pedido.montoDescuentoDelivery > 0) throw new Error("Este pedido ya tiene el delivery cubierto por un premio.");
 
   // Los pedidos antiguos pueden no tener subtotal guardado.
   const subtotalUsd = pedido.montoSubtotal > 0 ? pedido.montoSubtotal : Math.max(0, pedido.montoTotal - pedido.montoDelivery + pedido.montoDescuento);
-  const { descuentoPuntosUsd } = await canjearPremios(
+  const { descuentoPuntosUsd, descuentoDeliveryUsd } = await canjearPremios(
     tx,
-    { clienteId: pedido.clienteId, transaccionId: pedido.id, premioIds: [input.premioId], subtotalUsd, descuentoUsd: roundMoney(pedido.montoDescuento + pedido.montoDescuentoPuntos) },
+    { clienteId: pedido.clienteId, transaccionId: pedido.id, premioIds: [input.premioId], subtotalUsd, descuentoUsd: roundMoney(pedido.montoDescuento + pedido.montoDescuentoPuntos), montoDeliveryUsd: roundMoney(pedido.montoDelivery - pedido.montoDescuentoDelivery) },
     actor,
   );
 
-  const premio = await tx.premio.findUniqueOrThrow({ where: { id: input.premioId }, select: { nombre: true, costoPuntos: true } });
-  const totalUsd = roundMoney(pedido.montoTotal - descuentoPuntosUsd);
+  const totalUsd = roundMoney(pedido.montoTotal - descuentoPuntosUsd - descuentoDeliveryUsd);
   validarTotalContraAbonado(totalUsd, calcularAbonado(pedido.pagos));
   await tx.transaccion.update({
     where: { id: pedido.id },
-    data: { montoDescuentoPuntos: roundMoney(pedido.montoDescuentoPuntos + descuentoPuntosUsd), montoTotal: totalUsd },
+    data: { montoDescuentoPuntos: roundMoney(pedido.montoDescuentoPuntos + descuentoPuntosUsd), montoDescuentoDelivery: roundMoney(pedido.montoDescuentoDelivery + descuentoDeliveryUsd), montoTotal: totalUsd },
   });
 
   let estado: EstadoTransaccion = pedido.estado;
-  const salda = descuentoPuntosUsd > 0 && calcularSaldo({ estado: pedido.estado, montoTotal: totalUsd, pagos: pedido.pagos }) === 0;
+  const salda = descuentoPuntosUsd + descuentoDeliveryUsd > 0 && calcularSaldo({ estado: pedido.estado, montoTotal: totalUsd, pagos: pedido.pagos }) === 0;
   if (salda) {
     const actualizado = await tx.transaccion.updateMany({ where: { id: pedido.id, estado: pedido.estado }, data: { estado: "pagado" } });
     if (actualizado.count !== 1) throw new Error("El pedido cambió mientras lo editabas. Revisa su estado actual.");
